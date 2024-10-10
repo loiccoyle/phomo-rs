@@ -1,5 +1,5 @@
 extern crate image;
-use image::{ImageBuffer, Rgb};
+use image::{ImageBuffer, Rgb, RgbImage};
 
 /// Convert a 3 channel histogram into a 3 channel cumulative distribution function.
 fn histograms_to_cdfs(histograms: &[usize; 256 * 3]) -> [usize; 256 * 3] {
@@ -20,12 +20,12 @@ fn histograms_to_cdfs(histograms: &[usize; 256 * 3]) -> [usize; 256 * 3] {
 
 /// Match the mean and standard deviation of two images.
 fn match_palette_img(
-    img: &ImageBuffer<Rgb<u8>, Vec<u8>>,
+    img: &RgbImage,
     src_mean: &[f32; 3],
     tgt_mean: &[f32; 3],
     src_std: &[f32; 3],
     tgt_std: &[f32; 3],
-) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+) -> RgbImage {
     let mut matched_image = ImageBuffer::new(img.width(), img.height());
     for (pixel, matched_pixel) in img.pixels().zip(matched_image.pixels_mut()) {
         let matched = pixel
@@ -50,11 +50,7 @@ fn match_palette_img(
 }
 
 /// Equalize the color distribution of an image.
-fn equalize_img(
-    img: &ImageBuffer<Rgb<u8>, Vec<u8>>,
-    cdfs: &[usize; 256 * 3],
-    total_pixels: &usize,
-) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+fn equalize_img(img: &RgbImage, cdfs: &[usize; 256 * 3], total_pixels: &usize) -> RgbImage {
     let mut equalized = img.clone();
     for channel in 0..3 {
         // Normalize CDF
@@ -77,8 +73,8 @@ pub(crate) trait ColorMatch {
     fn equalize(&self) -> Self::Output;
 }
 
-impl ColorMatch for ImageBuffer<Rgb<u8>, Vec<u8>> {
-    type Output = ImageBuffer<Rgb<u8>, Vec<u8>>;
+impl ColorMatch for RgbImage {
+    type Output = RgbImage;
 
     fn mean(&self) -> [f32; 3] {
         let mut sum = [0.0; 3];
@@ -110,7 +106,7 @@ impl ColorMatch for ImageBuffer<Rgb<u8>, Vec<u8>> {
         sum_squared_diff
     }
 
-    fn match_palette(&self, other: &impl ColorMatch) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+    fn match_palette(&self, other: &impl ColorMatch) -> RgbImage {
         let src_mean = self.mean();
         let src_std = self.std(&src_mean);
         let tgt_mean = other.mean();
@@ -118,7 +114,7 @@ impl ColorMatch for ImageBuffer<Rgb<u8>, Vec<u8>> {
         match_palette_img(self, &src_mean, &tgt_mean, &src_std, &tgt_std)
     }
 
-    fn equalize(&self) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+    fn equalize(&self) -> RgbImage {
         // Three channels: R, G, B
         let mut histograms = [0; 256 * 3];
         for pixel in self.pixels() {
@@ -135,9 +131,9 @@ impl ColorMatch for ImageBuffer<Rgb<u8>, Vec<u8>> {
     }
 }
 
-// Implement ColorMatch for a slice of ImageBuffer<Rgb<u8>, Vec<u8>>
-impl<'a> ColorMatch for &'a [ImageBuffer<Rgb<u8>, Vec<u8>>] {
-    type Output = Vec<ImageBuffer<Rgb<u8>, Vec<u8>>>;
+// Implement ColorMatch for a slice of RgbImage
+impl<'a> ColorMatch for &'a [RgbImage] {
+    type Output = Vec<RgbImage>;
 
     fn mean(&self) -> [f32; 3] {
         let mut sum = [0.0; 3];
@@ -176,7 +172,7 @@ impl<'a> ColorMatch for &'a [ImageBuffer<Rgb<u8>, Vec<u8>>] {
         sum_squared_diff
     }
 
-    fn match_palette(&self, other: &impl ColorMatch) -> Vec<ImageBuffer<Rgb<u8>, Vec<u8>>> {
+    fn match_palette(&self, other: &impl ColorMatch) -> Vec<RgbImage> {
         let src_mean = self.mean();
         let src_std = self.std(&src_mean);
         let tgt_mean = other.mean();
@@ -189,7 +185,7 @@ impl<'a> ColorMatch for &'a [ImageBuffer<Rgb<u8>, Vec<u8>>] {
             .collect()
     }
 
-    fn equalize(&self) -> Vec<ImageBuffer<Rgb<u8>, Vec<u8>>> {
+    fn equalize(&self) -> Vec<RgbImage> {
         // Create a combined histogram for all images
         // Three channels: R, G, B
         let mut histograms = [0; 256 * 3];
@@ -223,11 +219,7 @@ mod tests {
         PathBuf::from_str("tests/data/").unwrap()
     }
 
-    fn generate_test_image(
-        width: u32,
-        height: u32,
-        color: [u8; 3],
-    ) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
+    fn generate_test_image(width: u32, height: u32, color: [u8; 3]) -> RgbImage {
         ImageBuffer::from_fn(width, height, |_x, _y| Rgb(color))
     }
 
