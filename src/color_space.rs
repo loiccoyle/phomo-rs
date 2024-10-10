@@ -5,12 +5,15 @@ use palette::{IntoColor, Oklab, Srgb};
 type Lab = Rgb<u8>;
 
 pub(crate) trait ToLab {
-    fn to_lab(&self) -> ImageBuffer<Lab, Vec<u8>>;
+    type Output;
+    fn to_lab(&self) -> Self::Output;
 }
 
 impl ToLab for ImageBuffer<Rgb<u8>, Vec<u8>> {
+    type Output = ImageBuffer<Lab, Vec<u8>>;
+
     /// Convert to [`Oklab`] color space but mapped to [0, 255].
-    fn to_lab(&self) -> ImageBuffer<Lab, Vec<u8>> {
+    fn to_lab(&self) -> Self::Output {
         // Create an iterator over the pixels and convert them to LAB
         let lab_pixels: Vec<Rgb<u8>> = self
             .pixels()
@@ -41,11 +44,23 @@ impl ToLab for ImageBuffer<Rgb<u8>, Vec<u8>> {
     }
 }
 
+impl ToLab for &[ImageBuffer<Rgb<u8>, Vec<u8>>] {
+    type Output = Vec<ImageBuffer<Lab, Vec<u8>>>;
+
+    fn to_lab(&self) -> Self::Output {
+        self.iter().map(|img| img.to_lab()).collect::<Vec<_>>()
+    }
+}
+
 pub(crate) trait ToRgb {
-    fn to_rgb(&self) -> ImageBuffer<Rgb<u8>, Vec<u8>>;
+    type Output;
+
+    fn to_rgb(&self) -> Self::Output;
 }
 
 impl ToRgb for ImageBuffer<Lab, Vec<u8>> {
+    type Output = ImageBuffer<Rgb<u8>, Vec<u8>>;
+
     fn to_rgb(&self) -> ImageBuffer<Rgb<u8>, Vec<u8>> {
         // Create an iterator over the LAB pixels and convert them back to RGB
         let rgb_pixels: Vec<Rgb<u8>> = self
@@ -73,6 +88,14 @@ impl ToRgb for ImageBuffer<Lab, Vec<u8>> {
         ImageBuffer::from_fn(self.width(), self.height(), |x, y| {
             rgb_pixels[(y * self.width() + x) as usize]
         })
+    }
+}
+
+impl ToRgb for &[ImageBuffer<Lab, Vec<u8>>] {
+    type Output = Vec<ImageBuffer<Rgb<u8>, Vec<u8>>>;
+
+    fn to_rgb(&self) -> Self::Output {
+        self.iter().map(|img| img.to_rgb()).collect::<Vec<_>>()
     }
 }
 
