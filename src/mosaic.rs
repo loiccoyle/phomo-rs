@@ -49,6 +49,16 @@ impl Mosaic {
             .into());
         }
 
+        if tiles.len() < grid_size.0 as usize * grid_size.1 as usize {
+            return Err(format!(
+                "Not enough tiles: {} for grid size: {}x{}",
+                tiles.len(),
+                grid_size.0,
+                grid_size.1
+            )
+            .into());
+        }
+
         Ok(Self {
             master,
             tiles,
@@ -71,13 +81,13 @@ mod tests {
     }
 
     fn test_tile_dir() -> PathBuf {
+        // tiles are 64x64
         test_dir().join("tiles/")
     }
 
     #[test]
     fn test_mosaic_creation_from_valid_data() {
-        let grid_size = (4, 4); // 4x4 grid
-                                // Create a mosaic from the master image and the tile directory
+        let grid_size = (4, 4);
         let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size);
         // Check if the mosaic was created successfully
         assert!(mosaic.is_ok());
@@ -86,13 +96,17 @@ mod tests {
         assert_eq!(mosaic.master.img.width(), 256);
         assert_eq!(mosaic.master.img.height(), 256);
         // Check that the number of tiles matches the number of grid cells
-        assert_eq!(mosaic.tiles.len(), 16);
+        assert!(mosaic.tiles.len() >= mosaic.master.cells.len());
+        // Make sure the tiles have the same size as the master cells
+        assert!(mosaic
+            .tiles
+            .iter()
+            .all(|tile| tile.dimensions() == mosaic.master.cell_size));
     }
 
     #[test]
     fn test_mosaic_creation_with_mismatched_tile_sizes() {
-        // 5x5 grid which will not work with a 256x256 master image and
-        // 64x64 tiles
+        // 5x5 grid which will not work with a 256x256 master image and 64x64 tiles
         let grid_size = (5, 5);
         // Attempt to create a mosaic and expect an error due to tile size mismatch
         let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size);
@@ -101,18 +115,29 @@ mod tests {
 
     #[test]
     fn test_invalid_master_file_path() {
-        let grid_size = (4, 4); // 4x4 grid
-                                // Attempt to create a mosaic with an invalid master file path
+        let grid_size = (4, 4);
         let mosaic = Mosaic::from_file_and_dir("invalid/master.png", test_tile_dir(), grid_size);
         assert!(mosaic.is_err());
     }
 
     #[test]
     fn test_invalid_tile_directory() {
-        // Create a valid master image
-        let grid_size = (4, 4); // 4x4 grid (each cell should be 64x64)
-                                // Attempt to create a mosaic with an invalid tile directory
+        let grid_size = (4, 4);
         let mosaic = Mosaic::from_file_and_dir(test_master_img(), "invalid/tile_dir", grid_size);
+        assert!(mosaic.is_err());
+    }
+
+    #[test]
+    fn test_not_enough_tiles() {
+        let master_img = image::open(test_master_img()).unwrap().to_rgb8();
+        // use a small master image a tile just for testing
+        let tiles = vec![image::imageops::resize(
+            &master_img,
+            64,
+            64,
+            image::imageops::FilterType::Nearest,
+        )];
+        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4));
         assert!(mosaic.is_err());
     }
 }
