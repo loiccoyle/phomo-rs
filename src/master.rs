@@ -151,6 +151,28 @@ mod tests {
     }
 
     #[test]
+    fn test_from_image_non_divisible() {
+        let test_dir = test_dir();
+        let image_path = test_dir.join("pfp.png");
+        let img = image::open(&image_path).unwrap().to_rgb8();
+        let grid_shape = (4, 4);
+
+        let img_resized =
+            image::imageops::resize(&img, 255, 255, image::imageops::FilterType::Lanczos3);
+
+        let master = Master::from_image(img_resized, grid_shape).unwrap();
+        // Assert that the image has been loaded
+        assert_eq!(master.img.width(), 252);
+        assert_eq!(master.img.height(), 252);
+
+        assert_eq!(master.regions.len(), 16);
+        for region in &master.regions {
+            assert_eq!(region.width(), 63);
+            assert_eq!(region.height(), 63);
+        }
+    }
+
+    #[test]
     fn test_construct_regions() {
         // Create a 256x256 test image
         let img = create_test_image(256, 256);
