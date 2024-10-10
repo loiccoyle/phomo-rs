@@ -646,6 +646,7 @@ name = "phomo-rs"
 version = "0.1.0"
 dependencies = [
  "image",
+ "log",
  "palette",
 ]
 

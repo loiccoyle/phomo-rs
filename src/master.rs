@@ -1,8 +1,11 @@
-use crate::error::Error;
 use std::path::Path;
 
 extern crate image;
+extern crate log;
 use image::{GenericImageView, RgbImage};
+use log::{debug, info};
+
+use crate::error::Error;
 
 pub struct Master {
     img: RgbImage,
@@ -18,20 +21,27 @@ impl Master {
             img_width % grid_width as u32,
             img_height % grid_height as u32,
         );
-        let (top_left_x, top_left_y) = (width_extra / 2, height_extra / 2);
 
-        let img_cropped = image::imageops::crop_imm(
-            &img,
-            top_left_x,
-            top_left_y,
-            img_width - width_extra,
-            img_height - height_extra,
-        );
-        let img = img_cropped.to_image();
+        let img = if width_extra > 0 || height_extra > 0 {
+            info!("Cropping image to fit grid shape");
+            let (top_left_x, top_left_y) = (width_extra / 2, height_extra / 2);
+            let img_cropped = image::imageops::crop_imm(
+                &img,
+                top_left_x,
+                top_left_y,
+                img_width - width_extra,
+                img_height - height_extra,
+            );
+            img_cropped.to_image()
+        } else {
+            img
+        };
+        debug!("Image dimensions: {}x{}", img.width(), img.height());
+
         let regions = Self::construct_regions(&img, grid_shape)?;
-
         Ok(Master { img, regions })
     }
+
     fn from_file<P: AsRef<Path>>(file: P, grid_shape: (usize, usize)) -> Result<Self, Error> {
         let img = image::open(file)?.to_rgb8();
         Self::from_image(img, grid_shape)
@@ -43,27 +53,31 @@ impl Master {
     ) -> Result<Vec<RgbImage>, Error> {
         let (grid_width, grid_height) = grid_shape;
         if img.width() % grid_width as u32 != 0 || img.height() % grid_height as u32 != 0 {
-            return Err("Invalid grid shape".into());
+            return Err(
+                "Invalid grid shape, the imge dimensions are not divisible by the grid shape"
+                    .into(),
+            );
         }
 
         let (cell_width, cell_height) = (
             img.width() / grid_width as u32,
             img.height() / grid_height as u32,
         );
+        info!("Grid Cell size: {}x{}", cell_width, cell_height);
 
-        let mut regions = Vec::with_capacity(grid_width * grid_height);
-
-        for y in 0..grid_height {
-            for x in 0..grid_width {
-                let region = img.view(
-                    x as u32 * cell_width,
-                    y as u32 * cell_height,
-                    cell_width,
-                    cell_height,
-                );
-                regions.push(region.to_image());
-            }
-        }
+        let regions = (0..grid_height)
+            .flat_map(|y| {
+                (0..grid_width).map(move |x| {
+                    img.view(
+                        x as u32 * cell_width,
+                        y as u32 * cell_height,
+                        cell_width,
+                        cell_height,
+                    )
+                    .to_image()
+                })
+            })
+            .collect();
         Ok(regions)
     }
 }
