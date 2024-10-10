@@ -7,23 +7,22 @@ use log::{debug, info};
 
 use crate::error::Error;
 
-pub struct Master {
-    img: RgbImage,
-    regions: Vec<RgbImage>,
+pub(crate) struct Master {
+    pub img: RgbImage,
+    pub cells: Vec<RgbImage>,
+    pub cell_size: (u32, u32),
 }
 
 impl Master {
-    fn from_image(img: RgbImage, grid_shape: (usize, usize)) -> Result<Self, Error> {
+    pub fn from_image(img: RgbImage, grid_size: (u32, u32)) -> Result<Self, Error> {
         let (img_width, img_height) = img.dimensions();
-        let (grid_width, grid_height) = grid_shape;
-
-        let (width_extra, height_extra) = (
-            img_width % grid_width as u32,
-            img_height % grid_height as u32,
-        );
+        // the number of cells in each dimension of the grid
+        let (grid_width, grid_height) = grid_size;
+        // How much is left over around the grid
+        let (width_extra, height_extra) = (img_width % grid_width, img_height % grid_height);
 
         let img = if width_extra > 0 || height_extra > 0 {
-            info!("Cropping image to fit grid shape");
+            info!("Cropping image to fit grid size");
             let (top_left_x, top_left_y) = (width_extra / 2, height_extra / 2);
             let img_cropped = image::imageops::crop_imm(
                 &img,
@@ -38,47 +37,43 @@ impl Master {
         };
         debug!("Image dimensions: {}x{}", img.width(), img.height());
 
-        let regions = Self::construct_regions(&img, grid_shape)?;
-        Ok(Master { img, regions })
+        let (cells, cell_size) = Self::construct_regions(&img, grid_size)?;
+        Ok(Master {
+            img,
+            cells,
+            cell_size,
+        })
     }
 
-    fn from_file<P: AsRef<Path>>(file: P, grid_shape: (usize, usize)) -> Result<Self, Error> {
+    pub fn from_file<P: AsRef<Path>>(file: P, grid_size: (u32, u32)) -> Result<Self, Error> {
         let img = image::open(file)?.to_rgb8();
-        Self::from_image(img, grid_shape)
+        Self::from_image(img, grid_size)
     }
 
     fn construct_regions(
         img: &RgbImage,
-        grid_shape: (usize, usize),
-    ) -> Result<Vec<RgbImage>, Error> {
-        let (grid_width, grid_height) = grid_shape;
-        if img.width() % grid_width as u32 != 0 || img.height() % grid_height as u32 != 0 {
+        grid_size: (u32, u32),
+    ) -> Result<(Vec<RgbImage>, (u32, u32)), Error> {
+        let (grid_width, grid_height) = grid_size;
+        if img.width() % grid_width != 0 || img.height() % grid_height != 0 {
             return Err(
                 "Invalid grid shape, the imge dimensions are not divisible by the grid shape"
                     .into(),
             );
         }
 
-        let (cell_width, cell_height) = (
-            img.width() / grid_width as u32,
-            img.height() / grid_height as u32,
-        );
+        let (cell_width, cell_height) = (img.width() / grid_width, img.height() / grid_height);
         info!("Grid Cell size: {}x{}", cell_width, cell_height);
 
-        let regions = (0..grid_height)
+        let cells = (0..grid_height)
             .flat_map(|y| {
                 (0..grid_width).map(move |x| {
-                    img.view(
-                        x as u32 * cell_width,
-                        y as u32 * cell_height,
-                        cell_width,
-                        cell_height,
-                    )
-                    .to_image()
+                    img.view(x * cell_width, y * cell_height, cell_width, cell_height)
+                        .to_image()
                 })
             })
             .collect();
-        Ok(regions)
+        Ok((cells, (cell_width, cell_height)))
     }
 }
 
@@ -101,6 +96,10 @@ mod tests {
     fn test_dir() -> PathBuf {
         PathBuf::from("tests/data/master")
     }
+    fn test_master_img() -> PathBuf {
+        // 256x256 image
+        test_dir().join("master.png")
+    }
 
     fn check_master(master: Master) {
         let test_dir = test_dir();
@@ -109,14 +108,14 @@ mod tests {
         assert_eq!(master.img.width(), 256);
         assert_eq!(master.img.height(), 256);
 
-        // Assert that the regions have been correctly divided
-        assert_eq!(master.regions.len(), 16);
-        for region in &master.regions {
+        // Assert that the cells have been correctly divided
+        assert_eq!(master.cells.len(), 16);
+        for region in &master.cells {
             assert_eq!(region.width(), 64);
             assert_eq!(region.height(), 64);
         }
 
-        for (i, cell) in master.regions.iter().enumerate() {
+        for (i, cell) in master.cells.iter().enumerate() {
             let expected_file = test_dir.join(format!("cells/{:02}.png", i));
             if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
                 cell.save(&expected_file).unwrap();
@@ -129,44 +128,40 @@ mod tests {
 
     #[test]
     fn test_from_image_buffer() {
-        let test_dir = test_dir();
-        let image_path = test_dir.join("pfp.png");
+        let image_path = test_master_img();
         let img = image::open(&image_path).unwrap().to_rgb8();
-        let grid_shape = (4, 4);
-        let master = Master::from_image(img, grid_shape).unwrap();
+        let grid_size = (4, 4);
+        let master = Master::from_image(img, grid_size).unwrap();
 
         check_master(master);
     }
 
     #[test]
     fn test_from_file_valid_image() {
-        // Path to a valid image file (replace with an actual image path for testing)
         // 256x256 image
-        let test_dir = test_dir();
-        let image_path = test_dir.join("pfp.png");
-        let grid_shape = (4, 4);
-        let master = Master::from_file(image_path, grid_shape).unwrap();
+        let image_path = test_master_img();
+        let grid_size = (4, 4);
+        let master = Master::from_file(image_path, grid_size).unwrap();
 
         check_master(master);
     }
 
     #[test]
     fn test_from_image_non_divisible() {
-        let test_dir = test_dir();
-        let image_path = test_dir.join("pfp.png");
+        let image_path = test_master_img();
         let img = image::open(&image_path).unwrap().to_rgb8();
-        let grid_shape = (4, 4);
+        let grid_size = (4, 4);
 
         let img_resized =
             image::imageops::resize(&img, 255, 255, image::imageops::FilterType::Lanczos3);
 
-        let master = Master::from_image(img_resized, grid_shape).unwrap();
+        let master = Master::from_image(img_resized, grid_size).unwrap();
         // Assert that the image has been loaded
         assert_eq!(master.img.width(), 252);
         assert_eq!(master.img.height(), 252);
 
-        assert_eq!(master.regions.len(), 16);
-        for region in &master.regions {
+        assert_eq!(master.cells.len(), 16);
+        for region in &master.cells {
             assert_eq!(region.width(), 63);
             assert_eq!(region.height(), 63);
         }
@@ -176,12 +171,12 @@ mod tests {
     fn test_construct_regions() {
         // Create a 256x256 test image
         let img = create_test_image(256, 256);
-        let grid_shape = (4, 4);
+        let grid_size = (4, 4);
 
-        let regions = Master::construct_regions(&img, grid_shape).unwrap();
-        // Assert that the regions have been divided correctly
-        assert_eq!(regions.len(), 16); // 4x4 grid
-        for region in &regions {
+        let (cells, cell_size) = Master::construct_regions(&img, grid_size).unwrap();
+        // Assert that the cells have been divided correctly
+        assert_eq!(cells.len(), 16); // 4x4 grid
+        for region in &cells {
             assert_eq!(region.width(), 64); // Each region should be 64x64
             assert_eq!(region.height(), 64);
         }
