@@ -1,11 +1,15 @@
 use std::path::Path;
+use std::time;
 
 extern crate image;
+extern crate log;
 extern crate pathfinding;
 use image::{GenericImage, RgbImage};
+use log::info;
 
 use crate::error::Error;
 use crate::master::Master;
+use crate::metrics::{Metric, NormL1};
 
 fn read_tiles_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, Error> {
     Ok(tile_dir
@@ -16,15 +20,6 @@ fn read_tiles_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, Err
             Err(_) => None,
         })
         .collect::<Vec<_>>())
-}
-
-fn distance(img1: &RgbImage, img2: &RgbImage) -> u64 {
-    // the l1 norm for now
-    img1.pixels().zip(img2.pixels()).fold(0, |sum, (p1, p2)| {
-        sum + (p1[0].abs_diff(p2[0]) as u64)
-            + (p1[1].abs_diff(p2[1]) as u64)
-            + (p1[2].abs_diff(p2[2]) as u64)
-    })
 }
 
 pub struct Mosaic {
@@ -40,6 +35,7 @@ impl Mosaic {
         grid_size: (u32, u32),
     ) -> Result<Self, Error> {
         let master_img = image::open(master_file)?.to_rgb8();
+        info!("Loading tiles");
         let tiles = read_tiles_from_dir(tile_dir)?;
 
         Self::from_images(master_img, tiles, grid_size)
@@ -79,29 +75,36 @@ impl Mosaic {
 
     /// Compute the (flat) distance matrix between the tiles and the master cells.
     /// The row index is the cell index and the column index is the tile index.
-    pub fn distance_matrix(&self) -> Vec<u64> {
-        // TODO: add parallelization
-        // TODO: add an implementation which runs on GPU
-        self.master
-            .cells
-            .iter()
-            .flat_map(|cell| self.tiles.iter().map(|tile| distance(tile, cell)))
-            .collect::<Vec<_>>()
+    pub fn distance_matrix(&self) -> Vec<i64> {
+        self.distance_matrix_with_metric(Box::new(NormL1))
     }
 
-    pub fn build(&self, distance_matrix: Vec<u64>) -> Result<RgbImage, Error> {
+    pub fn distance_matrix_with_metric(&self, metric: Box<dyn Metric>) -> Vec<i64> {
+        info!("Starting distance matrix computation...");
+        let start_time = time::Instant::now();
+        let d_matrix = self
+            .master
+            .cells
+            .iter()
+            .flat_map(|cell| self.tiles.iter().map(|tile| metric.compute(tile, cell)))
+            .collect::<Vec<_>>();
+        info!("Completed in {:?}", start_time.elapsed());
+        d_matrix
+    }
+
+    pub fn build(&self, distance_matrix: Vec<i64>) -> Result<RgbImage, Error> {
         // use the hungarian algorithm to find the best tile to cell assignments
         let weights = pathfinding::matrix::Matrix::from_vec(
             self.master.cells.len(),
             self.tiles.len(),
-            distance_matrix
-                .into_iter()
-                .map(Into::<i128>::into)
-                .collect(),
+            distance_matrix,
         )?;
         // the indice in assignments is the tile index
         // The value at the index is the index of the cell where is should be assigned
+        info!("Solving the assignment problem...");
+        let start_time = time::Instant::now();
         let (_, assignments) = pathfinding::kuhn_munkres::kuhn_munkres_min(&weights);
+        info!("Completed in {:?}", start_time.elapsed());
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
@@ -197,17 +200,6 @@ mod tests {
         )];
         let mosaic = Mosaic::from_images(master_img, tiles, (4, 4));
         assert!(mosaic.is_err());
-    }
-
-    #[test]
-    fn test_distance() {
-        let img1 = image::open(test_master_img()).unwrap().to_rgb8();
-        let img2 = img1.clone();
-        assert_eq!(distance(&img1, &img2), 0);
-
-        let img1 = image::ImageBuffer::from_pixel(64, 64, image::Rgb([0, 0, 0]));
-        let img2 = image::ImageBuffer::from_pixel(64, 64, image::Rgb([255, 255, 255]));
-        assert_eq!(distance(&img1, &img2), 64 * 64 * 255 * 3);
     }
 
     #[test]
