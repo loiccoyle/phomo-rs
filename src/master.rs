@@ -7,6 +7,7 @@ use log::{debug, info};
 
 use crate::color_space::{ToLab, ToRgb};
 use crate::error::Error;
+use crate::utils;
 
 pub struct Master {
     pub img: RgbImage,
@@ -24,14 +25,8 @@ impl Master {
 
         let img = if width_extra > 0 || height_extra > 0 {
             info!("Cropping image to fit grid size");
-            let (top_left_x, top_left_y) = (width_extra / 2, height_extra / 2);
-            let img_cropped = image::imageops::crop_imm(
-                &img,
-                top_left_x,
-                top_left_y,
-                img_width - width_extra,
-                img_height - height_extra,
-            );
+            let img_cropped =
+                utils::crop_imm_centered(&img, img_width - width_extra, img_height - height_extra);
             img_cropped.to_image()
         } else {
             img

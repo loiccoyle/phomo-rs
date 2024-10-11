@@ -4,6 +4,7 @@ mod error;
 mod master;
 mod metrics;
 mod mosaic;
+mod utils;
 
 pub use color_match::ColorMatch;
 pub use color_space::{ToLab, ToRgb};
