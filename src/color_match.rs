@@ -1,6 +1,9 @@
 extern crate image;
 use image::{ImageBuffer, Rgb, RgbImage};
 use palette::{IntoColor, Oklab, Srgb};
+use rayon::prelude::*;
+
+use crate::utils;
 
 /// Convert a 3 channel histogram into a 3 channel cumulative distribution function.
 fn histograms_to_cdfs(histograms: &[usize; 256 * 3]) -> [usize; 256 * 3] {
@@ -72,6 +75,8 @@ trait ToSrgb {
     fn to_srgb(&self) -> Self;
 }
 
+// the ToLab and ToSrgb traits shouldn't really be used by the user because the match methods
+// expect to start in srgb. So they are kept private.
 #[allow(private_bounds)]
 pub trait ColorMatch: ToLab + ToSrgb {
     /// Compute the mean color.
@@ -214,12 +219,16 @@ impl ColorMatch for RgbImage {
 
 impl ToSrgb for Vec<RgbImage> {
     fn to_srgb(&self) -> Vec<RgbImage> {
-        self.iter().map(|img| img.to_srgb()).collect::<Vec<_>>()
+        utils::iter_or_par_iter!(self)
+            .map(|img| img.to_srgb())
+            .collect::<Vec<_>>()
     }
 }
 impl ToLab for Vec<RgbImage> {
     fn to_lab(&self) -> Vec<RgbImage> {
-        self.iter().map(|img| img.to_lab()).collect::<Vec<_>>()
+        utils::iter_or_par_iter!(self)
+            .map(|img| img.to_lab())
+            .collect::<Vec<_>>()
     }
 }
 // Implement ColorMatch for a slice of RgbImage
