@@ -53,7 +53,8 @@ impl Master {
         let (grid_width, grid_height) = grid_size;
         if img.width() % grid_width != 0 || img.height() % grid_height != 0 {
             return Err(
-                "Invalid grid shape, the imge dimensions are not divisible by the grid shape"
+                format!("Invalid grid shape, the imge dimensions: {}x{} are not divisible by the grid shape: {}x{}", 
+                    img.width(), img.height(), grid_width, grid_height)
                     .into(),
             );
         }
