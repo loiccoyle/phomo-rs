@@ -2,7 +2,7 @@ mod color_match;
 mod color_space;
 mod error;
 mod master;
-mod metrics;
+pub mod metrics;
 mod mosaic;
 mod utils;
 
