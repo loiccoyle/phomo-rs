@@ -1,6 +1,12 @@
 mod color_match;
 mod color_space;
 mod error;
-pub mod master;
-pub mod metrics;
-pub mod mosaic;
+mod master;
+mod metrics;
+mod mosaic;
+
+pub use color_match::ColorMatch;
+pub use color_space::{ToLab, ToRgb};
+pub use master::Master;
+pub use metrics::{Metric, NormL1, NormL2};
+pub use mosaic::Mosaic;

@@ -64,7 +64,7 @@ fn equalize_img(img: &RgbImage, cdfs: &[usize; 256 * 3], total_pixels: &usize) -
     equalized
 }
 
-pub(crate) trait ColorMatch {
+pub trait ColorMatch {
     type Output;
 
     fn mean(&self) -> [f32; 3];
