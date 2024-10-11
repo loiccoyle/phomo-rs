@@ -11,6 +11,7 @@ use crate::master::Master;
 use crate::metrics::{Metric, NormL1};
 use crate::utils;
 
+#[derive(Debug, Clone)]
 pub struct Mosaic {
     master: Master,
     tiles: Vec<RgbImage>,

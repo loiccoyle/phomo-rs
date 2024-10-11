@@ -8,6 +8,7 @@ use crate::color_space::{ToLab, ToRgb};
 use crate::error::Error;
 use crate::utils;
 
+#[derive(Debug, Clone)]
 pub struct Master {
     pub img: RgbImage,
     pub cells: Vec<RgbImage>,
