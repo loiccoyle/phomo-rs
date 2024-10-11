@@ -4,7 +4,7 @@ use palette::{IntoColor, Oklab, Srgb};
 // used to distinguish the color space in the signatures
 pub(crate) type Lab = Rgb<u8>;
 
-pub(crate) trait ToLab {
+pub trait ToLab {
     type Output;
     fn to_lab(&self) -> Self::Output;
 }
@@ -52,7 +52,7 @@ impl ToLab for &[ImageBuffer<Rgb<u8>, Vec<u8>>] {
     }
 }
 
-pub(crate) trait ToRgb {
+pub trait ToRgb {
     type Output;
 
     fn to_rgb(&self) -> Self::Output;
