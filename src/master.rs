@@ -7,7 +7,7 @@ use log::{debug, info};
 
 use crate::error::Error;
 
-pub(crate) struct Master {
+pub struct Master {
     pub img: RgbImage,
     pub cells: Vec<RgbImage>,
     pub cell_size: (u32, u32),
@@ -173,7 +173,7 @@ mod tests {
         let img = create_test_image(256, 256);
         let grid_size = (4, 4);
 
-        let (cells, cell_size) = Master::construct_regions(&img, grid_size).unwrap();
+        let (cells, _) = Master::construct_regions(&img, grid_size).unwrap();
         // Assert that the cells have been divided correctly
         assert_eq!(cells.len(), 16); // 4x4 grid
         for region in &cells {
