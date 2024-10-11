@@ -6,24 +6,22 @@ pub(crate) type Lab = Rgb<u8>;
 
 pub trait ToLab {
     type Output;
+    /// Convert to [`Oklab`] color space but mapped to \[0, 255\].
     fn to_lab(&self) -> Self::Output;
 }
 
 impl ToLab for ImageBuffer<Rgb<u8>, Vec<u8>> {
     type Output = ImageBuffer<Lab, Vec<u8>>;
 
-    /// Convert to [`Oklab`] color space but mapped to [0, 255].
     fn to_lab(&self) -> Self::Output {
         // Create an iterator over the pixels and convert them to LAB
         let lab_pixels: Vec<Rgb<u8>> = self
             .pixels()
             .map(|pixel| {
                 // Convert from RGB<u8> to linear RGB
-                println!("{:?}", pixel);
                 let lab: Oklab = Srgb::from([pixel[0], pixel[1], pixel[2]])
                     .into_linear()
                     .into_color();
-                println!("{:?}", lab);
                 // Return LAB as Rgb<f32>
                 // L [0, 1]
                 // a [-0.5, 0.5]
@@ -54,7 +52,7 @@ impl ToLab for &[ImageBuffer<Rgb<u8>, Vec<u8>>] {
 
 pub trait ToRgb {
     type Output;
-
+    /// Convert to [`Srgb`] color space.
     fn to_rgb(&self) -> Self::Output;
 }
 
@@ -67,15 +65,12 @@ impl ToRgb for ImageBuffer<Lab, Vec<u8>> {
             .pixels()
             .map(|pixel| {
                 // Convert LAB to linear RGB
-                println!("{:?}", pixel);
                 let lab = Oklab::new(
                     pixel[0] as f32 / 255.,
                     pixel[1] as f32 / 255. - 0.5,
                     pixel[2] as f32 / 255. - 0.5,
                 );
-                println!("{:?}", lab);
                 let srgb: Srgb = Srgb::from_linear(lab.into_color());
-                println!("{:?}", srgb);
                 Rgb([
                     (srgb.red * 255.).round() as u8,
                     (srgb.green * 255.).round() as u8,
