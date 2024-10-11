@@ -8,3 +8,8 @@ image = "0.25.2"
 log = "0.4.22"
 palette = "0.7.6"
 pathfinding = "4.11.0"
+rayon = { optional = true, version = "1.10.0" }
+
+[features]
+default = ["parallel"]
+parallel = ["rayon"]

@@ -684,6 +684,7 @@ dependencies = [
  "log",
  "palette",
  "pathfinding",
+ "rayon",
 ]
 
 [[package]]

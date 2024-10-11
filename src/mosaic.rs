@@ -5,6 +5,8 @@ extern crate image;
 extern crate pathfinding;
 use image::{GenericImage, RgbImage};
 use log::info;
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
 use crate::error::Error;
 use crate::master::Master;
@@ -80,12 +82,12 @@ impl Mosaic {
     pub fn distance_matrix_with_metric(&self, metric: Box<dyn Metric>) -> Vec<i64> {
         info!("Starting distance matrix computation...");
         let start_time = time::Instant::now();
-        let d_matrix = self
-            .master
-            .cells
-            .iter()
-            .flat_map(|cell| self.tiles.iter().map(|tile| metric.compute(tile, cell)))
-            .collect::<Vec<_>>();
+
+        let d_matrix = utils::iter_or_par_iter!(self.master.cells)
+            .flat_map(|cell| {
+                utils::iter_or_par_iter!(self.tiles).map(|tile| metric.compute(tile, cell))
+            })
+            .collect();
         info!("Completed in {:?}", start_time.elapsed());
         d_matrix
     }

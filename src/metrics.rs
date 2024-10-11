@@ -27,7 +27,7 @@ use image::RgbImage;
 /// let norm = MyMetric.compute(&img1, &img2);
 /// assert_eq!(norm, 3*2*2);
 /// ```
-pub trait Metric {
+pub trait Metric: Sync {
     fn compute(&self, img1: &image::RgbImage, img2: &image::RgbImage) -> i64;
 }
 
