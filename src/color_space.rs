@@ -2,7 +2,7 @@ use image::{ImageBuffer, Rgb};
 use palette::{IntoColor, Oklab, Srgb};
 
 // used to distinguish the color space in the signatures
-type Lab = Rgb<u8>;
+pub(crate) type Lab = Rgb<u8>;
 
 pub(crate) trait ToLab {
     type Output;
