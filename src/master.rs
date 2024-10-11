@@ -1,7 +1,6 @@
 use std::path::Path;
 
 extern crate image;
-extern crate log;
 use image::{GenericImageView, RgbImage};
 use log::{debug, info};
 

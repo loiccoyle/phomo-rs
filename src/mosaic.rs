@@ -2,7 +2,6 @@ use std::path::Path;
 use std::time;
 
 extern crate image;
-extern crate log;
 extern crate pathfinding;
 use image::{GenericImage, RgbImage};
 use log::info;
