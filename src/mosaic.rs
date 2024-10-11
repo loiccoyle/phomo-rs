@@ -10,17 +10,7 @@ use log::info;
 use crate::error::Error;
 use crate::master::Master;
 use crate::metrics::{Metric, NormL1};
-
-fn read_tiles_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, Error> {
-    Ok(tile_dir
-        .as_ref()
-        .read_dir()?
-        .filter_map(|path| match path {
-            Ok(p) => image::open(p.path()).map(|img| img.to_rgb8()).ok(),
-            Err(_) => None,
-        })
-        .collect::<Vec<_>>())
-}
+use crate::utils;
 
 pub struct Mosaic {
     master: Master,
@@ -36,7 +26,7 @@ impl Mosaic {
     ) -> Result<Self, Error> {
         let master_img = image::open(master_file)?.to_rgb8();
         info!("Loading tiles");
-        let tiles = read_tiles_from_dir(tile_dir)?;
+        let tiles = utils::read_images_from_dir(tile_dir)?;
 
         Self::from_images(master_img, tiles, grid_size)
     }
@@ -205,7 +195,7 @@ mod tests {
     #[test]
     fn test_distance_matrix() {
         let master_img = image::open(test_master_img()).unwrap().to_rgb8();
-        let tiles = read_tiles_from_dir(test_tile_dir()).unwrap();
+        let tiles = utils::read_images_from_dir(test_tile_dir()).unwrap();
         let mosaic = Mosaic::from_images(master_img, tiles, (4, 4)).unwrap();
         let distance_matrix = mosaic.distance_matrix();
         assert_eq!(
@@ -223,7 +213,7 @@ mod tests {
             image::imageops::FilterType::Nearest,
         );
 
-        let tiles_imgs = read_tiles_from_dir(test_faces_dir()).unwrap();
+        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
         let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
         assert!(result.is_ok());
         let mosaic = result.unwrap();
