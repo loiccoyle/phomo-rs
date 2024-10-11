@@ -2,6 +2,7 @@ use std::path::Path;
 
 extern crate image;
 use image::{GenericImageView, RgbImage, SubImage};
+use log::warn;
 
 use crate::error::Error;
 
@@ -24,9 +25,18 @@ pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>
     Ok(tile_dir
         .as_ref()
         .read_dir()?
-        .filter_map(|path| match path {
-            Ok(p) => image::open(p.path()).map(|img| img.to_rgb8()).ok(),
-            Err(_) => None,
+        .filter_map(|entry| match entry {
+            Ok(p) => match image::open(p.path()) {
+                Ok(img) => Some(img.to_rgb8()),
+                Err(e) => {
+                    warn!("Failed to open image at path {:?}: {:?}", p.path(), e);
+                    None
+                }
+            },
+            Err(e) => {
+                warn!("Failed to read directory entry: {:?}", e);
+                None
+            }
         })
         .collect::<Vec<_>>())
 }
