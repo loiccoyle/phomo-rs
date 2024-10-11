@@ -1,6 +1,8 @@
 use std::path::Path;
 
-use image::RgbImage;
+extern crate image;
+extern crate pathfinding;
+use image::{GenericImage, RgbImage};
 
 use crate::error::Error;
 use crate::master::Master;
@@ -14,6 +16,15 @@ fn read_tiles_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, Err
             Err(_) => None,
         })
         .collect::<Vec<_>>())
+}
+
+fn distance(img1: &RgbImage, img2: &RgbImage) -> u64 {
+    // the l1 norm for now
+    img1.pixels().zip(img2.pixels()).fold(0, |sum, (p1, p2)| {
+        sum + (p1[0].abs_diff(p2[0]) as u64)
+            + (p1[1].abs_diff(p2[1]) as u64)
+            + (p1[2].abs_diff(p2[2]) as u64)
+    })
 }
 
 pub struct Mosaic {
@@ -65,6 +76,48 @@ impl Mosaic {
             grid_size,
         })
     }
+
+    /// Compute the (flat) distance matrix between the tiles and the master cells.
+    /// The row index is the cell index and the column index is the tile index.
+    pub fn distance_matrix(&self) -> Vec<u64> {
+        // TODO: add parallelization
+        // TODO: add an implementation which runs on GPU
+        self.master
+            .cells
+            .iter()
+            .flat_map(|cell| self.tiles.iter().map(|tile| distance(tile, cell)))
+            .collect::<Vec<_>>()
+    }
+
+    pub fn build(&self, distance_matrix: Vec<u64>) -> Result<RgbImage, Error> {
+        // use the hungarian algorithm to find the best tile to cell assignments
+        let weights = pathfinding::matrix::Matrix::from_vec(
+            self.master.cells.len(),
+            self.tiles.len(),
+            distance_matrix
+                .into_iter()
+                .map(Into::<i128>::into)
+                .collect(),
+        )?;
+        // the indice in assignments is the tile index
+        // The value at the index is the index of the cell where is should be assigned
+        let (_, assignments) = pathfinding::kuhn_munkres::kuhn_munkres_min(&weights);
+
+        let (grid_width, grid_height) = self.grid_size;
+        let (cell_width, cell_height) = self.master.cell_size;
+
+        let mut mosaic_img = RgbImage::new(self.master.img.width(), self.master.img.height());
+        for (cell_idx, tile_idx) in assignments.into_iter().enumerate() {
+            // let cell = self.master.cells.get(*cell_idx).unwrap();
+            let tile = self.tiles.get(tile_idx).unwrap();
+            mosaic_img.copy_from(
+                tile,
+                (cell_idx as u32 % grid_width) * cell_width,
+                (cell_idx as u32 / grid_height) * cell_height,
+            )?;
+        }
+        Ok(mosaic_img)
+    }
 }
 
 #[cfg(test)]
@@ -83,6 +136,11 @@ mod tests {
     fn test_tile_dir() -> PathBuf {
         // tiles are 64x64
         test_dir().join("tiles/")
+    }
+
+    fn test_faces_dir() -> PathBuf {
+        // from the UTKfaces dataset 1000 20x20 images of faces
+        test_dir().join("faces/")
     }
 
     #[test]
@@ -139,5 +197,58 @@ mod tests {
         )];
         let mosaic = Mosaic::from_images(master_img, tiles, (4, 4));
         assert!(mosaic.is_err());
+    }
+
+    #[test]
+    fn test_distance() {
+        let img1 = image::open(test_master_img()).unwrap().to_rgb8();
+        let img2 = img1.clone();
+        assert_eq!(distance(&img1, &img2), 0);
+
+        let img1 = image::ImageBuffer::from_pixel(64, 64, image::Rgb([0, 0, 0]));
+        let img2 = image::ImageBuffer::from_pixel(64, 64, image::Rgb([255, 255, 255]));
+        assert_eq!(distance(&img1, &img2), 64 * 64 * 255 * 3);
+    }
+
+    #[test]
+    fn test_distance_matrix() {
+        let master_img = image::open(test_master_img()).unwrap().to_rgb8();
+        let tiles = read_tiles_from_dir(test_tile_dir()).unwrap();
+        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4)).unwrap();
+        let distance_matrix = mosaic.distance_matrix();
+        assert_eq!(
+            distance_matrix.len(),
+            mosaic.master.cells.len() * mosaic.tiles.len()
+        );
+    }
+
+    #[test]
+    fn test_mosaic_build() {
+        let master_img = image::imageops::resize(
+            &image::open(test_master_img()).unwrap().to_rgb8(),
+            240,
+            240,
+            image::imageops::FilterType::Nearest,
+        );
+
+        let tiles_imgs = read_tiles_from_dir(test_faces_dir()).unwrap();
+        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
+        assert!(result.is_ok());
+        let mosaic = result.unwrap();
+
+        assert_eq!(mosaic.master.cells.len(), 144);
+        let d_matrix = mosaic.distance_matrix();
+        let result = mosaic.build(d_matrix);
+        assert!(result.is_ok());
+        let mosaic_img = result.unwrap();
+        assert_eq!(mosaic_img.width(), 240);
+        assert_eq!(mosaic_img.height(), 240);
+
+        let expected_path = test_dir().join("mosaic.png");
+        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
+            mosaic_img.save(&expected_path).unwrap();
+        }
+        let expected_img = image::open(expected_path).unwrap().to_rgb8();
+        assert_eq!(expected_img, mosaic_img);
     }
 }
