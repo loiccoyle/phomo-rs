@@ -1,5 +1,5 @@
 [package]
-name = "phomo-rs"
+name = "phomo"
 version = "0.1.0"
 edition = "2021"
 

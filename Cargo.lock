@@ -677,7 +677,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "phomo-rs"
+name = "phomo"
 version = "0.1.0"
 dependencies = [
  "image",

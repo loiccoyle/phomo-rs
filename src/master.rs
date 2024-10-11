@@ -4,7 +4,6 @@ extern crate image;
 use image::{GenericImageView, RgbImage};
 use log::{debug, info};
 
-use crate::color_space::{ToLab, ToRgb};
 use crate::error::Error;
 use crate::utils;
 
@@ -71,28 +70,6 @@ impl Master {
             })
             .collect();
         Ok((cells, (cell_width, cell_height)))
-    }
-}
-
-impl ToLab for Master {
-    type Output = Master;
-    fn to_lab(&self) -> Master {
-        Master {
-            img: self.img.to_lab(),
-            cells: self.cells.as_slice().to_lab(),
-            cell_size: self.cell_size,
-        }
-    }
-}
-
-impl ToRgb for Master {
-    type Output = Master;
-    fn to_rgb(&self) -> Master {
-        Master {
-            img: self.img.to_rgb(),
-            cells: self.cells.as_slice().to_rgb(),
-            cell_size: self.cell_size,
-        }
     }
 }
 

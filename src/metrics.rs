@@ -9,7 +9,7 @@ use image::RgbImage;
 ///
 /// To use a custom metric, implement the `Metric` trait:
 /// ```rust
-/// use phomo_rs::metrics::Metric;
+/// use phomo::metrics::Metric;
 ///
 /// /// L0 norm.
 /// struct MyMetric;
@@ -36,7 +36,7 @@ pub trait Metric: Sync {
 /// # Examples
 ///
 /// ```rust
-/// use phomo_rs::metrics::{NormL1, Metric};
+/// use phomo::metrics::{NormL1, Metric};
 /// use image;
 ///
 /// let img1 = image::ImageBuffer::from_pixel(2, 2, image::Rgb([0, 0, 0]));
@@ -60,7 +60,7 @@ impl Metric for NormL1 {
 /// # Examples
 ///
 /// ```rust
-/// use phomo_rs::metrics::{NormL2, Metric};
+/// use phomo::metrics::{NormL2, Metric};
 /// use image;
 ///
 /// let img1 = image::ImageBuffer::from_pixel(2, 2, image::Rgb([0, 0, 0]));

@@ -15,8 +15,8 @@ use crate::utils;
 
 #[derive(Debug, Clone)]
 pub struct Mosaic {
-    master: Master,
-    tiles: Vec<RgbImage>,
+    pub master: Master,
+    pub tiles: Vec<RgbImage>,
     grid_size: (u32, u32),
 }
 
