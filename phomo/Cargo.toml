@@ -1,0 +1,20 @@
+[package]
+repository.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+name = "phomo"
+version = "0.1.0"
+
+[dependencies]
+image = { workspace = true }
+log = { workspace = true }
+
+palette = "0.7.6"
+pathfinding = "4.11.0"
+rayon = { optional = true, version = "1.10.0" }
+
+[features]
+default = ["parallel"]
+parallel = ["rayon"]

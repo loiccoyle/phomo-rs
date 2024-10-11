@@ -1,3 +1,4 @@
+#![doc =include_str!("../README.md")]
 mod color_match;
 mod error;
 mod master;
