@@ -68,13 +68,13 @@ fn build_mosaic_equalized() {
     let tile_dir = tile_dir();
     let master_file = master_file();
 
-    let tile_imgs =
+    let mut tile_imgs =
         read_images_from_dir_resized(tile_dir, 32, 32, image::imageops::FilterType::Nearest)
             .unwrap();
-    let master_img = image::open(master_file).unwrap().to_rgb8();
+    let mut master_img = image::open(master_file).unwrap().to_rgb8();
 
-    let tile_imgs = tile_imgs.equalize();
-    let master_img = master_img.equalize();
+    tile_imgs = tile_imgs.equalize();
+    master_img = master_img.equalize();
 
     let result = Mosaic::from_images(master_img, tile_imgs, (8, 8));
     assert!(result.is_ok());
@@ -97,12 +97,12 @@ fn build_mosaic_match_tiles_to_master() {
     let tile_dir = tile_dir();
     let master_file = master_file();
 
-    let tile_imgs =
+    let mut tile_imgs =
         read_images_from_dir_resized(tile_dir, 32, 32, image::imageops::FilterType::Nearest)
             .unwrap();
     let master_img = image::open(master_file).unwrap().to_rgb8();
 
-    let tile_imgs = tile_imgs.match_palette(&master_img);
+    tile_imgs = tile_imgs.match_palette(&master_img);
 
     let result = Mosaic::from_images(master_img, tile_imgs, (8, 8));
     assert!(result.is_ok());
@@ -131,9 +131,9 @@ fn build_mosaic_match_master_to_tiles() {
     let tile_imgs =
         read_images_from_dir_resized(tile_dir, 32, 32, image::imageops::FilterType::Nearest)
             .unwrap();
-    let master_img = image::open(master_file).unwrap().to_rgb8();
+    let mut master_img = image::open(master_file).unwrap().to_rgb8();
 
-    let master_img = master_img.match_palette(&tile_imgs);
+    master_img = master_img.match_palette(&tile_imgs);
     let expected = open_expected(&master_img, test_dir().join("master_matched_to_faces.png"));
     assert_eq!(master_img, expected);
 
