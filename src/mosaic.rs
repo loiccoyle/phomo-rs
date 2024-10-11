@@ -63,12 +63,20 @@ impl Mosaic {
         })
     }
 
-    /// Compute the (flat) distance matrix between the tiles and the master cells.
+    /// Compute the (flat) distance matrix between the tiles and the master cells, using the
+    /// [`NormL1`] metric
+    ///
+    /// To use a different distance metric, use the [`Mosaic::distance_matrix_with_metric`] method.
+    ///
     /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix(&self) -> Vec<i64> {
         self.distance_matrix_with_metric(Box::new(NormL1))
     }
 
+    /// Compute the (flat) distance matrix between the tiles and the master cells using the provided
+    /// `metric` which should implement the [`Metric`] trait
+    ///
+    /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix_with_metric(&self, metric: Box<dyn Metric>) -> Vec<i64> {
         info!("Starting distance matrix computation...");
         let start_time = time::Instant::now();
@@ -82,6 +90,8 @@ impl Mosaic {
         d_matrix
     }
 
+    /// Compute the tile to material cell assignments using the
+    /// [pathfinding::kuhn_munkres](pathfinding::kuhn_munkres::kuhn_munkres_min) algorithm.
     pub fn build(&self, distance_matrix: Vec<i64>) -> Result<RgbImage, Error> {
         // use the hungarian algorithm to find the best tile to cell assignments
         let weights = pathfinding::matrix::Matrix::from_vec(
