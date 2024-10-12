@@ -5,7 +5,7 @@ use clap::Parser;
 use clap_verbosity_flag::Verbosity;
 
 #[derive(Debug, Clone)]
-pub(crate) struct TwoNumbers(pub u32, pub u32);
+pub struct TwoNumbers(pub u32, pub u32);
 
 impl FromStr for TwoNumbers {
     type Err = String;
