@@ -1,8 +1,23 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{fmt::Display, path::PathBuf, str::FromStr};
 
 extern crate clap;
 use clap::Parser;
 use clap_verbosity_flag::Verbosity;
+
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub(crate) enum Metric {
+    NormL1,
+    NormL2,
+}
+
+impl Display for Metric {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Metric::NormL1 => write!(f, "norm-l1"),
+            Metric::NormL2 => write!(f, "norm-l2"),
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct TwoNumbers(pub u32, pub u32);
@@ -40,39 +55,43 @@ impl FromStr for TwoNumbers {
         .required(false)
         .args(&["crop_tiles", "resize_tiles"]),
 ))]
-pub struct Arguments {
+pub(crate) struct Arguments {
     /// Master image.
     #[arg(value_hint=clap::ValueHint::FilePath)]
-    pub master_file: PathBuf,
+    pub(crate) master_file: PathBuf,
     /// Tile directory.
     #[arg(value_hint=clap::ValueHint::DirPath)]
-    pub tile_dir: PathBuf,
+    pub(crate) tile_dir: PathBuf,
     /// Output mosaic file.
     #[arg(value_hint=clap::ValueHint::FilePath)]
-    pub output: PathBuf,
+    pub(crate) output: PathBuf,
 
     /// Grid size, the number of tiles along the width and height.
     ///
     /// If not provided, the grid size will be set to a sane value depending on the number of tiles images.
     #[arg(short = 'g', long, value_name = "WIDTH,HEIGHT")]
-    pub grid_size: Option<TwoNumbers>,
+    pub(crate) grid_size: Option<TwoNumbers>,
     /// Crop tiles to grid cell size.
     #[arg(long)]
-    pub crop_tiles: bool,
+    pub(crate) crop_tiles: bool,
     /// Resize tiles to grid cell size.
     #[arg(long)]
-    pub resize_tiles: bool,
+    pub(crate) resize_tiles: bool,
 
     /// Equalize the master and tile image color distributions.
     #[arg(long)]
-    pub equalize: bool,
+    pub(crate) equalize: bool,
     /// Transfer the color palette of the master image to the tile images.
     #[arg(long)]
-    pub transfer_master_to_tiles: bool,
+    pub(crate) transfer_master_to_tiles: bool,
     /// Transfer the color palette of the tile images to the master image.
     #[arg(long)]
-    pub transfer_tiles_to_master: bool,
+    pub(crate) transfer_tiles_to_master: bool,
+
+    /// The distance metric to use.
+    #[arg(long, default_value_t = Metric::NormL1)]
+    pub(crate) metric: Metric,
 
     #[command(flatten)]
-    pub verbose: Verbosity,
+    pub(crate) verbose: Verbosity,
 }

@@ -101,8 +101,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mosaic = Mosaic::from_images(master_img, tile_imgs, (grid_width, grid_height))
         .map_err(|e| format!("Failed to create mosaic: {}", e))?;
 
+    let metric = match args.metric {
+        cli::Metric::NormL1 => phomo::metrics::norm_l1,
+        cli::Metric::NormL2 => phomo::metrics::norm_l2,
+    };
     // Compute the distance matrix
-    let d_matrix = mosaic.distance_matrix();
+    let d_matrix = mosaic.distance_matrix_with_metric(metric);
 
     // Build the mosaic image
     let mosaic_img = mosaic

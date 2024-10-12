@@ -20,6 +20,7 @@ set edit:completion:arg-completer[phomo] = {|@words|
         &'phomo'= {
             cand -g 'Grid size, the number of tiles along the width and height'
             cand --grid-size 'Grid size, the number of tiles along the width and height'
+            cand --metric 'The distance metric to use'
             cand --crop-tiles 'Crop tiles to grid cell size'
             cand --resize-tiles 'Resize tiles to grid cell size'
             cand --equalize 'Equalize the master and tile image color distributions'

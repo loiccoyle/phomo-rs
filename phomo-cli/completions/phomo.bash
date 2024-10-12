@@ -19,7 +19,7 @@ _phomo() {
 
     case "${cmd}" in
         phomo)
-            opts="-g -v -q -h -V --grid-size --crop-tiles --resize-tiles --equalize --transfer-master-to-tiles --transfer-tiles-to-master --verbose --quiet --help --version <MASTER_FILE> <TILE_DIR> <OUTPUT>"
+            opts="-g -v -q -h -V --grid-size --crop-tiles --resize-tiles --equalize --transfer-master-to-tiles --transfer-tiles-to-master --metric --verbose --quiet --help --version <MASTER_FILE> <TILE_DIR> <OUTPUT>"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -31,6 +31,10 @@ _phomo() {
                     ;;
                 -g)
                     COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --metric)
+                    COMPREPLY=($(compgen -W "norm-l1 norm-l2" -- "${cur}"))
                     return 0
                     ;;
                 *)
