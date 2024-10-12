@@ -71,18 +71,6 @@ fn build_mosaic_resized() {
 }
 
 #[test]
-fn build_mosaic_wrong_tile_size() {
-    let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
-
-    let mut cmd = assert_cmd::Command::cargo_bin("phomo").unwrap();
-    cmd.arg(master_img_file().to_str().unwrap());
-    cmd.arg(tile_dir().to_str().unwrap());
-    cmd.arg(output_file.path().to_str().unwrap());
-
-    cmd.assert().failure();
-}
-
-#[test]
 fn build_mosaic_equalized() {
     let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
     let expected_file = test_data_dir().join("mosaic_equalized.png");
@@ -159,6 +147,18 @@ fn build_mosaic_bad_grid_size() {
     cmd.arg(tile_dir().to_str().unwrap());
     cmd.arg(output_file.path().to_str().unwrap());
     cmd.arg("-g 100,100");
+
+    cmd.assert().failure();
+}
+
+#[test]
+fn build_mosaic_wrong_tile_size() {
+    let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
+
+    let mut cmd = assert_cmd::Command::cargo_bin("phomo").unwrap();
+    cmd.arg(master_img_file().to_str().unwrap());
+    cmd.arg(tile_dir().to_str().unwrap());
+    cmd.arg(output_file.path().to_str().unwrap());
 
     cmd.assert().failure();
 }
