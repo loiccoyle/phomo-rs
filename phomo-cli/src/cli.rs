@@ -32,12 +32,12 @@ impl FromStr for TwoNumbers {
 #[command(version, author = "Loic Coyle")]
 #[command(group(
     clap::ArgGroup::new("transfer")
-        .required(false)  // Set to `true` if you want one flag to be mandatory
+        .required(false)
         .args(&["transfer_tiles_to_master", "transfer_master_to_tiles"]),
 ))]
 #[command(group(
     clap::ArgGroup::new("tile_resize")
-        .required(false)  // Set to `true` if you want one flag to be mandatory
+        .required(false)
         .args(&["crop_tiles", "resize_tiles"]),
 ))]
 pub struct Arguments {
