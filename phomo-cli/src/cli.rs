@@ -1,6 +1,6 @@
-extern crate clap;
 use std::{path::PathBuf, str::FromStr};
 
+extern crate clap;
 use clap::Parser;
 use clap_verbosity_flag::Verbosity;
 
