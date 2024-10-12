@@ -30,7 +30,6 @@ impl FromStr for TwoNumbers {
 
 #[derive(Parser, Debug)]
 #[command(version, author = "Loic Coyle")]
-#[clap(author = "Loic Coyle")]
 #[command(group(
     clap::ArgGroup::new("transfer")
         .required(false)  // Set to `true` if you want one flag to be mandatory
