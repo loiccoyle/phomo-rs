@@ -414,7 +414,7 @@ mod tests {
     fn test_equalize_with_real_image() {
         // Load the source and target images
         let test_dir = test_dir().join("match");
-        let img = open(test_dir.join("target.jpg")).unwrap().to_rgb8();
+        let img = open(test_dir.join("target.png")).unwrap().to_rgb8();
         let img_equalized = img.equalize();
 
         if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
