@@ -15,7 +15,7 @@ use rayon::prelude::*;
 use crate::error::Error;
 use crate::macros;
 use crate::master::Master;
-use crate::metrics::{Metric, NormL1};
+use crate::metrics::{norm_l1, MetricFn};
 use crate::utils;
 
 #[derive(Debug, Clone)]
@@ -77,14 +77,14 @@ impl Mosaic {
     ///
     /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix(&self) -> Vec<i64> {
-        self.distance_matrix_with_metric(Box::new(NormL1))
+        self.distance_matrix_with_metric(norm_l1)
     }
 
     /// Compute the (flat) distance matrix between the tiles and the master cells using the provided
     /// `metric` which should implement the [`Metric`] trait
     ///
     /// The row index is the cell index and the column index is the tile index.
-    pub fn distance_matrix_with_metric(&self, metric: Box<dyn Metric>) -> Vec<i64> {
+    pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> Vec<i64> {
         info!("Starting distance matrix computation...");
         let start_time = time::Instant::now();
 
@@ -93,9 +93,7 @@ impl Mosaic {
             "Computing distance matrix",
             par
         )
-        .flat_map(|cell| {
-            macros::iter_or_par_iter!(self.tiles).map(|tile| metric.compute(tile, cell))
-        })
+        .flat_map(|cell| macros::iter_or_par_iter!(self.tiles).map(|tile| metric(tile, cell)))
         .collect();
         info!("Completed in {:?}", start_time.elapsed());
         d_matrix
