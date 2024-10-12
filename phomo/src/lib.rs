@@ -1,6 +1,7 @@
 #![doc =include_str!("../README.md")]
 mod color_match;
 mod error;
+mod macros;
 mod master;
 pub mod metrics;
 mod mosaic;

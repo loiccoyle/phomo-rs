@@ -14,7 +14,9 @@ log = { workspace = true }
 palette = "0.7.6"
 pathfinding = "4.11.0"
 rayon = { optional = true, version = "1.10.0" }
+indicatif = { optional = true, version = "0.17.8" }
 
 [features]
 default = ["parallel"]
-parallel = ["rayon"]
+parallel = ["rayon", "indicatif?/rayon"]
+progress_bar = ["indicatif"]

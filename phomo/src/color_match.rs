@@ -1,9 +1,10 @@
 extern crate image;
 use image::{ImageBuffer, Rgb, RgbImage};
 use palette::{IntoColor, Oklab, Srgb};
+#[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-use crate::utils;
+use crate::macros;
 
 /// Convert a 3 channel histogram into a 3 channel cumulative distribution function.
 fn histograms_to_cdfs(histograms: &[usize; 256 * 3]) -> [usize; 256 * 3] {
@@ -219,14 +220,14 @@ impl ColorMatch for RgbImage {
 
 impl ToSrgb for Vec<RgbImage> {
     fn to_srgb(&self) -> Vec<RgbImage> {
-        utils::iter_or_par_iter!(self)
+        macros::iter_or_par_iter!(self)
             .map(|img| img.to_srgb())
             .collect::<Vec<_>>()
     }
 }
 impl ToLab for Vec<RgbImage> {
     fn to_lab(&self) -> Vec<RgbImage> {
-        utils::iter_or_par_iter!(self)
+        macros::iter_or_par_iter!(self)
             .map(|img| img.to_lab())
             .collect::<Vec<_>>()
     }

@@ -4,11 +4,16 @@ use std::time;
 extern crate image;
 extern crate pathfinding;
 use image::{GenericImage, RgbImage};
+#[cfg(all(feature = "progress_bar", feature = "parallel"))]
+use indicatif::ParallelProgressIterator;
+#[cfg(all(feature = "progress_bar", not(feature = "parallel")))]
+use indicatif::ProgressIterator;
 use log::info;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
 use crate::error::Error;
+use crate::macros;
 use crate::master::Master;
 use crate::metrics::{Metric, NormL1};
 use crate::utils;
@@ -83,11 +88,15 @@ impl Mosaic {
         info!("Starting distance matrix computation...");
         let start_time = time::Instant::now();
 
-        let d_matrix = utils::iter_or_par_iter!(self.master.cells)
-            .flat_map(|cell| {
-                utils::iter_or_par_iter!(self.tiles).map(|tile| metric.compute(tile, cell))
-            })
-            .collect();
+        let d_matrix = macros::maybe_progress_bar!(
+            macros::iter_or_par_iter!(self.master.cells),
+            "Computing distance matrix",
+            par
+        )
+        .flat_map(|cell| {
+            macros::iter_or_par_iter!(self.tiles).map(|tile| metric.compute(tile, cell))
+        })
+        .collect();
         info!("Completed in {:?}", start_time.elapsed());
         d_matrix
     }

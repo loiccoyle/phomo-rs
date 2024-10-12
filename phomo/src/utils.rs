@@ -66,21 +66,6 @@ pub fn read_images_from_dir_resized<P: AsRef<Path>>(
         .collect::<Vec<_>>())
 }
 
-macro_rules! iter_or_par_iter {
-    ($iter:expr) => {{
-        #[cfg(feature = "parallel")]
-        {
-            $iter.par_iter()
-        }
-        #[cfg(not(feature = "parallel"))]
-        {
-            $iter.iter()
-        }
-    }};
-}
-
-pub(crate) use iter_or_par_iter;
-
 #[cfg(test)]
 mod tests {
     use super::*;
