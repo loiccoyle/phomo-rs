@@ -432,8 +432,8 @@ mod tests {
     fn test_match_palette_with_real_images() {
         // Load the source and target images
         let test_dir = test_dir().join("match");
-        let source = open(test_dir.join("source.jpg")).unwrap().to_rgb8();
-        let target = open(test_dir.join("target.jpg")).unwrap().to_rgb8();
+        let source = open(test_dir.join("source.png")).unwrap().to_rgb8();
+        let target = open(test_dir.join("target.png")).unwrap().to_rgb8();
 
         // Match sources's palette to target
         let matched_img = source.match_palette(&target);
