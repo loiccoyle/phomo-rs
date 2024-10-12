@@ -1,0 +1,49 @@
+#compdef phomo
+
+autoload -U is-at-least
+
+_phomo() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" : \
+'-g+[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT: ' \
+'--grid-size=[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT: ' \
+'--crop-tiles[Crop tiles to grid cell size]' \
+'--resize-tiles[Resize tiles to grid cell size]' \
+'--equalize[Equalize the master and tile image color distributions]' \
+'--transfer-master-to-tiles[Transfer the color palette of the master image to the tile images]' \
+'--transfer-tiles-to-master[Transfer the color palette of the tile images to the master image]' \
+'*-v[Increase logging verbosity]' \
+'*--verbose[Increase logging verbosity]' \
+'(-v --verbose)*-q[Decrease logging verbosity]' \
+'(-v --verbose)*--quiet[Decrease logging verbosity]' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':master_file -- Master image:_files' \
+':tile_dir -- Tile directory:_files -/' \
+':output -- Output mosaic file:_files' \
+&& ret=0
+}
+
+(( $+functions[_phomo_commands] )) ||
+_phomo_commands() {
+    local commands; commands=()
+    _describe -t commands 'phomo commands' commands "$@"
+}
+
+if [ "$funcstack[1]" = "_phomo" ]; then
+    _phomo "$@"
+else
+    compdef _phomo phomo
+fi
