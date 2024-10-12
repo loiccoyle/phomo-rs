@@ -1,0 +1,91 @@
+name: CI
+on:
+  pull_request:
+  push:
+
+jobs:
+  test:
+    name: Test Suite
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: rustup toolchain install stable --profile minimal
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run tests
+        run: cargo test
+
+  # release:
+  #   name: release
+  #   if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'loiccoyle' }}
+  #   needs:
+  #     - test
+  #   outputs:
+  #     phomo--release_created: ${{ steps.release.outputs.phomo--release_created }}
+  #     phomo-cli--release_created: ${{ steps.release.outputs.phomo-cli--release_created }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: googleapis/release-please-action@v4
+  #       id: release
+  #       with:
+  #         config-file: .github/release-please-config.json
+  #         manifest-file: .github/.release-please-manifest.json
+  #
+  # publish:
+  #   name: Publish
+  #   needs:
+  #     - release
+  #   if: needs.release.outputs.phomo--release_created || needs.release.outputs.phomo-cli--release_created
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout sources
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Install toolchain
+  #       run: rustup toolchain install stable --profile minimal
+  #
+  #     - uses: Swatinem/rust-cache@v2
+  #
+  #     - name: Publish lib crate
+  #       if: needs.release.outputs.phomo--release_created
+  #       run: |
+  #         cd phomo
+  #         cargo publish --token ${{ secrets.CARGO_TOKEN }}
+  #
+  #     - name: Publish cli crate
+  #       if: needs.release.outputs.phomo-cli--release_created
+  #       run: |
+  #         cd phomo-cli
+  #         cargo publish --token ${{ secrets.CARGO_TOKEN }}
+
+  # readme:
+  #   runs-on: ubuntu-latest
+  #   needs: test
+  #   if: github.event_name == 'push' && github.repository == 'loiccoyle/phomo' && github.ref_name == 'main'
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         token: ${{ secrets.BOT_ACCESS_TOKEN }}
+  #
+  #     - name: Install toolchain
+  #       run: rustup toolchain install stable --profile minimal
+  #
+  #     - uses: Swatinem/rust-cache@v2
+  #
+  #     - run: make readme
+  #     - name: Commit changes
+  #       uses: stefanzweifel/git-auto-commit-action@v5
+  #       with:
+  #         commit_message: "docs(readme): update help message"
+  #         branch: ${{ github.head_ref }}
+  #         commit_user_name: github-actions[bot]
+  #         commit_user_email: github-actions[bot]@users.noreply.github.com
+  #         commit_author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
