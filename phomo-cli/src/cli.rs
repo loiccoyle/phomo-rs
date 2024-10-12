@@ -42,7 +42,7 @@ impl FromStr for TwoNumbers {
 ))]
 pub struct Arguments {
     /// Master image.
-    #[arg( value_hint=clap::ValueHint::FilePath)]
+    #[arg(value_hint=clap::ValueHint::FilePath)]
     pub master_file: PathBuf,
     /// Tile directory.
     #[arg(value_hint=clap::ValueHint::DirPath)]
