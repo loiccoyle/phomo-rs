@@ -132,3 +132,33 @@ fn build_mosaic_transfer_master_to_tiles() {
     assert!(output_file.path().exists());
     assert!(check_expected(output_file.path(), expected_file));
 }
+
+#[test]
+fn build_mosaic_grid_size() {
+    let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
+    let expected_file = test_data_dir().join("mosaic_10_10.png");
+
+    let mut cmd = assert_cmd::Command::cargo_bin("phomo").unwrap();
+    cmd.arg(master_img_file().to_str().unwrap());
+    cmd.arg(tile_dir().to_str().unwrap());
+    cmd.arg(output_file.path().to_str().unwrap());
+    cmd.arg("-g 10,10");
+    cmd.arg("--resize-tiles");
+
+    cmd.assert().success();
+    assert!(output_file.path().exists());
+    assert!(check_expected(output_file.path(), expected_file));
+}
+
+#[test]
+fn build_mosaic_bad_grid_size() {
+    let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
+
+    let mut cmd = assert_cmd::Command::cargo_bin("phomo").unwrap();
+    cmd.arg(master_img_file().to_str().unwrap());
+    cmd.arg(tile_dir().to_str().unwrap());
+    cmd.arg(output_file.path().to_str().unwrap());
+    cmd.arg("-g 100,100");
+
+    cmd.assert().failure();
+}

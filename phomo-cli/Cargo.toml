@@ -11,7 +11,10 @@ name = "phomo"
 path = "src/main.rs"
 
 [dependencies]
-phomo = { path = "../phomo", version = "0.1.0" }
+phomo = { path = "../phomo", version = "0.1.0", features = [
+  "parallel",
+  "progress_bar",
+] }
 
 clap = { version = "4.5.20", features = ["derive"] }
 clap-verbosity-flag = "2.2.2"
