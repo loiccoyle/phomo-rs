@@ -327,6 +327,30 @@ mod tests {
     }
 
     #[test]
+    fn test_mean_std() {
+        // create 2x1 image with one white and one black pixel
+        let img = ImageBuffer::from_fn(2, 1, |x, _| {
+            if x == 0 {
+                Rgb([0, 0, 0])
+            } else {
+                Rgb([255, 255, 255])
+            }
+        });
+
+        assert_eq!(img.mean(), [127.5, 127.5, 127.5]);
+        assert_eq!(img.std(&[127.5, 127.5, 127.5]), [127.5, 127.5, 127.5]);
+
+        // now we test the Vec of img logic
+        let imgs = vec![
+            ImageBuffer::from_pixel(2, 2, Rgb([0, 0, 0])),
+            ImageBuffer::from_pixel(2, 2, Rgb([255, 255, 255])),
+        ];
+
+        assert_eq!(imgs.mean(), [127.5, 127.5, 127.5]);
+        assert_eq!(imgs.std(&[127.5, 127.5, 127.5]), [127.5, 127.5, 127.5]);
+    }
+
+    #[test]
     fn test_mean_uniform() {
         // Create a 2x2 image where all pixels are the same color
         let img = generate_test_image(2, 2, [100, 150, 200]);
@@ -369,7 +393,7 @@ mod tests {
     #[test]
     fn test_equalize() {
         // Create an image with a gradient to test equalization
-        // the image goes from balck to gray
+        // the image goes from black to gray
         let img = ImageBuffer::from_fn(256, 1, |x, _| Rgb([x as u8 / 2, x as u8 / 2, x as u8 / 2]));
         // Apply histogram equalization
         // the image should go from black to white
@@ -384,6 +408,24 @@ mod tests {
             Rgb([255, 255, 255]),
             "Equalization failed"
         );
+    }
+
+    #[test]
+    fn test_equalize_with_real_image() {
+        // Load the source and target images
+        let test_dir = test_dir().join("match");
+        let img = open(test_dir.join("target.jpg")).unwrap().to_rgb8();
+        let img_equalized = img.equalize();
+
+        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
+            img_equalized
+                .save(test_dir.join("target_equalized.png"))
+                .unwrap();
+        }
+        let expected_img = open(test_dir.join("target_equalized.png"))
+            .unwrap()
+            .to_rgb8();
+        assert_eq!(img_equalized, expected_img, "Equalization failed");
     }
 
     #[test]
@@ -409,16 +451,6 @@ mod tests {
         let expected_pixels: Vec<u8> = expected_img.pixels().flat_map(|p| p.0).collect();
         assert_eq!(matched_pixels.len(), expected_pixels.len());
         assert_eq!(matched_pixels, expected_pixels);
-        // // Assert that the matched image pixels are close to the expected image pixels
-        // let tolerance = 5; // Allow some tolerance for color differences
-        // for (matched, expected) in matched_pixels.iter().zip(expected_pixels.iter()) {
-        //     assert!(
-        //         (matched.abs_diff(*expected)) <= tolerance,
-        //         "Color mismatch: matched: {}, expected: {}",
-        //         matched,
-        //         expected
-        //     );
-        // }
     }
 
     // Color space tests
