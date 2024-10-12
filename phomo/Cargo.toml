@@ -20,3 +20,10 @@ indicatif = { optional = true, version = "0.17.8" }
 default = ["parallel"]
 parallel = ["rayon", "indicatif?/rayon"]
 progress_bar = ["indicatif"]
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "main"
+harness = false
