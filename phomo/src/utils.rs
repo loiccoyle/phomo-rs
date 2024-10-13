@@ -11,6 +11,9 @@ pub fn crop_imm_centered<I>(img: &I, width: u32, height: u32) -> SubImage<&I>
 where
     I: GenericImageView,
 {
+    if width > img.width() || height > img.height() {
+        warn!("Attempted to crop image to a larger size than the source image");
+    }
     image::imageops::crop_imm(
         img,
         (img.width() - width) / 2,
