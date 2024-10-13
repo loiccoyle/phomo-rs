@@ -1,5 +1,5 @@
 [workspace]
-members = ["phomo", "phomo-cli"]
+members = ["phomo", "phomo-cli", "phomo-wasm"]
 resolver = "2"
 
 package.authors = ["Loic Coyle <loic.coyle@hotmail.fr>"]
