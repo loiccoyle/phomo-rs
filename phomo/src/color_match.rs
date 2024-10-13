@@ -59,9 +59,14 @@ fn equalize_img(img: &RgbImage, cdfs: &[usize; 256 * 3], total_pixels: &usize) -
     let mut equalized = img.clone();
     for channel in 0..3 {
         // Normalize CDF
-        let cdf_min = cdfs.iter().find(|&&x| x > 0).cloned().unwrap_or(0);
+        let cdf_min = *cdfs[(channel * 256)..((channel + 1) * 256)]
+            .iter()
+            .find(|&&x| x > 0)
+            .unwrap_or(&0);
+
         for pixel in equalized.pixels_mut() {
-            pixel[channel] = (((cdfs[pixel[channel] as usize] - cdf_min) as f32
+            pixel.0[channel] = (((cdfs[channel * 256 + pixel.0[channel] as usize] - cdf_min)
+                as f32
                 / (total_pixels - cdf_min) as f32)
                 * 255.0) as u8;
         }
@@ -301,7 +306,10 @@ impl ColorMatch for Vec<RgbImage> {
             }
         }
         // Calculate cumulative distribution function
-        let total_pixels = histograms.iter().sum::<usize>();
+        let total_pixels = self
+            .iter()
+            .map(|img| (img.width() * img.height()) as usize)
+            .sum::<usize>();
         // Three channels: R, G, B
         let cdfs = histograms_to_cdfs(&histograms);
 
