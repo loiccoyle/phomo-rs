@@ -7,7 +7,7 @@ use log::warn;
 use crate::error::Error;
 
 /// Helper function to crop am image to a width and height centered on the image
-pub(crate) fn crop_imm_centered<I>(img: &I, width: u32, height: u32) -> SubImage<&I>
+pub fn crop_imm_centered<I>(img: &I, width: u32, height: u32) -> SubImage<&I>
 where
     I: GenericImageView,
 {

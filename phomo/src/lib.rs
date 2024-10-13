@@ -5,7 +5,7 @@ mod macros;
 mod master;
 pub mod metrics;
 mod mosaic;
-mod utils;
+pub mod utils;
 
 pub use color_match::ColorMatch;
 pub use master::Master;
