@@ -1,4 +1,5 @@
 use std::path::Path;
+#[cfg(not(target_family = "wasm"))]
 use std::time;
 
 extern crate image;
@@ -85,7 +86,9 @@ impl Mosaic {
     ///
     /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> Vec<i64> {
+        #[cfg(not(target_family = "wasm"))]
         info!("Starting distance matrix computation...");
+        #[cfg(not(target_family = "wasm"))]
         let start_time = time::Instant::now();
 
         let d_matrix = macros::maybe_progress_bar!(
@@ -95,6 +98,8 @@ impl Mosaic {
         )
         .flat_map(|cell| macros::iter_or_par_iter!(self.tiles).map(|tile| metric(tile, cell)))
         .collect();
+
+        #[cfg(not(target_family = "wasm"))]
         info!("Completed in {:?}", start_time.elapsed());
         d_matrix
     }
@@ -110,9 +115,12 @@ impl Mosaic {
         )?;
         // the indice in assignments is the tile index
         // The value at the index is the index of the cell where is should be assigned
+        #[cfg(not(target_family = "wasm"))]
         info!("Solving the assignment problem...");
+        #[cfg(not(target_family = "wasm"))]
         let start_time = time::Instant::now();
         let (_, assignments) = pathfinding::kuhn_munkres::kuhn_munkres_min(&weights);
+        #[cfg(not(target_family = "wasm"))]
         info!("Completed in {:?}", start_time.elapsed());
 
         let (grid_width, grid_height) = self.grid_size;
