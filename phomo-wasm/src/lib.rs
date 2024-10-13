@@ -3,9 +3,11 @@ use image::RgbImage;
 use phomo::{metrics, utils, ColorMatch, Mosaic as MosaicRs};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
+extern crate wasm_logger;
 
 #[wasm_bindgen(start)]
 pub fn init_panic_hook() {
+    wasm_logger::init(wasm_logger::Config::default());
     console_error_panic_hook::set_once();
 }
 
@@ -49,19 +51,21 @@ impl Mosaic {
                     .unwrap()
                     .to_rgb8();
 
+                let cell_width = master_img.width() / grid_width;
+                let cell_height = master_img.height() / grid_height;
                 match tile_resize {
                     Some(ResizeType::Resize) => image::imageops::resize(
                         &img,
-                        master_img.width() / grid_width,
-                        master_img.height() / grid_height,
+                        cell_width,
+                        cell_height,
                         image::imageops::FilterType::Nearest,
                     ),
-                    Some(ResizeType::Crop) => utils::crop_imm_centered(
-                        &img,
-                        master_img.width() / grid_width,
-                        master_img.height() / grid_height,
-                    )
-                    .to_image(),
+                    Some(ResizeType::Crop) => {
+                        if cell_width > img.width() || cell_height > img.height() {
+                            panic!("Could not crop tile to cell size as the cell size is larger than the tile size.");
+                        }
+                        utils::crop_imm_centered(&img, cell_width, cell_height).to_image()
+                    }
                     None => img,
                 }
             })
