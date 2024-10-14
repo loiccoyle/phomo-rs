@@ -1,6 +1,6 @@
 <!-- <p align="center"><img src="https://i.imgur.com/4jvon2p.png" width="1000"></p> -->
 <h1 align="center">phomo</h1>
-<p align="center"><b>a cli utility to create photo mosaics</b></p>
+<p align="center"><b>create photo mosaics</b></p>
 
 <p align="center">
   <!-- <a href="https://crates.io/crates/phomo"><img src="https://img.shields.io/crates/v/phomo"></a> -->
