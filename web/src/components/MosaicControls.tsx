@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Upload,
   Play,
   Palette,
   X,
-  Image,
+  Image as ImageIcon,
   Crop,
   Maximize,
   File,
   Folder,
+  Ratio,
+  Grid,
 } from "lucide-react";
 import TileManagementModal from "./TileManagementModal";
 import { ResizeType } from "phomo";
@@ -17,9 +19,11 @@ import { ColorMatchingMethod } from "./colorMatchingMethods";
 interface MosaicControlsProps {
   onMasterImageSelect: (file: File) => void;
   onTileImagesSelect: (files: FileList) => void;
-  onGridSizeChange: (size: number) => void;
+  onGridWidthChange: (width: number) => void;
+  onGridHeightChange: (height: number) => void;
   onCreateMosaic: () => void;
-  gridSize: number;
+  gridWidth: number;
+  gridHeight: number;
   tileImages: { url: string; name: string }[];
   masterImage: string | null;
   onRemoveMasterImage: () => void;
@@ -34,9 +38,11 @@ interface MosaicControlsProps {
 const MosaicControls: React.FC<MosaicControlsProps> = ({
   onMasterImageSelect,
   onTileImagesSelect,
-  onGridSizeChange,
+  onGridWidthChange,
+  onGridHeightChange,
   onCreateMosaic,
-  gridSize,
+  gridWidth,
+  gridHeight,
   tileImages,
   masterImage,
   onRemoveMasterImage,
@@ -47,8 +53,9 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   tileSizingMethod,
   setTileSizingMethod,
 }) => {
+  const [matchMasterAspectRatio, setMatchMasterAspectRatio] = useState(false);
   const [isTileModalOpen, setIsTileModalOpen] = useState(false);
-  const requiredTileImages = gridSize * gridSize;
+  const requiredTileImages = gridWidth * gridHeight;
   const isTileImagesEnough = tileImages.length >= requiredTileImages;
 
   const colorMatchingOptions = [
@@ -89,6 +96,35 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
       icon: Maximize,
     },
   ];
+
+  const handleGridWidthChange = useMemo(
+    () => (width: number) => {
+      onGridWidthChange(width);
+      if (matchMasterAspectRatio && masterImage) {
+        // compute master image aspect ratio
+        const img = new Image();
+        img.src = masterImage;
+        img.onload = () => {
+          const masterAspectRatio = img.width / img.height;
+          onGridHeightChange(Math.round(width / masterAspectRatio));
+        };
+      }
+    },
+    [masterImage, matchMasterAspectRatio],
+  );
+
+  useEffect(() => {
+    if (matchMasterAspectRatio) {
+      // when the match aspect ratio is enabled, refresh the grid width to also set the grid height
+      handleGridWidthChange(gridWidth);
+    }
+  }, [matchMasterAspectRatio]);
+
+  useEffect(() => {
+    if (!masterImage) {
+      setMatchMasterAspectRatio(false);
+    }
+  }, [masterImage]);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
@@ -233,30 +269,93 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                   : " bg-blue-500 text-white hover:bg-blue-600 transition-colors")
               }
             >
-              <Image className="w-5 h-5 mr-2" />
+              <ImageIcon className="w-5 h-5 mr-2" />
               Tile Images
             </button>
           </div>
         </div>
       </div>
       <div className="mt-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Grid Size
-        </label>
-        <div className="flex items-center space-x-4">
-          <input
-            type="range"
-            min="2"
-            value={gridSize}
-            onChange={(e) => onGridSizeChange(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
-            style={{
-              accentColor: "#3b82f6", // Changes the thumb color
-            }}
-          />
-          <span className="text-gray-700 dark:text-gray-300 font-medium">
-            {gridSize}x{gridSize}
-          </span>
+        <div className="flex justify-between">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Grid Size
+          </label>
+          <div className="flex items-center space-x-2">
+            <Grid className="text-gray-500 dark:text-gray-400" />
+            <span className="font-medium text-gray-500 dark:text-gray-400">
+              {gridWidth && gridHeight ? `${gridWidth}x${gridHeight}` : ""}
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-row items-center gap-4">
+          <div
+            className={`p-4 rounded-lg transition-colors ${
+              masterImage
+                ? matchMasterAspectRatio
+                  ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500 cursor-pointer"
+                  : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
+                : "opacity-50 cursor-default"
+            }`}
+            onClick={() => setMatchMasterAspectRatio((prev) => !prev)}
+          >
+            <div className="flex items-center mb-2">
+              <Ratio className="w-5 h-5 mr-2 text-blue-500" />
+              <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                Aspect ratio
+              </h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Match master image aspect ratio
+            </p>
+          </div>
+          <div className="flex-grow flex gap-2 flex-col">
+            <div className="flex items-center space-x-4 h-6">
+              <input
+                type="range"
+                min="2"
+                value={gridWidth}
+                onChange={(e) =>
+                  handleGridWidthChange(parseInt(e.target.value))
+                }
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                style={{
+                  accentColor: "#3b82f6",
+                }}
+              />
+              <input
+                type="number"
+                min="2"
+                value={gridWidth}
+                onChange={(e) => {
+                  handleGridWidthChange(Math.max(parseInt(e.target.value), 2));
+                }}
+                className="w-12 text-center rounded-md text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+              />
+            </div>
+            <div className="flex items-center space-x-4 h-6">
+              <input
+                type="range"
+                min="2"
+                value={gridHeight}
+                onChange={(e) => onGridHeightChange(parseInt(e.target.value))}
+                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 ${matchMasterAspectRatio ? "opacity-50" : ""}`}
+                style={{
+                  accentColor: "#3b82f6",
+                }}
+                disabled={matchMasterAspectRatio}
+              />
+              <input
+                type="number"
+                min="2"
+                value={gridHeight}
+                onChange={(e) => {
+                  onGridHeightChange(Math.max(parseInt(e.target.value), 2));
+                }}
+                className={`w-12 text-center rounded-md text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 ${matchMasterAspectRatio ? "opacity-50" : ""}`}
+                disabled={matchMasterAspectRatio}
+              />
+            </div>
+          </div>
         </div>
       </div>
       <div className="mt-6">
@@ -341,4 +440,3 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
 };
 
 export default MosaicControls;
-

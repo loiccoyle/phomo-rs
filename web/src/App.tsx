@@ -19,7 +19,8 @@ const App: React.FC = () => {
   const [tileImages, setTileImages] = useState<{ url: string; name: string }[]>(
     [],
   );
-  const [gridSize, setGridSize] = useState(20);
+  const [gridWidth, setGridWidth] = useState(20);
+  const [gridHeight, setGridHeight] = useState(20);
   const [colorMatchingMethod, setColorMatchingMethod] = useState(
     ColorMatchingMethod.None,
   );
@@ -56,18 +57,14 @@ const App: React.FC = () => {
     setTileImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
-  const handleGridSizeChange = (size: number) => {
-    setGridSize(size);
-  };
-
   const handleCreateMosaic = async () => {
-    if (tileImages.length < gridSize * gridSize) {
-      alert(`Please upload at least ${gridSize * gridSize} tile images.`);
+    if (tileImages.length < gridWidth * gridHeight) {
+      alert(`Please select at least ${gridHeight * gridWidth} tile images.`);
       return;
     }
 
     if (!masterImage) {
-      alert("Please upload a master image.");
+      alert("Please select a master image.");
       return;
     }
 
@@ -81,8 +78,8 @@ const App: React.FC = () => {
       const mosaic = new Mosaic(
         masterImageBytes,
         tileImageBytes,
-        gridSize,
-        gridSize,
+        gridWidth,
+        gridHeight,
         tileSizingMethod,
       );
 
@@ -129,9 +126,11 @@ const App: React.FC = () => {
           <MosaicControls
             onMasterImageSelect={handleMasterImageSelect}
             onTileImagesSelect={handleTileImagesSelect}
-            onGridSizeChange={handleGridSizeChange}
+            onGridWidthChange={setGridWidth}
+            onGridHeightChange={setGridHeight}
             onCreateMosaic={handleCreateMosaic}
-            gridSize={gridSize}
+            gridWidth={gridWidth}
+            gridHeight={gridHeight}
             tileImages={tileImages}
             masterImage={masterImage}
             onRemoveMasterImage={handleRemoveMasterImage}
@@ -151,7 +150,7 @@ const App: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <Grid className="text-gray-500 dark:text-gray-400" />
                   <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {gridSize} x {gridSize} grid
+                    {gridWidth} x {gridHeight} grid
                   </span>
                 </div>
               </div>
@@ -195,4 +194,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
