@@ -13,6 +13,7 @@ use log::info;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
+#[cfg(feature = "blueprint")]
 use crate::blueprint::{Blueprint, Cell};
 use crate::error::Error;
 use crate::macros;
