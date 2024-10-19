@@ -9,6 +9,8 @@ repository.workspace = true
 [[bin]]
 name = "phomo"
 path = "src/main.rs"
+description = "CLI for phomo - generate photo mosaics from the command line"
+keywords = ["cli", "photo-mosaic", "image", "art"]
 
 [dependencies]
 phomo = { path = "../phomo", version = "0.1.0", features = [
