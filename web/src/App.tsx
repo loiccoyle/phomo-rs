@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [colorMatchingMethod, setColorMatchingMethod] = useState(
     ColorMatchingMethod.None,
   );
-  const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Crop);
+  const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Resize);
   const [mosaicImage, setMosaicImage] = useState<string | null>(null);
 
   // const handleTileClick = (tileUrl: string, index: number) => {
