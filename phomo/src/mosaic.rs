@@ -13,6 +13,7 @@ use log::info;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
+use crate::blueprint::{Blueprint, Cell};
 use crate::error::Error;
 use crate::macros;
 use crate::master::Master;
@@ -131,10 +132,7 @@ impl Mosaic {
         d_matrix
     }
 
-    /// Compute the tile to master cell assignments using the
-    /// [pathfinding::kuhn_munkres](pathfinding::kuhn_munkres::kuhn_munkres_min) algorithm and
-    /// build the photo mosaic image.
-    pub fn build(&self, distance_matrix: Vec<i64>) -> Result<RgbImage, Error> {
+    fn compute_assignments(&self, distance_matrix: Vec<i64>) -> Result<Vec<usize>, Error> {
         // use the hungarian algorithm to find the best tile to cell assignments
         let weights = pathfinding::matrix::Matrix::from_vec(
             self.master.cells.len(),
@@ -150,6 +148,14 @@ impl Mosaic {
         let (_, assignments) = pathfinding::kuhn_munkres::kuhn_munkres_min(&weights);
         #[cfg(not(target_family = "wasm"))]
         info!("Completed in {:?}", start_time.elapsed());
+        Ok(assignments)
+    }
+
+    /// Compute the tile to master cell assignments using the
+    /// [pathfinding::kuhn_munkres](pathfinding::kuhn_munkres::kuhn_munkres_min) algorithm and
+    /// build the photo mosaic image.
+    pub fn build(&self, distance_matrix: Vec<i64>) -> Result<RgbImage, Error> {
+        let assignments = self.compute_assignments(distance_matrix)?;
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
@@ -171,6 +177,37 @@ impl Mosaic {
             mosaic_img.copy_from(tile, x, y)?;
         }
         Ok(mosaic_img)
+    }
+
+    #[cfg(feature = "blueprint")]
+    /// Compute the tile to master cell assignments, and construct a [`Blueprint`] of the mosaic
+    /// image.
+    pub fn build_blueprint(&self, distance_matrix: Vec<i64>) -> Result<Blueprint, Error> {
+        let assignments = self.compute_assignments(distance_matrix)?;
+        let (grid_width, grid_height) = self.grid_size;
+        let (cell_width, cell_height) = self.master.cell_size;
+
+        let cells = assignments
+            .into_iter()
+            .enumerate()
+            .map(|(cell_idx, tile_idx)| {
+                let x = (cell_idx as u32 % grid_width) * cell_width;
+                let y = (cell_idx as u32 / grid_width) * cell_height;
+                Cell {
+                    tile_index: tile_idx,
+                    x,
+                    y,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        Ok(Blueprint {
+            cells,
+            cell_width,
+            cell_height,
+            grid_width,
+            grid_height,
+        })
     }
 }
 

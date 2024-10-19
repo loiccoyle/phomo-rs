@@ -17,9 +17,12 @@ palette = "0.7.6"
 pathfinding = "4.11.0"
 rayon = { optional = true, version = "1.10.0" }
 indicatif = { optional = true, version = "0.17.8" }
+serde = { version = "1.0.210", features = ["derive"], optional = true }
+serde_json = { version = "1.0.131", optional = true }
 
 [features]
 default = ["parallel"]
+blueprint = ["serde", "serde_json"]
 parallel = ["rayon", "indicatif?/rayon"]
 progress_bar = ["indicatif"]
 

@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose, Engine as _};
 use image::RgbImage;
-use phomo::{metrics, utils, ColorMatch, Mosaic as MosaicRs};
+use phomo::{metrics, utils, Blueprint, ColorMatch, Mosaic as MosaicRs};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 extern crate wasm_logger;
@@ -22,9 +22,7 @@ pub enum ResizeType {
 pub struct Mosaic {
     master_img: RgbImage,
     tile_imgs: Vec<RgbImage>,
-    mosaic: Option<MosaicRs>,
-    grid_width: u32,
-    grid_height: u32,
+    mosaic: MosaicRs,
 }
 
 #[wasm_bindgen]
@@ -69,14 +67,19 @@ impl Mosaic {
                     None => img,
                 }
             })
-            .collect();
+            .collect::<Vec<_>>();
+
+        let mosaic = MosaicRs::from_images(
+            master_img.clone(),
+            tile_imgs.clone(),
+            (grid_width, grid_height),
+        )
+        .map_err(|err| JsValue::from(err.to_string()))?;
 
         Ok(Mosaic {
             master_img,
             tile_imgs,
-            mosaic: None,
-            grid_width,
-            grid_height,
+            mosaic,
         })
     }
 
@@ -98,46 +101,55 @@ impl Mosaic {
         self.master_img = self.master_img.match_palette(&self.tile_imgs);
     }
 
-    // Build the mosaic after applying palette matching or equalization
-    pub fn build(&mut self, metric_type: &str) -> Result<String, JsValue> {
-        // Ensure the mosaic is constructed only once after transformations
-        self.mosaic = Some(
-            MosaicRs::from_images(
-                self.master_img.clone(),
-                self.tile_imgs.clone(),
-                (self.grid_width, self.grid_height),
-            )
-            .map_err(|err| JsValue::from(err.to_string()))?,
-        );
-
-        let mosaic = self.mosaic.as_ref().unwrap();
-
-        // Choose the metric based on the input string
+    fn distance_matrix_with_metric(&self, metric_type: &str) -> Result<Vec<i64>, JsValue> {
         let metric = match metric_type {
             "NormL1" => metrics::norm_l1,
             "NormL2" => metrics::norm_l2,
             _ => return Err(JsValue::from("Unsupported metric type")),
         };
 
-        let d_matrix = mosaic.distance_matrix_with_metric(metric);
+        Ok(self.mosaic.distance_matrix_with_metric(metric))
+    }
 
-        let mosaic_img = mosaic
+    // Build the mosaic after applying palette matching or equalization
+    pub fn build(&self, metric_type: &str) -> Result<String, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+
+        let mosaic_img = self
+            .mosaic
             .build(d_matrix)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
-        // Convert the mosaic image to base64 encoded PNG
-        let mut buf: Vec<u8> = Vec::new();
-        mosaic_img
-            .write_to(&mut Cursor::new(&mut buf), image::ImageFormat::Png)
+        to_base64(mosaic_img)
+    }
+
+    #[wasm_bindgen(js_name = buildBlueprint)]
+    pub fn build_blueprint(&self, metric_type: &str) -> Result<JsValue, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+        let mosaic = self
+            .mosaic
+            .build_blueprint(d_matrix)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
-        Ok(general_purpose::STANDARD.encode(buf))
+        Ok(serde_wasm_bindgen::to_value(&mosaic).unwrap())
+    }
+
+    #[wasm_bindgen(js_name = renderBlueprint)]
+    pub fn render_blueprint(&self, blueprint: JsValue) -> Result<String, JsValue> {
+        let blueprint = serde_wasm_bindgen::from_value::<Blueprint>(blueprint)?;
+        let mosaic_img = blueprint
+            .render(&self.master_img, &self.tile_imgs)
+            .map_err(|err| JsValue::from(err.to_string()))?;
+
+        to_base64(mosaic_img)
     }
 }
 
-// Utility to load an image from base64
-// #[wasm_bindgen]
-// pub fn load_image_from_base64(base64_data: &str) -> Result<DynamicImage, JsValue> {
-//     let decoded_data = base64::decode(base64_data).map_err(|err| JsValue::from(err.to_string()))?;
-//     image::load_from_memory(&decoded_data).map_err(|err| JsValue::from(err.to_string()))
-// }
+fn to_base64(img: RgbImage) -> Result<String, JsValue> {
+    // Convert the mosaic image to base64 encoded PNG
+    let mut buf: Vec<u8> = Vec::new();
+    img.write_to(&mut Cursor::new(&mut buf), image::ImageFormat::Png)
+        .map_err(|err| JsValue::from(err.to_string()))?;
+
+    Ok(general_purpose::STANDARD.encode(buf))
+}
