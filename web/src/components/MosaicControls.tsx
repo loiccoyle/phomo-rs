@@ -362,9 +362,9 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
             </div>
           </div>
         </div>
-        <div className="flex justify-center align-middle items-center flex-col gap-2 p-2">
+        <div className="flex justify-center align-middle items-center flex-col gap-2">
           <div
-            className={`flex align-middle bg-gray-100 rounded-xl dark:bg-gray-700  ${masterImage ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" : "opacity-50"}`}
+            className={`flex align-middle bg-gray-100 rounded-2xl dark:bg-gray-700 p-1  ${masterImage ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" : "opacity-50"}`}
             onClick={() => masterImage && setShowGrid((prev) => !prev)}
           >
             {showGrid ? (
