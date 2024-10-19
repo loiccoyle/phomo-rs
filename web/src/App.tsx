@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Grid } from "lucide-react";
 // import MosaicGrid from "./components/MosaicGrid";
 // import TileModal from "./components/TileModal";
@@ -7,7 +7,7 @@ import Header from "./components/Header";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ColorMatchingMethod } from "./components/colorMatchingMethods";
 
-import { Mosaic, ResizeType } from "phomo";
+import { Mosaic, ResizeType, overlayGrid } from "phomo";
 
 const App: React.FC = () => {
   // const [showModal, setShowModal] = useState(false);
@@ -16,6 +16,7 @@ const App: React.FC = () => {
   //   index: number;
   // } | null>(null);
   const [masterImage, setMasterImage] = useState<string | null>(null);
+  const [gridOverlay, setGridOverlay] = useState<string | null>(null);
   const [tileImages, setTileImages] = useState<{ url: string; name: string }[]>(
     [],
   );
@@ -121,6 +122,17 @@ const App: React.FC = () => {
     return new Uint8Array(arrayBuffer);
   };
 
+  useEffect(() => {
+    async function run() {
+      if (masterImage === null) return;
+      const masterImageBytes = await fetchImageAsBytes(masterImage);
+      setGridOverlay(
+        `data:image/png;base64,${overlayGrid(masterImageBytes, gridWidth, gridHeight)}`,
+      );
+    }
+    run();
+  }, [masterImage, gridWidth, gridHeight]);
+
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 sm:px-8 pb-8 pt-4 transition-colors duration-200">
@@ -136,6 +148,7 @@ const App: React.FC = () => {
             gridHeight={gridHeight}
             tileImages={tileImages}
             masterImage={masterImage}
+            gridOverlay={gridOverlay}
             onRemoveMasterImage={handleRemoveMasterImage}
             onRemoveTileImage={handleRemoveTileImage}
             onClearTileImages={handleClearTileImages}

@@ -17,7 +17,6 @@ import {
 import TileManagementModal from "./TileManagementModal";
 import { ResizeType } from "phomo";
 import { ColorMatchingMethod } from "./colorMatchingMethods";
-import MosaicGrid from "./MosaicGrid";
 
 interface MosaicControlsProps {
   onMasterImageSelect: (file: File) => void;
@@ -29,6 +28,7 @@ interface MosaicControlsProps {
   gridHeight: number;
   tileImages: { url: string; name: string }[];
   masterImage: string | null;
+  gridOverlay: string | null;
   onRemoveMasterImage: () => void;
   onRemoveTileImage: (index: number) => void;
   onClearTileImages: () => void;
@@ -48,6 +48,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   gridHeight,
   tileImages,
   masterImage,
+  gridOverlay,
   onRemoveMasterImage,
   onRemoveTileImage,
   onClearTileImages,
@@ -372,14 +373,9 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
               <ChevronDown className="text-gray-600 dark:text-gray-300" />
             )}
           </div>
-          {showGrid && masterImage && (
-            <div className="rounded-md bg-gray-200 dark:bg-gray-700 p-2 flex flex-center flex-col justify-center w-full gap-2 text-gray-700 dark:text-gray-300 font-medium text-center">
-              <h3>Approximate Grid</h3>
-              <MosaicGrid
-                masterImage={masterImage}
-                gridWidth={gridWidth}
-                gridHeight={gridHeight}
-              />
+          {showGrid && masterImage && gridOverlay && (
+            <div className="rounded-md p-2 flex flex-center flex-col justify-center align-middle items-center w-full">
+              <img src={gridOverlay} className="max-w-xl rounded-lg" />
             </div>
           )}
         </div>
