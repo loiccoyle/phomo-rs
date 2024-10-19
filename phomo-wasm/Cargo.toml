@@ -6,6 +6,7 @@ authors.workspace = true
 
 name = "phomo-wasm"
 version = "0.1.0"
+description = "Wasm bindings for the phomo rust crate - a photo mosaic library"
 
 [dependencies]
 phomo = { path = "../phomo", version = "0.1.0", default-features = false, features = [
