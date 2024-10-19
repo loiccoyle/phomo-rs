@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose, Engine as _};
 use image::RgbImage;
-use phomo::{metrics, utils, Blueprint, ColorMatch, Mosaic as MosaicRs};
+use phomo::{metrics, utils, Blueprint, ColorMatch, Master as MasterRs, Mosaic as MosaicRs};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 extern crate wasm_logger;
@@ -15,6 +15,24 @@ pub fn init_panic_hook() {
 pub enum ResizeType {
     Crop,
     Resize,
+}
+
+#[wasm_bindgen(js_name = overlayGrid)]
+pub fn overlay_grid(
+    master_img_data: &[u8],
+    grid_width: u32,
+    grid_height: u32,
+) -> Result<String, JsValue> {
+    let master_img = image::load_from_memory(master_img_data)
+        .map_err(|err| JsValue::from(err.to_string()))?
+        .to_rgb8();
+    let master = MasterRs::from_image(master_img, (grid_width, grid_height))
+        .map_err(|err| JsValue::from(err.to_string()))?;
+    let grid = master
+        .overlay_grid()
+        .map_err(|err| JsValue::from(err.to_string()))?;
+
+    to_base64(grid)
 }
 
 // Wrapper for Mosaic struct
