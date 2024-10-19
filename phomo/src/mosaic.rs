@@ -127,14 +127,20 @@ impl Mosaic {
         let (cell_width, cell_height) = self.master.cell_size;
 
         let mut mosaic_img = RgbImage::new(self.master.img.width(), self.master.img.height());
+        info!(
+            "Building mosaic, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
+            mosaic_img.width(),
+            mosaic_img.height(),
+            cell_width,
+            cell_height,
+            grid_width,
+            grid_height
+        );
         for (cell_idx, tile_idx) in assignments.into_iter().enumerate() {
-            // let cell = self.master.cells.get(*cell_idx).unwrap();
+            let x = (cell_idx as u32 % grid_width) * cell_width;
+            let y = (cell_idx as u32 / grid_width) * cell_height;
             let tile = self.tiles.get(tile_idx).unwrap();
-            mosaic_img.copy_from(
-                tile,
-                (cell_idx as u32 % grid_width) * cell_width,
-                (cell_idx as u32 / grid_height) * cell_height,
-            )?;
+            mosaic_img.copy_from(tile, x, y)?;
         }
         Ok(mosaic_img)
     }
