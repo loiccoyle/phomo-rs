@@ -92,7 +92,7 @@ pub trait ColorMatch: ToLab + ToSrgb {
     /// Transfer the color palette of the `other` onto `self`, using the Reinhard color transfer algorithm.
     ///
     /// See:
-    ///     https://api.semanticscholar.org/CorpusID:14088925
+    ///     <https://api.semanticscholar.org/CorpusID:14088925>
     ///
     /// It matches the mean and standard deviations in the [`Oklab`] color space, then projects
     /// back to [`Srgb`].
@@ -100,7 +100,7 @@ pub trait ColorMatch: ToLab + ToSrgb {
     /// Equalize the color distribution.
     ///
     /// See:
-    ///     https://docs.opencv.org/4.x/d5/daf/tutorial_py_histogram_equalization.html
+    ///     <https://docs.opencv.org/4.x/d5/daf/tutorial_py_histogram_equalization.html>
     ///
     /// It spreads out the distribution such that they cover the full color space.
     fn equalize(&self) -> Self;

@@ -9,12 +9,24 @@ use crate::utils;
 
 #[derive(Debug, Clone)]
 pub struct Master {
+    /// The master image buffer.
     pub img: RgbImage,
+    /// The grid cells of the master image, where the tiles will be placed.
     pub cells: Vec<RgbImage>,
+    /// The size of each grid cell, in pixels.
     pub cell_size: (u32, u32),
 }
 
+/// Represents the master image.
+///
+/// The image will be split in to [`cells`](Master::cells), wihch contain the smaller regions of
+/// the master image, where the tiles will be placed.
 impl Master {
+    /// Construct a [`Master`] from a [`RgbImage`] buffer, and the grid size.
+    ///
+    /// # Arguments
+    /// - `img`: The [`RgbImage`] buffer to construct the [`Master`] from.
+    /// - `grid_size`: The grid size of the [`Master`], the number of cells horizontally and vertically.
     pub fn from_image(img: RgbImage, grid_size: (u32, u32)) -> Result<Self, Error> {
         let (img_width, img_height) = img.dimensions();
         // the number of cells in each dimension of the grid
@@ -40,6 +52,11 @@ impl Master {
         })
     }
 
+    /// Construct a [`Master`] from an image file, and the grid size.
+    ///
+    /// # Arguments
+    /// - `file`: The path to the image file to construct the [`Master`] from.
+    /// - `grid_size`: The grid size of the [`Master`], the number of cells horizontally and vertically.
     pub fn from_file<P: AsRef<Path>>(file: P, grid_size: (u32, u32)) -> Result<Self, Error> {
         let img = image::open(file)?.to_rgb8();
         Self::from_image(img, grid_size)

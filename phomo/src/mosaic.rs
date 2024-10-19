@@ -72,9 +72,9 @@ impl Mosaic {
     }
 
     /// Compute the (flat) distance matrix between the tiles and the master cells, using the
-    /// [`NormL1`] metric.
+    /// [`norm_l1`] metric.
     ///
-    /// To use a different distance metric, use the [`Mosaic::distance_matrix_with_metric`] method.
+    /// To use a different distance metric, use the [`distance_matrix_with_metric`](Mosaic::distance_matrix_with_metric) method.
     ///
     /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix(&self) -> Vec<i64> {
@@ -82,7 +82,7 @@ impl Mosaic {
     }
 
     /// Compute the (flat) distance matrix between the tiles and the master cells using the provided
-    /// `metric` which should implement the [`Metric`] trait
+    /// `metric` function, see [`phomo::metrics`](crate::metrics) for implemented distance metrics.
     ///
     /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> Vec<i64> {
