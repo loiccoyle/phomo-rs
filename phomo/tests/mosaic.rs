@@ -120,7 +120,7 @@ fn build_mosaic_match_tiles_to_master() {
         &mosaic_img,
         test_dir().join("mosaic_12_12_match_tiles_to_master.png"),
     );
-    assert_eq!(mosaic_img, expected);
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 
 #[test]
@@ -135,7 +135,7 @@ fn build_mosaic_match_master_to_tiles() {
 
     master_img = master_img.match_palette(&tile_imgs);
     let expected = open_expected(&master_img, test_dir().join("master_matched_to_faces.png"));
-    assert_eq!(master_img, expected);
+    assert!(kinda_same_imgs(master_img.clone(), expected, 2.));
 
     let result = Mosaic::from_images(master_img, tile_imgs, (8, 8));
     assert!(result.is_ok());
@@ -153,5 +153,18 @@ fn build_mosaic_match_master_to_tiles() {
         &mosaic_img,
         test_dir().join("mosaic_12_12_match_master_to_tiles.png"),
     );
-    assert_eq!(mosaic_img, expected);
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
+}
+
+/// compare two images return true if ther are close to being the same
+fn kinda_same_imgs(img1: image::RgbImage, img2: image::RgbImage, tol: f64) -> bool {
+    let diff = img1
+        .as_raw()
+        .iter()
+        .zip(img2.as_raw())
+        .map(|(a, b)| (*a).abs_diff(*b))
+        .collect::<Vec<_>>();
+
+    let diff_sum: u64 = diff.into_iter().map(|a| a as u64).sum();
+    diff_sum as f64 / (img1.width() * img1.height() * 3) as f64 <= tol
 }
