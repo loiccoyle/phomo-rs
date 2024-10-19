@@ -6,7 +6,12 @@ use log::warn;
 
 use crate::error::Error;
 
-/// Helper function to crop am image to a width and height centered on the image
+/// Helper function to crop am image to a width and height centered on the image.
+///
+/// # Arguments
+/// - `img`: The image to crop.
+/// - `width`: The width to crop to.
+/// - `height`: The height to crop to.
 pub fn crop_imm_centered<I>(img: &I, width: u32, height: u32) -> SubImage<&I>
 where
     I: GenericImageView,
@@ -23,7 +28,14 @@ where
     )
 }
 
-/// Read all images in a directory and returns them as a vector
+/// Read all images in a directory and returns them in a vector.
+///
+/// # Arguments
+/// - `tile_dir`: The path to the directory containing the tile images.
+///
+/// # Errors
+/// - An error occurred while reading the directory.
+/// - Failed to open the image.
 pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, Error> {
     Ok(tile_dir
         .as_ref()
@@ -44,7 +56,13 @@ pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>
         .collect::<Vec<_>>())
 }
 
-/// Read all images in a directory, cropped to the `width` and `height` and returns them as a vector
+/// Read all images in a directory, cropped to the `width` and `height` and return them in a
+/// vector.
+///
+/// # Arguments
+/// - `tile_dir`: The path to the directory containing the tile images.
+/// - `width`: The width to crop to.
+/// - `height`: The height to crop to.
 pub fn read_images_from_dir_cropped<P: AsRef<Path>>(
     tile_dir: P,
     width: u32,
@@ -56,7 +74,13 @@ pub fn read_images_from_dir_cropped<P: AsRef<Path>>(
         .collect::<Vec<_>>())
 }
 
-/// Read all images in a directory, resized to the `width` and `height` and returns them as a vector
+/// Read all images in a directory, resized to the `width` and `height` and returns them in a vector.
+///
+/// # Arguments
+/// - `tile_dir`: The path to the directory containing the tile images.
+/// - `width`: The width to resize to.
+/// - `height`: The height to resize to.
+/// - `filter`: The [`image::imageops::FilterType`] to use for resizing.
 pub fn read_images_from_dir_resized<P: AsRef<Path>>(
     tile_dir: P,
     width: u32,

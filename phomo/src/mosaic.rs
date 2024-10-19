@@ -21,12 +21,27 @@ use crate::utils;
 
 #[derive(Debug, Clone)]
 pub struct Mosaic {
+    /// The [`Master`] image to reconstruct.
     pub master: Master,
+    /// The tile images to use to reconstruct the [`Master`] image. The tile images should be the
+    /// same size as the [`Master::cell_size`]. There should also be at least `Master::cells.len()`
+    /// tiles.
     pub tiles: Vec<RgbImage>,
     grid_size: (u32, u32),
 }
 
+/// Represents a photo mosaic.
 impl Mosaic {
+    /// Construct a [`Mosaic`] from a master image file and a directory of tile images.
+    ///
+    /// # Arguments
+    /// - `master_file`: The path to the master image file.
+    /// - `tile_dir`: The path to the directory containing the tile images.
+    /// - `grid_size`: The grid size of the mosaic, the number of cells horizontally and vertically.
+    ///
+    /// # Errors
+    /// - An error occurred while reading the master image.
+    /// - See [`Mosaic::from_images`].
     pub fn from_file_and_dir<P: AsRef<Path>, Q: AsRef<Path>>(
         master_file: P,
         tile_dir: Q,
@@ -39,6 +54,18 @@ impl Mosaic {
         Self::from_images(master_img, tiles, grid_size)
     }
 
+    /// Construct a [`Mosaic`] from [`RgbImage`] buffers of the master images and the tile
+    /// images.
+    ///
+    /// # Arguments
+    /// - `master_img`: The master image buffer.
+    /// - `tiles`: The tile image buffers.
+    /// - `grid_size`: The grid size of the mosaic, the number of cells horizontally and vertically.
+    ///
+    /// # Errors
+    /// - An error occurred while reading the master image or the tile images.
+    /// - The tile images were not the same size as the grid cells.
+    /// - Not enough tile images were provided for the `grid_size`.
     pub fn from_images(
         master_img: RgbImage,
         tiles: Vec<RgbImage>,
@@ -105,7 +132,8 @@ impl Mosaic {
     }
 
     /// Compute the tile to master cell assignments using the
-    /// [pathfinding::kuhn_munkres](pathfinding::kuhn_munkres::kuhn_munkres_min) algorithm.
+    /// [pathfinding::kuhn_munkres](pathfinding::kuhn_munkres::kuhn_munkres_min) algorithm and
+    /// build the photo mosaic image.
     pub fn build(&self, distance_matrix: Vec<i64>) -> Result<RgbImage, Error> {
         // use the hungarian algorithm to find the best tile to cell assignments
         let weights = pathfinding::matrix::Matrix::from_vec(
