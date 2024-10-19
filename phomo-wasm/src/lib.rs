@@ -138,7 +138,7 @@ impl Mosaic {
     pub fn render_blueprint(&self, blueprint: JsValue) -> Result<String, JsValue> {
         let blueprint = serde_wasm_bindgen::from_value::<Blueprint>(blueprint)?;
         let mosaic_img = blueprint
-            .render(&self.master_img, &self.tile_imgs)
+            .render(&self.mosaic.master.img, &self.tile_imgs)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         to_base64(mosaic_img)
