@@ -11,10 +11,13 @@ import {
   Folder,
   Ratio,
   Grid,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import TileManagementModal from "./TileManagementModal";
 import { ResizeType } from "phomo";
 import { ColorMatchingMethod } from "./colorMatchingMethods";
+import MosaicGrid from "./MosaicGrid";
 
 interface MosaicControlsProps {
   onMasterImageSelect: (file: File) => void;
@@ -53,6 +56,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   tileSizingMethod,
   setTileSizingMethod,
 }) => {
+  const [showGrid, setShowGrid] = useState(false);
   const [matchMasterAspectRatio, setMatchMasterAspectRatio] = useState(false);
   const [isTileModalOpen, setIsTileModalOpen] = useState(false);
   const requiredTileImages = gridWidth * gridHeight;
@@ -356,6 +360,28 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
               />
             </div>
           </div>
+        </div>
+        <div className="flex justify-center align-middle items-center flex-col gap-2 p-2">
+          <div
+            className={`flex align-middle bg-gray-100 rounded-xl dark:bg-gray-700  ${masterImage ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" : "opacity-50"}`}
+            onClick={() => masterImage && setShowGrid((prev) => !prev)}
+          >
+            {showGrid ? (
+              <ChevronUp className="text-gray-600 dark:text-gray-300" />
+            ) : (
+              <ChevronDown className="text-gray-600 dark:text-gray-300" />
+            )}
+          </div>
+          {showGrid && masterImage && (
+            <div className="rounded-md bg-gray-200 dark:bg-gray-700 p-2 flex flex-center flex-col justify-center w-full gap-2 text-gray-700 dark:text-gray-300 font-medium text-center">
+              <h3>Approximate Grid</h3>
+              <MosaicGrid
+                masterImage={masterImage}
+                gridWidth={gridWidth}
+                gridHeight={gridHeight}
+              />
+            </div>
+          )}
         </div>
       </div>
       <div className="mt-6">

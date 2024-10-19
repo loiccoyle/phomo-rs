@@ -92,7 +92,10 @@ const App: React.FC = () => {
       }
 
       // Generate the mosaic and retrieve the final image as base64
-      const mosaicBase64 = mosaic.build("NormL1");
+      const blueprint = mosaic.buildBlueprint("NormL1");
+      const mosaicBase64 = mosaic.renderBlueprint(blueprint);
+      // console.log("blueprint:", blueprint);
+      // const mosaicBase64_ = mosaic.build("NormL1");
 
       setMosaicImage(`data:image/png;base64,${mosaicBase64}`);
       if (!mosaicImage) {
@@ -154,29 +157,6 @@ const App: React.FC = () => {
                   </span>
                 </div>
               </div>
-              {/* {mosaicImage ? ( */}
-              {/*   <img */}
-              {/*     src={mosaicImage} */}
-              {/*     alt="Generated mosaic" */}
-              {/*     className="w-full" */}
-              {/*   /> */}
-              {/* ) : ( */}
-              {/*   <div> */}
-              {/*     <img */}
-              {/*       src={ */}
-              {/*         mosaicImage || */}
-              {/*         "https://images.unsplash.com/photo-1682687982501-1e58ab814714" */}
-              {/*       } */}
-              {/*       alt="Generated mosaic" */}
-              {/*       width="100%" */}
-              {/*     /> */}
-              {/*     <MosaicGrid */}
-              {/*       onTileClick={handleTileClick} */}
-              {/*       gridSize={gridSize} */}
-              {/*       masterImage={masterImage} */}
-              {/*     /> */}
-              {/*   </div> */}
-              {/* )} */}
               <img src={mosaicImage} alt="Generated mosaic" width="100%" />
             </div>
           )}

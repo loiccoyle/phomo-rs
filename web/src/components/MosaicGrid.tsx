@@ -1,53 +1,71 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 interface MosaicGridProps {
-  onTileClick: (tileUrl: string, index: number) => void;
-  gridSize: number;
   masterImage: string | null;
+  gridWidth: number;
+  gridHeight: number;
 }
 
 const MosaicGrid: React.FC<MosaicGridProps> = ({
-  onTileClick,
-  gridSize,
   masterImage,
+  gridWidth,
+  gridHeight,
 }) => {
-  const tileSize = 100 / gridSize;
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+  const imageRef = useRef<HTMLImageElement>(null);
 
-  // Use the master image if available, otherwise use a placeholder
-  const imageUrl =
-    masterImage ||
-    "https://images.unsplash.com/photo-1682687982501-1e58ab814714";
+  useEffect(() => {
+    const updateDimensions = () => {
+      if (imageRef.current) {
+        setImageDimensions({
+          width: imageRef.current.offsetWidth,
+          height: imageRef.current.offsetHeight,
+        });
+      }
+    };
+
+    window.addEventListener("resize", updateDimensions);
+    updateDimensions();
+
+    return () => window.removeEventListener("resize", updateDimensions);
+  }, []);
+
+  const cellWidth = Math.floor(imageDimensions.width / gridWidth);
+  const cellHeight = Math.floor(imageDimensions.height / gridHeight);
+
+  const gridStyle = {
+    display: "grid",
+    gridTemplateColumns: `repeat(${gridWidth}, ${cellWidth}px)`,
+    gridTemplateRows: `repeat(${gridHeight}, ${cellHeight}px)`,
+    width: `${cellWidth * gridWidth}px`,
+    height: `${cellHeight * gridHeight}px`,
+  };
+
+  if (masterImage === null) {
+    return <div></div>;
+  }
 
   return (
-    <div
-      className={`grid gap-px bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden`}
-      style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
-    >
-      {Array.from({ length: gridSize * gridSize }).map((_, index) => {
-        const row = Math.floor(index / gridSize);
-        const col = index % gridSize;
-        return (
-          <div
-            key={index}
-            className="relative aspect-square"
-            // cursor-pointer hover:opacity-75 transition-opacity"
-            style={{ paddingBottom: `${tileSize}%` }}
-            onClick={() => onTileClick(imageUrl, index)}
-          >
-            <div
-              className="absolute inset-0 bg-cover bg-no-repeat"
-              style={{
-                backgroundImage: `url(${imageUrl})`,
-                backgroundPosition: `${(col / (gridSize - 1)) * 100}% ${(row / (gridSize - 1)) * 100}%`,
-                backgroundSize: `${gridSize * 100}%`,
-              }}
-            />
-          </div>
-        );
-      })}
+    <div className="relative inline-block w-full">
+      <img
+        ref={imageRef}
+        src={masterImage}
+        alt="Image with grid overlay"
+        width="100%"
+      />
+      <div
+        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        style={gridStyle}
+      >
+        {Array.from({ length: gridWidth * gridHeight }).map((_, index) => (
+          <div key={index} className="border border-white bg-non" />
+        ))}
+      </div>
     </div>
   );
 };
 
 export default MosaicGrid;
-
