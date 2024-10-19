@@ -20,48 +20,65 @@ jobs:
         # TODO: the cli tests don't run for some reason
         run: cargo test -p phomo
 
-  # release:
-  #   name: release
-  #   if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'loiccoyle' }}
-  #   needs:
-  #     - test
-  #   outputs:
-  #     phomo--release_created: ${{ steps.release.outputs.phomo--release_created }}
-  #     phomo-cli--release_created: ${{ steps.release.outputs.phomo-cli--release_created }}
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: googleapis/release-please-action@v4
-  #       id: release
-  #       with:
-  #         config-file: .github/release-please-config.json
-  #         manifest-file: .github/.release-please-manifest.json
-  #
-  # publish:
-  #   name: Publish
-  #   needs:
-  #     - release
-  #   if: needs.release.outputs.phomo--release_created || needs.release.outputs.phomo-cli--release_created
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout sources
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Install toolchain
-  #       run: rustup toolchain install stable --profile minimal
-  #
-  #     - uses: Swatinem/rust-cache@v2
-  #
-  #     - name: Publish lib crate
-  #       if: needs.release.outputs.phomo--release_created
-  #       run: |
-  #         cd phomo
-  #         cargo publish --token ${{ secrets.CARGO_TOKEN }}
-  #
-  #     - name: Publish cli crate
-  #       if: needs.release.outputs.phomo-cli--release_created
-  #       run: |
-  #         cd phomo-cli
-  #         cargo publish --token ${{ secrets.CARGO_TOKEN }}
+  release:
+    name: release
+    if: ${{ github.ref == 'refs/heads/main' && github.repository_owner == 'loiccoyle' }}
+    needs:
+      - test
+    outputs:
+      phomo--release_created: ${{ steps.release.outputs.phomo--release_created }}
+      phomo-cli--release_created: ${{ steps.release.outputs.phomo-cli--release_created }}
+      phomo-wasm--release_created: ${{ steps.release.outputs.phomo-wasm--release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json
+
+  publish:
+    name: Publish
+    needs:
+      - release
+    if: needs.release.outputs.phomo--release_created || needs.release.outputs.phomo-cli--release_created || needs.release.outputs.phomo-wasm--release_created
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: rustup toolchain install stable --profile minimal
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Publish lib crate
+        if: needs.release.outputs.phomo--release_created
+        run: |
+          cd phomo
+          cargo publish --token ${{ secrets.CARGO_TOKEN }}
+
+      - name: Publish cli crate
+        if: needs.release.outputs.phomo-cli--release_created
+        run: |
+          cd phomo-cli
+          cargo publish --token ${{ secrets.CARGO_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        if: needs.release.outputs.phomo-wasm--release_created
+        with:
+          node-version: "22.x"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Publish wasm npm pkg
+        if: needs.release.outputs.phomo-wasm--release_created
+        run: |
+          cargo install wasm-pack
+          cd phomo-wasm
+          wasm-pack build
+          npm publish pkg/
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # readme:
   #   runs-on: ubuntu-latest
