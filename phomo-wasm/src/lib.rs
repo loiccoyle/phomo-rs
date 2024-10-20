@@ -38,9 +38,7 @@ pub fn overlay_grid(
 // Wrapper for Mosaic struct
 #[wasm_bindgen]
 pub struct Mosaic {
-    master_img: RgbImage,
-    tile_imgs: Vec<RgbImage>,
-    mosaic: MosaicRs,
+    inner: MosaicRs,
 }
 
 #[wasm_bindgen]
@@ -94,29 +92,25 @@ impl Mosaic {
         )
         .map_err(|err| JsValue::from(err.to_string()))?;
 
-        Ok(Mosaic {
-            master_img,
-            tile_imgs,
-            mosaic,
-        })
+        Ok(Mosaic { inner: mosaic })
     }
 
     // Method to equalize the master and tile images
     pub fn equalize(&mut self) {
-        self.master_img = self.master_img.equalize();
-        self.tile_imgs = self.tile_imgs.equalize();
+        self.inner.master.img = self.inner.master.img.equalize();
+        self.inner.tiles = self.inner.tiles.equalize();
     }
 
     // Method to transfer master image palette to tile images
     #[wasm_bindgen(js_name = transferMasterToTiles)]
     pub fn transfer_master_to_tiles(&mut self) {
-        self.tile_imgs = self.tile_imgs.match_palette(&self.master_img);
+        self.inner.tiles = self.inner.tiles.match_palette(&self.inner.master.img);
     }
 
     // Method to transfer tile images palette to master image
     #[wasm_bindgen(js_name = transferTilesToMaster)]
     pub fn transfer_tiles_to_master(&mut self) {
-        self.master_img = self.master_img.match_palette(&self.tile_imgs);
+        self.inner.master.img = self.inner.master.img.match_palette(&self.inner.tiles);
     }
 
     fn distance_matrix_with_metric(&self, metric_type: &str) -> Result<Vec<i64>, JsValue> {
@@ -126,7 +120,7 @@ impl Mosaic {
             _ => return Err(JsValue::from("Unsupported metric type")),
         };
 
-        Ok(self.mosaic.distance_matrix_with_metric(metric))
+        Ok(self.inner.distance_matrix_with_metric(metric))
     }
 
     // Build the mosaic after applying palette matching or equalization
@@ -134,7 +128,7 @@ impl Mosaic {
         let d_matrix = self.distance_matrix_with_metric(metric_type)?;
 
         let mosaic_img = self
-            .mosaic
+            .inner
             .build(d_matrix)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
@@ -145,7 +139,7 @@ impl Mosaic {
     pub fn build_blueprint(&self, metric_type: &str) -> Result<JsValue, JsValue> {
         let d_matrix = self.distance_matrix_with_metric(metric_type)?;
         let mosaic = self
-            .mosaic
+            .inner
             .build_blueprint(d_matrix)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
@@ -156,7 +150,7 @@ impl Mosaic {
     pub fn render_blueprint(&self, blueprint: JsValue) -> Result<String, JsValue> {
         let blueprint = serde_wasm_bindgen::from_value::<Blueprint>(blueprint)?;
         let mosaic_img = blueprint
-            .render(&self.mosaic.master.img, &self.tile_imgs)
+            .render(&self.inner.master.img, &self.inner.tiles)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         to_base64(mosaic_img)
