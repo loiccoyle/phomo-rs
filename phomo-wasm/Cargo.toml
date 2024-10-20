@@ -9,7 +9,7 @@ version = "0.2.0"
 description = "Wasm bindings for the phomo rust crate - a photo mosaic library"
 
 [dependencies]
-phomo = { path = "../phomo", version = "0.2.0", default-features = false, features = [
+phomo = { version = "0.2.0", default-features = false, features = [
   "blueprint",
 ] }
 image = { workspace = true }
