@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .grid-cols-20 {
+    grid-template-columns: repeat(20, minmax(0, 1fr));
+  }
+}
