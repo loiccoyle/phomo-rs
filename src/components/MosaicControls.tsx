@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import TileManagementModal from "./TileManagementModal";
 import { ResizeType } from "phomo-wasm";
-import { ColorMatchingMethod } from "./colorMatchingMethods";
+import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 
 interface MosaicControlsProps {
   onMasterImageSelect: (file: File) => void;
