@@ -5,12 +5,12 @@ authors.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "CLI for phomo - generate photo mosaics from the command line"
+keywords = ["cli", "photo-mosaic", "image", "art"]
 
 [[bin]]
 name = "phomo"
 path = "src/main.rs"
-description = "CLI for phomo - generate photo mosaics from the command line"
-keywords = ["cli", "photo-mosaic", "image", "art"]
 
 [dependencies]
 phomo = { path = "../phomo", version = "0.2.0", features = [
