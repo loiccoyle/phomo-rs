@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.2.0...phomo-cli-v0.2.1) (2024-10-20)
+
+
+### Bug Fixes
+
+* bad field location ([3e64f0a](https://github.com/loiccoyle/phomo-rs/commit/3e64f0ad5f32c7ae9ba692e33ed6dc9260b23c52))
+
 ## [0.2.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.1.0...phomo-cli-v0.2.0) (2024-10-20)
 
 
