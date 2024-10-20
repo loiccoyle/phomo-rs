@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Grid } from "lucide-react";
-// import MosaicGrid from "./components/MosaicGrid";
-// import TileModal from "./components/TileModal";
 import MosaicControls from "./components/MosaicControls";
 import Header from "./components/Header";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -10,11 +8,6 @@ import { ColorMatchingMethod } from "./components/colorMatchingMethods";
 import { Mosaic, ResizeType, overlayGrid } from "phomo-wasm";
 
 const App: React.FC = () => {
-  // const [showModal, setShowModal] = useState(false);
-  // const [selectedTile, setSelectedTile] = useState<{
-  //   url: string;
-  //   index: number;
-  // } | null>(null);
   const [masterImage, setMasterImage] = useState<string | null>(null);
   const [gridOverlay, setGridOverlay] = useState<string | null>(null);
   const [tileImages, setTileImages] = useState<{ url: string; name: string }[]>(
@@ -27,11 +20,6 @@ const App: React.FC = () => {
   );
   const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Resize);
   const [mosaicImage, setMosaicImage] = useState<string | null>(null);
-
-  // const handleTileClick = (tileUrl: string, index: number) => {
-  //   setSelectedTile({ url: tileUrl, index });
-  //   setShowModal(true);
-  // };
 
   const handleMasterImageSelect = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
@@ -174,13 +162,6 @@ const App: React.FC = () => {
             </div>
           )}
         </main>
-        {/* {showModal && selectedTile && mosaicImage && ( */}
-        {/*   <TileModal */}
-        {/*     imageUrl={selectedTile.url} */}
-        {/*     tileIndex={selectedTile.index} */}
-        {/*     onClose={() => setShowModal(false)} */}
-        {/*   /> */}
-        {/* )} */}
       </div>
     </ThemeProvider>
   );
