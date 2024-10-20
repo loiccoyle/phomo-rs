@@ -375,7 +375,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
           </div>
           {showGrid && masterImage && gridOverlay && (
             <div className="rounded-md p-2 flex flex-center flex-col justify-center align-middle items-center w-full">
-              <img src={gridOverlay} className="max-w-xl rounded-lg" />
+              <img src={gridOverlay} className="max-full rounded-lg" />
             </div>
           )}
         </div>
