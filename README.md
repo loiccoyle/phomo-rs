@@ -51,6 +51,30 @@ phomo master_image.png tile_directory/ output_mosaic.png
 If doubt see the help:
 
 <!-- help start -->
+
+```console
+$ phomo -h
+Usage: phomo [OPTIONS] <MASTER_FILE> <TILE_DIR> <OUTPUT>
+
+Arguments:
+  <MASTER_FILE>  Master image
+  <TILE_DIR>     Tile directory
+  <OUTPUT>       Output mosaic file
+
+Options:
+  -g, --grid-size <WIDTH,HEIGHT>  Grid size, the number of tiles along the width and height
+      --crop-tiles                Crop tiles to grid cell size
+      --resize-tiles              Resize tiles to grid cell size
+      --equalize                  Equalize the master and tile image color distributions
+      --transfer-master-to-tiles  Transfer the color palette of the master image to the tile images
+      --transfer-tiles-to-master  Transfer the color palette of the tile images to the master image
+      --metric <METRIC>           The distance metric to use [default: norm-l1] [possible values: norm-l1, norm-l2]
+  -v, --verbose...                Increase logging verbosity
+  -q, --quiet...                  Decrease logging verbosity
+  -h, --help                      Print help (see more with '--help')
+  -V, --version                   Print version
+```
+
 <!-- help end -->
 
 ## Library
