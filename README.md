@@ -14,10 +14,11 @@
 
 <p align="center">
   <b>
-  Make your own photo mosaics <a href="https://loiccoyle.com/phomo-rs">here</a>
+  Make your own photo mosaics <a href="https://loiccoyle.com/phomo-rs">here</a>!
   </b>
 </p>
 
+> Prefer python? Check out [`loiccoyle/phomo`](https://github.com/loiccoyle/phomo)!
 
 This repo contains two crates:
 
@@ -89,9 +90,9 @@ See the [docs](https://docs.rs/phomo) for usage.
 
 ## Wasm
 
- To use the `wasm` bindings in your project, add the `phomo-wasm` `npm` package:
+To use the `wasm` bindings in your project, add the `phomo-wasm` `npm` package:
 
- ```sh
+```sh
 npm add phomo-wasm
 ```
 
