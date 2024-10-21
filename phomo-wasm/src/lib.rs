@@ -109,8 +109,13 @@ impl Mosaic {
 
     // Method to transfer tile images palette to master image
     #[wasm_bindgen(js_name = transferTilesToMaster)]
-    pub fn transfer_tiles_to_master(&mut self) {
-        self.inner.master.img = self.inner.master.img.match_palette(&self.inner.tiles);
+    pub fn transfer_tiles_to_master(&mut self) -> Result<(), JsValue> {
+        self.inner.master = MasterRs::from_image(
+            self.inner.master.img.match_palette(&self.inner.tiles),
+            self.inner.grid_size,
+        )
+        .map_err(|err| JsValue::from(err.to_string()))?;
+        Ok(())
     }
 
     fn distance_matrix_with_metric(&self, metric_type: &str) -> Result<Vec<i64>, JsValue> {
