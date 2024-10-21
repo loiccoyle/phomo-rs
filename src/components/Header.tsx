@@ -18,9 +18,11 @@ const Header: React.FC = () => {
             Phomo
           </h1>
           <p className="text-base text-center grow sm:text-lg text-gray-600 dark:text-gray-300 italic relative">
-            Effortless photo mosaics,{" "}
+            <span className="sm:inline hidden">Effortless photo mosaics, </span>
+            <span className="sm:hidden inline">Photo mosaics,</span>
             <span
               className="underline relative"
+              onClick={() => setShowTooltip(!showTooltip)}
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
             >
