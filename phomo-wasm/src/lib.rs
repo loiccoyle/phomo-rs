@@ -78,8 +78,8 @@ impl Mosaic {
                         if cell_width > img.width() || cell_height > img.height() {
                             panic!("Could not crop tile to cell size as the cell size is larger than the tile size.");
                         }
-                        utils::crop_imm_centered(&img, cell_width, cell_height).to_image()
-                    }
+                            utils::crop_cover(&img, cell_width, cell_height, image::imageops::FilterType::Nearest)
+                        }
                     None => img,
                 }
             })
