@@ -28,6 +28,7 @@ const App: React.FC = () => {
     setColorMatchingMethod,
     tileSizingMethod,
     setTileSizingMethod,
+    mosaic,
     mosaicImage,
     mosaicBlueprint,
     handleCreateMosaic,
@@ -57,13 +58,17 @@ const App: React.FC = () => {
             tileSizingMethod={tileSizingMethod}
             setTileSizingMethod={setTileSizingMethod}
           />
-          {mosaicBlueprint && (
+          {mosaicBlueprint && mosaic && (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mt-8">
               <div className="flex items-center align-center justify-center">
                 <MosaicBlueprint
                   blueprint={mosaicBlueprint}
-                  tileImages={tileImages}
-                  tileSizingMethod={tileSizingMethod}
+                  tileImages={mosaic.getTiles().map((url, i) => {
+                    return {
+                      url: `data:image/png;base64,${url}`,
+                      name: tileImages[i].name,
+                    };
+                  })}
                 />
               </div>
               <div className="mt-8 flex justify-center">

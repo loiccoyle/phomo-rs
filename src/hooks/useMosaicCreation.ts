@@ -13,6 +13,7 @@ export const useMosaicCreation = (
   const [colorMatchingMethod, setColorMatchingMethod] = useState(
     ColorMatchingMethod.None,
   );
+  const [mosaic, setMosaic] = useState<Mosaic | null>(null);
   const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Resize);
   const [mosaicImage, setMosaicImage] = useState<string | null>(null);
   const [mosaicBlueprint, setMosaicBlueprint] = useState<Blueprint | null>(
@@ -55,22 +56,13 @@ export const useMosaicCreation = (
           mosaic.equalize();
           break;
       }
+      setMosaic(mosaic);
 
       const blueprint = mosaic.buildBlueprint("NormL1");
       setMosaicBlueprint(blueprint);
 
       const mosaicBase64 = mosaic.renderBlueprint(blueprint);
-
       setMosaicImage(`data:image/png;base64,${mosaicBase64}`);
-
-      if (!mosaicImage) {
-        setTimeout(() => {
-          window.scrollTo({
-            top: document.body.scrollHeight,
-            behavior: "smooth",
-          });
-        }, 0.5);
-      }
     } catch (error) {
       console.error("Error creating mosaic:", error);
       alert("An error occurred while creating the mosaic.");
@@ -82,6 +74,7 @@ export const useMosaicCreation = (
     setColorMatchingMethod,
     tileSizingMethod,
     setTileSizingMethod,
+    mosaic,
     mosaicImage,
     mosaicBlueprint,
     handleCreateMosaic,
