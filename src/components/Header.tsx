@@ -33,7 +33,7 @@ const Header: React.FC = () => {
                 }`}
               >
                 All processing is done locally on your device. Your photos never
-                leave your computer.
+                leave your device.
               </span>
             </span>
           </p>
