@@ -7,3 +7,14 @@
     grid-template-columns: repeat(20, minmax(0, 1fr));
   }
 }
+
+html,
+body {
+  background-color: theme("colors.gray.100"); /* Light mode background */
+}
+
+html.dark,
+body.dark {
+  background-color: theme("colors.gray.900"); /* Dark mode background */
+}
+
