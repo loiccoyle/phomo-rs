@@ -114,7 +114,7 @@ pub fn read_images_from_dir_cropped<P: AsRef<Path>>(
 ) -> Result<Vec<RgbImage>, Error> {
     Ok(read_images_from_dir(tile_dir)?
         .iter()
-        .map(|img| crop_imm_centered(img, width, height).to_image())
+        .map(|img| crop_cover(img, width, height, image::imageops::FilterType::Nearest))
         .collect::<Vec<_>>())
 }
 
