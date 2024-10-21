@@ -1,7 +1,7 @@
 use std::path::Path;
 
 extern crate image;
-use image::{GenericImageView, RgbImage, SubImage};
+use image::{GenericImageView, Pixel, RgbImage, SubImage};
 use log::warn;
 
 use crate::error::Error;
@@ -26,6 +26,50 @@ where
         width,
         height,
     )
+}
+
+/// Helper function to crop an image, preserving aspect ratio, to a width and height.
+///
+/// # Arguments
+/// - `img`: The image to crop.
+/// - `width`: The width to crop to.
+/// - `height`: The height to crop to.
+/// - `filter`: The filter to use when resizing the image.
+pub fn crop_cover<I>(
+    img: &I,
+    width: u32,
+    height: u32,
+    filter: image::imageops::FilterType,
+) -> image::ImageBuffer<
+    <I as GenericImageView>::Pixel,
+    Vec<<<I as GenericImageView>::Pixel as Pixel>::Subpixel>,
+>
+where
+    I: GenericImageView,
+    <I as GenericImageView>::Pixel: 'static,
+{
+    let img_aspect_ratio = img.width() as f32 / img.height() as f32;
+    let aspect_ratio = width as f32 / height as f32;
+
+    let (new_width, new_height) = if img_aspect_ratio > aspect_ratio {
+        // Tile is wider than the cell, so resize based on height
+        let scale_factor = height as f32 / img.height() as f32;
+        (img.width() as f32 * scale_factor, height as f32)
+    } else {
+        // Tile is taller than the cell, so resize based on width
+        let scale_factor = width as f32 / img.width() as f32;
+        (width as f32, img.height() as f32 * scale_factor)
+    };
+
+    let resized_img = image::imageops::resize(
+        img,
+        new_width.round() as u32,
+        new_height.round() as u32,
+        filter,
+    );
+
+    // Crop the resized image to the exact cell size, centered
+    crop_imm_centered(&resized_img, width, height).to_image()
 }
 
 /// Read all images in a directory and returns them in a vector.
