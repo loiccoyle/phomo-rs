@@ -63,7 +63,7 @@ const App: React.FC = () => {
             {buildingMosaic ? (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex items-center justify-center">
                 <Loader className="w-8 h-8 text-blue-500 animate-spin mr-2" />
-                <span className="text-lg font-semibold">
+                <span className="text-lg font-semibold dark:text-white">
                   Building Mosaic...
                 </span>
               </div>
