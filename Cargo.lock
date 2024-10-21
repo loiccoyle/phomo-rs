@@ -1169,20 +1169,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "phomo"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be4c55efb85d3cabe900eb66edd0d8de72b88dd286376d73fa9277795795fc1f"
-dependencies = [
- "image",
- "log",
- "palette",
- "pathfinding",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "phomo-cli"
 version = "0.2.1"
 dependencies = [
@@ -1194,7 +1180,7 @@ dependencies = [
  "env_logger",
  "image",
  "log",
- "phomo 0.2.0",
+ "phomo",
 ]
 
 [[package]]
@@ -1207,7 +1193,7 @@ dependencies = [
  "image",
  "instant",
  "js-sys",
- "phomo 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "phomo",
  "serde-wasm-bindgen",
  "wasm-bindgen",
  "wasm-logger",
