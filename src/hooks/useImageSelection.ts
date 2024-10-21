@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { overlayGrid } from "phomo-wasm";
 import { fetchImageAsBytes } from "../utils/imageUtils";
+import { Tile } from "../types/tile";
 
 export const useImageSelection = () => {
   const [masterImage, setMasterImage] = useState<string | null>(null);
   const [gridOverlay, setGridOverlay] = useState<string | null>(null);
-  const [tileImages, setTileImages] = useState<{ url: string; name: string }[]>(
-    [],
-  );
+  const [tileImages, setTileImages] = useState<Tile[]>([]);
   const [gridWidth, setGridWidth] = useState(20);
   const [gridHeight, setGridHeight] = useState(20);
 

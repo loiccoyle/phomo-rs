@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mosaic, ResizeType } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { fetchImageAsBytes } from "../utils/imageUtils";
+import { Blueprint } from "../types/blueprint";
 
 export const useMosaicCreation = (
   masterImage: string | null,
@@ -14,6 +15,9 @@ export const useMosaicCreation = (
   );
   const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Resize);
   const [mosaicImage, setMosaicImage] = useState<string | null>(null);
+  const [mosaicBlueprint, setMosaicBlueprint] = useState<Blueprint | null>(
+    null,
+  );
 
   const handleCreateMosaic = async () => {
     if (tileImages.length < gridWidth * gridHeight) {
@@ -53,6 +57,8 @@ export const useMosaicCreation = (
       }
 
       const blueprint = mosaic.buildBlueprint("NormL1");
+      setMosaicBlueprint(blueprint);
+
       const mosaicBase64 = mosaic.renderBlueprint(blueprint);
 
       setMosaicImage(`data:image/png;base64,${mosaicBase64}`);
@@ -77,6 +83,7 @@ export const useMosaicCreation = (
     tileSizingMethod,
     setTileSizingMethod,
     mosaicImage,
+    mosaicBlueprint,
     handleCreateMosaic,
   };
 };

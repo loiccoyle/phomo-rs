@@ -2,9 +2,10 @@ import React from "react";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Header from "./components/Header";
 import MosaicControls from "./components/MosaicControls";
-import MosaicPreview from "./components/MosaicPreview";
 import { useMosaicCreation } from "./hooks/useMosaicCreation";
 import { useImageSelection } from "./hooks/useImageSelection";
+import MosaicBlueprint from "./components/MosaicBlueprint";
+import { Download } from "lucide-react";
 
 const App: React.FC = () => {
   const {
@@ -28,6 +29,7 @@ const App: React.FC = () => {
     tileSizingMethod,
     setTileSizingMethod,
     mosaicImage,
+    mosaicBlueprint,
     handleCreateMosaic,
   } = useMosaicCreation(masterImage, tileImages, gridWidth, gridHeight);
 
@@ -55,12 +57,31 @@ const App: React.FC = () => {
             tileSizingMethod={tileSizingMethod}
             setTileSizingMethod={setTileSizingMethod}
           />
-          {mosaicImage && (
-            <MosaicPreview
-              mosaicImage={mosaicImage}
-              gridWidth={gridWidth}
-              gridHeight={gridHeight}
-            />
+          {mosaicBlueprint && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mt-8">
+              <div className="flex items-center align-center justify-center">
+                <MosaicBlueprint
+                  blueprint={mosaicBlueprint}
+                  tileImages={tileImages}
+                  tileSizingMethod={tileSizingMethod}
+                />
+              </div>
+              <div className="mt-8 flex justify-center">
+                <button
+                  className="flex items-center justify-center px-6 py-3 rounded-lg transition-colors text-lg font-semibold bg-green-500 hover:bg-green-600 text-white"
+                  onClick={() => {
+                    if (!mosaicImage) return;
+                    const link = document.createElement("a");
+                    link.href = mosaicImage;
+                    link.download = "mosaic.png";
+                    link.click();
+                  }}
+                >
+                  <Download className="w-6 h-6 mr-2" />
+                  Download
+                </button>
+              </div>
+            </div>
           )}
         </main>
       </div>
