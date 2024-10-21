@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.2.1...phomo-wasm-v0.3.0) (2024-10-21)
+
+
+### Features
+
+* add master and tile getters ([ba49e53](https://github.com/loiccoyle/phomo-rs/commit/ba49e53431d358e3f8888c9147acb6673b2f7568))
+
+
+### Bug Fixes
+
+* update the master cell regions on match ([edf9f83](https://github.com/loiccoyle/phomo-rs/commit/edf9f83a36fa3dcab4ce49ddaa3b3f73516835f8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.3.0 to 0.3.1
+
 ## [0.2.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.2.0...phomo-wasm-v0.2.1) (2024-10-21)
 
 

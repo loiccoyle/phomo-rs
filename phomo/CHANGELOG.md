@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.3.0...phomo-v0.3.1) (2024-10-21)
+
+
+### Bug Fixes
+
+* make `grid_size` public ([f5063b5](https://github.com/loiccoyle/phomo-rs/commit/f5063b5ab05150630dcbab100ece0dd5febc5f3a))
+
 ## [0.3.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.2.0...phomo-v0.3.0) (2024-10-21)
 
 

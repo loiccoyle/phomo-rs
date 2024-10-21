@@ -5,11 +5,11 @@ license.workspace = true
 authors.workspace = true
 
 name = "phomo-wasm"
-version = "0.2.1"
+version = "0.3.0"
 description = "Wasm bindings for the phomo rust crate - a photo mosaic library"
 
 [dependencies]
-phomo = { path = "../phomo", version = "0.3.0", default-features = false, features = [
+phomo = { path = "../phomo", version = "0.3.1", default-features = false, features = [
   "blueprint",
 ] }
 image = { workspace = true }

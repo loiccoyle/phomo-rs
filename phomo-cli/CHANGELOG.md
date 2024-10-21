@@ -1,5 +1,9 @@
 # Changelog
 
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.3.0 to 0.3.1
+
 ## [0.2.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.2.1...phomo-cli-v0.2.2) (2024-10-21)
 
 
