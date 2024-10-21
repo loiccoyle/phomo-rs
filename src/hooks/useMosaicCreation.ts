@@ -1,8 +1,17 @@
-import { useState } from "react";
-import { Mosaic, ResizeType } from "phomo-wasm";
+import { useMemo, useState, useEffect } from "react";
+import { ResizeType } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
-import { fetchImageAsBytes } from "../utils/imageUtils";
 import { Blueprint } from "../types/blueprint";
+
+// Worker creation function
+const createWorker = () => {
+  console.log("new worker");
+  const worker = new Worker(
+    new URL("../workers/mosaicWorker.ts", import.meta.url),
+    { type: "module" },
+  );
+  return worker;
+};
 
 export const useMosaicCreation = (
   masterImage: string | null,
@@ -10,15 +19,41 @@ export const useMosaicCreation = (
   gridWidth: number,
   gridHeight: number,
 ) => {
+  const [buildingMosaic, setBuildingMosaic] = useState(false);
   const [colorMatchingMethod, setColorMatchingMethod] = useState(
     ColorMatchingMethod.None,
   );
-  const [mosaic, setMosaic] = useState<Mosaic | null>(null);
+  const [mosaicTiles, setMosaicTiles] = useState<string[] | null>(null);
   const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Resize);
   const [mosaicImage, setMosaicImage] = useState<string | null>(null);
   const [mosaicBlueprint, setMosaicBlueprint] = useState<Blueprint | null>(
     null,
   );
+
+  // Create worker only once
+  const worker = useMemo(() => createWorker(), []);
+
+  // Attach onmessage and onerror handlers only once
+  useEffect(() => {
+    worker.onmessage = (event) => {
+      console.log("message received from worker");
+      console.log(event);
+      setMosaicImage(event.data.mosaicImage);
+      setMosaicBlueprint(event.data.mosaicBlueprint);
+      setMosaicTiles(event.data.mosaicTiles);
+      setBuildingMosaic(false);
+    };
+
+    worker.onerror = (event) => {
+      setBuildingMosaic(false);
+      console.error(event);
+    };
+
+    // Cleanup worker when component unmounts
+    return () => {
+      worker.terminate();
+    };
+  }, [worker]);
 
   const handleCreateMosaic = async () => {
     if (tileImages.length < gridWidth * gridHeight) {
@@ -31,42 +66,15 @@ export const useMosaicCreation = (
       return;
     }
 
-    try {
-      const masterImageBytes = await fetchImageAsBytes(masterImage);
-      const tileImageBytes = await Promise.all(
-        tileImages.map((tile) => fetchImageAsBytes(tile.url)),
-      );
-
-      const mosaic = new Mosaic(
-        masterImageBytes,
-        tileImageBytes,
-        gridWidth,
-        gridHeight,
-        tileSizingMethod,
-      );
-
-      switch (colorMatchingMethod) {
-        case ColorMatchingMethod.MasterToTile:
-          mosaic.transferMasterToTiles();
-          break;
-        case ColorMatchingMethod.TileToMaster:
-          mosaic.transferTilesToMaster();
-          break;
-        case ColorMatchingMethod.Equalize:
-          mosaic.equalize();
-          break;
-      }
-      setMosaic(mosaic);
-
-      const blueprint = mosaic.buildBlueprint("NormL1");
-      setMosaicBlueprint(blueprint);
-
-      const mosaicBase64 = mosaic.renderBlueprint(blueprint);
-      setMosaicImage(`data:image/png;base64,${mosaicBase64}`);
-    } catch (error) {
-      console.error("Error creating mosaic:", error);
-      alert("An error occurred while creating the mosaic.");
-    }
+    setBuildingMosaic(true);
+    worker.postMessage({
+      masterImageUrl: masterImage,
+      tileImagesUrls: tileImages.map((tile) => tile.url),
+      gridWidth,
+      gridHeight,
+      tileSizingMethod: tileSizingMethod,
+      colorMatchingMethod: colorMatchingMethod,
+    });
   };
 
   return {
@@ -74,7 +82,8 @@ export const useMosaicCreation = (
     setColorMatchingMethod,
     tileSizingMethod,
     setTileSizingMethod,
-    mosaic,
+    buildingMosaic,
+    mosaicTiles,
     mosaicImage,
     mosaicBlueprint,
     handleCreateMosaic,

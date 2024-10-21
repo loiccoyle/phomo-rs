@@ -229,12 +229,15 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                     <input
                       type="file"
                       className="hidden"
-                      accept="image/*"
                       multiple
                       ref={(input) => {
                         if (input) {
                           // Set webkitdirectory manually for directory selection
                           input.setAttribute("webkitdirectory", "true");
+                          input.setAttribute("mozdirectory", "true");
+                          input.setAttribute("msdirectory", "true");
+                          input.setAttribute("odirectory", "true");
+                          input.setAttribute("directory", "true");
                         }
                       }}
                       id="directory-input"

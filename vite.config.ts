@@ -7,4 +7,5 @@ import topLevelAwait from "vite-plugin-top-level-await";
 export default defineConfig({
   base: "/phomo-rs/",
   plugins: [react(), wasm(), topLevelAwait()],
+  worker: { plugins: () => [wasm(), topLevelAwait()], format: "es" },
 });
