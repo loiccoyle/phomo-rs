@@ -63,6 +63,7 @@ const App: React.FC = () => {
               <div className="flex items-center align-center justify-center">
                 <MosaicBlueprint
                   blueprint={mosaicBlueprint}
+                  originalTileImages={tileImages}
                   tileImages={mosaic.getTiles().map((url, i) => {
                     return {
                       url: `data:image/png;base64,${url}`,

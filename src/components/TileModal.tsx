@@ -1,13 +1,19 @@
-import React from "react";
-import { X } from "lucide-react";
+import React, { useState } from "react";
+import { X, FileImage } from "lucide-react";
 import { Tile } from "../types/tile";
 
 interface TileModalProps {
-  tile: Tile;
+  mosaicTile: Tile;
+  originalTile: Tile;
   onClose: () => void;
 }
 
-const TileModal: React.FC<TileModalProps> = ({ tile, onClose }) => {
+const TileModal: React.FC<TileModalProps> = ({
+  mosaicTile,
+  originalTile,
+  onClose,
+}) => {
+  const [showOriginalTile, setShowOriginalTile] = useState(false);
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
@@ -27,13 +33,20 @@ const TileModal: React.FC<TileModalProps> = ({ tile, onClose }) => {
         </div>
         <div className="relative">
           <img
-            src={tile.url}
-            alt={`Full size tile ${tile.name}`}
+            src={showOriginalTile ? originalTile.url : mosaicTile.url}
+            alt={`Full size tile ${mosaicTile.name}`}
             className="w-full h-auto rounded-lg"
           />
           <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-1 text-xs truncate rounded-b-lg">
-            {tile.name}
+            {mosaicTile.name}{" "}
+            {showOriginalTile ? "(original)" : "(mosaic tile)"}
           </div>
+          <button
+            className="absolute top-1 right-1 p-1 bg-gray-700 rounded-md text-gray-400 hover:text-gray-300"
+            onClick={() => setShowOriginalTile(!showOriginalTile)}
+          >
+            <FileImage />
+          </button>
         </div>
       </div>
     </div>

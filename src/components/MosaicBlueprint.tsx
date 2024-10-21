@@ -6,13 +6,18 @@ import TileModal from "./TileModal";
 interface BlueprintProps {
   blueprint: BlueprintType;
   tileImages: Tile[];
+  originalTileImages: Tile[];
 }
 
 const MosaicBlueprint: React.FC<BlueprintProps> = ({
   blueprint,
   tileImages,
+  originalTileImages,
 }) => {
-  const [showTileModal, setShowTileModal] = useState<Tile | null>(null);
+  const [showTileModal, setShowTileModal] = useState<{
+    mosaicTile: Tile;
+    originalTile: Tile;
+  } | null>(null);
 
   const memoizedCells = useMemo(() => {
     const { cells, cell_width, cell_height, grid_width, grid_height } =
@@ -33,7 +38,12 @@ const MosaicBlueprint: React.FC<BlueprintProps> = ({
           backgroundSize: "100% 100%",
           backgroundPosition: "center",
         }}
-        onClick={() => setShowTileModal(tileImages[cell.tile_index])}
+        onClick={() =>
+          setShowTileModal({
+            mosaicTile: tileImages[cell.tile_index],
+            originalTile: originalTileImages[cell.tile_index],
+          })
+        }
       />
     ));
   }, [blueprint, tileImages]);
@@ -52,7 +62,8 @@ const MosaicBlueprint: React.FC<BlueprintProps> = ({
       <div className="absolute inset-0">{memoizedCells}</div>
       {showTileModal && (
         <TileModal
-          tile={showTileModal}
+          mosaicTile={showTileModal.mosaicTile}
+          originalTile={showTileModal.originalTile}
           onClose={() => setShowTileModal(null)}
         />
       )}
