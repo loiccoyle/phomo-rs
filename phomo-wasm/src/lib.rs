@@ -135,6 +135,21 @@ impl Mosaic {
         to_base64(mosaic_img)
     }
 
+    #[wasm_bindgen(js_name = getTiles)]
+    pub fn get_tiles(&self) -> Result<Vec<String>, JsValue> {
+        let mut tiles = Vec::with_capacity(self.inner.tiles.len());
+        for tile in self.inner.tiles.iter() {
+            tiles.push(to_base64(tile.clone())?);
+        }
+
+        Ok(tiles)
+    }
+
+    #[wasm_bindgen(js_name = getMaster)]
+    pub fn get_master(&self) -> Result<String, JsValue> {
+        to_base64(self.inner.master.img.clone())
+    }
+
     #[wasm_bindgen(js_name = buildBlueprint)]
     pub fn build_blueprint(&self, metric_type: &str) -> Result<JsValue, JsValue> {
         let d_matrix = self.distance_matrix_with_metric(metric_type)?;
