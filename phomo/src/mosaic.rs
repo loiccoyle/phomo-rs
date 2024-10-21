@@ -29,7 +29,7 @@ pub struct Mosaic {
     /// same size as the [`Master::cell_size`]. There should also be at least `Master::cells.len()`
     /// tiles.
     pub tiles: Vec<RgbImage>,
-    grid_size: (u32, u32),
+    pub grid_size: (u32, u32),
 }
 
 /// Represents a photo mosaic.
