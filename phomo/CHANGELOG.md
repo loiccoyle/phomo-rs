@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.2.0...phomo-v0.3.0) (2024-10-21)
+
+
+### Features
+
+* add a utils method to crop along the largest dimension then resize ([cf190b9](https://github.com/loiccoyle/phomo-rs/commit/cf190b9abb1b0e8b82cb8221d65b5d34ad1dab12))
+
+
+### Bug Fixes
+
+* use `crop_cover` in read dir method ([738ae43](https://github.com/loiccoyle/phomo-rs/commit/738ae43e88ce67d0c57b55d42701ac860e5fc769))
+
 ## [0.2.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.1.0...phomo-v0.2.0) (2024-10-20)
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.2.0...phomo-wasm-v0.2.1) (2024-10-21)
+
+
+### Bug Fixes
+
+* use the crop to cover method ([ebd39a0](https://github.com/loiccoyle/phomo-rs/commit/ebd39a09c6501132747642ada394943e59ad6aa8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.2.0 to 0.3.0
+
 ## [0.2.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.1.0...phomo-wasm-v0.2.0) (2024-10-20)
 
 

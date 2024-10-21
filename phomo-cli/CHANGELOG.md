@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.2.1...phomo-cli-v0.2.2) (2024-10-21)
+
+
+### Bug Fixes
+
+* use `crop_cover` in read dir method ([738ae43](https://github.com/loiccoyle/phomo-rs/commit/738ae43e88ce67d0c57b55d42701ac860e5fc769))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.2.0 to 0.3.0
+
 ## [0.2.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.2.0...phomo-cli-v0.2.1) (2024-10-20)
 
 
