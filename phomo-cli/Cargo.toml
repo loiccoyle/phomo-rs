@@ -1,6 +1,6 @@
 [package]
 name = "phomo-cli"
-version = "0.2.1"
+version = "0.2.2"
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -13,7 +13,7 @@ name = "phomo"
 path = "src/main.rs"
 
 [dependencies]
-phomo = { path = "../phomo", version = "0.2.0", features = [
+phomo = { path = "../phomo", version = "0.3.0", features = [
   "parallel",
   "progress_bar",
 ] }
