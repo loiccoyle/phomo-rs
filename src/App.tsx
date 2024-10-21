@@ -37,8 +37,8 @@ const App: React.FC = () => {
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 sm:px-8 pb-8 pt-4 transition-colors duration-200">
-        <Header />
         <main className="container mx-auto">
+          <Header />
           <MosaicControls
             onMasterImageSelect={handleMasterImageSelect}
             onTileImagesSelect={handleTileImagesSelect}

@@ -11,13 +11,13 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="mb-4 text-center">
+    <header className="mb-4">
       <div className="flex items-center mb-2">
         <div className="flex flex-col md:flex-row items-center justify-around gap-2 w-full cursor-default">
           <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
             Phomo
           </h1>
-          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 italic relative">
+          <p className="text-base text-center grow sm:text-lg text-gray-600 dark:text-gray-300 italic relative">
             Effortless photo mosaics,{" "}
             <span
               className="underline relative"
