@@ -50,11 +50,21 @@ impl Mosaic {
         grid_width: u32,
         grid_height: u32,
         tile_resize: Option<ResizeType>,
+        master_resize: Option<Vec<u32>>,
     ) -> Result<Mosaic, JsValue> {
         // Load master image
-        let master_img = image::load_from_memory(master_img_data)
+        let mut master_img = image::load_from_memory(master_img_data)
             .map_err(|err| JsValue::from(err.to_string()))?
             .to_rgb8();
+
+        if let Some(master_resize) = master_resize {
+            master_img = image::imageops::resize(
+                &master_img,
+                master_resize[0],
+                master_resize[1],
+                image::imageops::FilterType::Nearest,
+            );
+        }
 
         // Load tile images
         let tile_imgs = (0..tile_imgs_data.length())
