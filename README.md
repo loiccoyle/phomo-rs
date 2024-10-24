@@ -34,10 +34,20 @@ And one `npm` package:
 
 ## Command line
 
+### Cargo
+
 To use the `phomo` binary to build photo mosaics, install the `phomo-cli` crate:
 
 ```sh
 cargo install phomo-cli
+```
+
+### Arch linux (AUR)
+
+Using your favourite AUR helper, install the `phomo-git` package:
+
+```sh
+paru -S phomo-git
 ```
 
 ### Usage
