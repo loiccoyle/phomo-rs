@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { X, FileImage } from "lucide-react";
-import { Tile } from "../types/tile";
+import { UserImage } from "../types/userImage";
 
 interface TileModalProps {
-  mosaicTile: Tile;
-  originalTile: Tile;
+  mosaicTile: UserImage;
+  originalTile: UserImage;
   onClose: () => void;
 }
 

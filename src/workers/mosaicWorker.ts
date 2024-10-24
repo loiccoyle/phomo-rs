@@ -15,6 +15,7 @@ self.onmessage = async (event) => {
     gridHeight,
     tileSizingMethod,
     colorMatchingMethod,
+    mosaicImageSize,
   } = event.data;
   console.log(event.data);
   try {
@@ -26,6 +27,7 @@ self.onmessage = async (event) => {
       gridWidth,
       gridHeight,
       tileSizingMethod,
+      mosaicImageSize ? Uint32Array.from(mosaicImageSize) : undefined,
     );
 
     switch (colorMatchingMethod) {

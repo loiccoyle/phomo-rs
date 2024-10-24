@@ -10,6 +10,7 @@ import { Download, Loader } from "lucide-react";
 const App: React.FC = () => {
   const {
     masterImage,
+    mosaicImageSize,
     gridOverlay,
     tileImages,
     gridWidth,
@@ -21,6 +22,7 @@ const App: React.FC = () => {
     handleRemoveTileImage,
     setGridWidth,
     setGridHeight,
+    setMosaicImageSize,
   } = useImageSelection();
 
   const {
@@ -33,7 +35,13 @@ const App: React.FC = () => {
     mosaicImage,
     mosaicBlueprint,
     handleCreateMosaic,
-  } = useMosaicCreation(masterImage, tileImages, gridWidth, gridHeight);
+  } = useMosaicCreation(
+    masterImage,
+    tileImages,
+    gridWidth,
+    gridHeight,
+    mosaicImageSize,
+  );
 
   return (
     <ThemeProvider>
@@ -41,23 +49,24 @@ const App: React.FC = () => {
         <main className="container mx-auto">
           <Header />
           <MosaicControls
-            onMasterImageSelect={handleMasterImageSelect}
-            onTileImagesSelect={handleTileImagesSelect}
-            onGridWidthChange={setGridWidth}
-            onGridHeightChange={setGridHeight}
-            onCreateMosaic={handleCreateMosaic}
             gridWidth={gridWidth}
             gridHeight={gridHeight}
             tileImages={tileImages}
             masterImage={masterImage}
             gridOverlay={gridOverlay}
+            colorMatchingMethod={colorMatchingMethod}
+            tileSizingMethod={tileSizingMethod}
+            onMasterImageSelect={handleMasterImageSelect}
+            onTileImagesSelect={handleTileImagesSelect}
+            onGridWidthChange={setGridWidth}
+            onGridHeightChange={setGridHeight}
+            onCreateMosaic={handleCreateMosaic}
             onRemoveMasterImage={handleRemoveMasterImage}
             onRemoveTileImage={handleRemoveTileImage}
             onClearTileImages={handleClearTileImages}
-            colorMatchingMethod={colorMatchingMethod}
-            setColorMatchingMethod={setColorMatchingMethod}
-            tileSizingMethod={tileSizingMethod}
-            setTileSizingMethod={setTileSizingMethod}
+            onColorMatchingMethodChange={setColorMatchingMethod}
+            onTileSizingMethodChange={setTileSizingMethod}
+            onMosaicSizeChange={setMosaicImageSize}
           />
           <div className="mt-8">
             {buildingMosaic ? (

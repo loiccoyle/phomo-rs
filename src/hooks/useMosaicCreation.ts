@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { ResizeType } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { Blueprint } from "../types/blueprint";
+import { UserImage } from "../types/userImage";
 
 // Worker creation function
 const createWorker = () => {
@@ -14,10 +15,11 @@ const createWorker = () => {
 };
 
 export const useMosaicCreation = (
-  masterImage: string | null,
-  tileImages: { url: string; name: string }[],
+  masterImage: UserImage | null,
+  tileImages: UserImage[],
   gridWidth: number,
   gridHeight: number,
+  mosaicImageSize: [number, number] | null,
 ) => {
   const [buildingMosaic, setBuildingMosaic] = useState(false);
   const [colorMatchingMethod, setColorMatchingMethod] = useState(
@@ -68,12 +70,13 @@ export const useMosaicCreation = (
 
     setBuildingMosaic(true);
     worker.postMessage({
-      masterImageUrl: masterImage,
+      masterImageUrl: masterImage.url,
       tileImagesUrls: tileImages.map((tile) => tile.url),
       gridWidth,
       gridHeight,
-      tileSizingMethod: tileSizingMethod,
-      colorMatchingMethod: colorMatchingMethod,
+      tileSizingMethod,
+      colorMatchingMethod,
+      mosaicImageSize,
     });
   };
 
@@ -87,5 +90,6 @@ export const useMosaicCreation = (
     mosaicImage,
     mosaicBlueprint,
     handleCreateMosaic,
+    mosaicImageSize,
   };
 };

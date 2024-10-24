@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react";
 import { overlayGrid } from "phomo-wasm";
 import { fetchImageAsBytes } from "../utils/imageUtils";
-import { Tile } from "../types/tile";
+import { UserImage } from "../types/userImage";
 
 export const useImageSelection = () => {
-  const [masterImage, setMasterImage] = useState<string | null>(null);
+  const [masterImage, setMasterImage] = useState<UserImage | null>(null);
+  const [mosaicImageSize, setMosaicImageSize] = useState<
+    [number, number] | null
+  >(null);
   const [gridOverlay, setGridOverlay] = useState<string | null>(null);
-  const [tileImages, setTileImages] = useState<Tile[]>([]);
+  const [tileImages, setTileImages] = useState<UserImage[]>([]);
   const [gridWidth, setGridWidth] = useState(20);
   const [gridHeight, setGridHeight] = useState(20);
 
   const handleMasterImageSelect = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
-    setMasterImage(imageUrl);
+    setMasterImage({ url: imageUrl, name: file.name });
   };
 
   const handleTileImagesSelect = (files: FileList) => {
@@ -38,7 +41,7 @@ export const useImageSelection = () => {
   useEffect(() => {
     async function updateGridOverlay() {
       if (masterImage === null) return;
-      const masterImageBytes = await fetchImageAsBytes(masterImage);
+      const masterImageBytes = await fetchImageAsBytes(masterImage.url);
       setGridOverlay(
         `data:image/png;base64,${overlayGrid(masterImageBytes, gridWidth, gridHeight)}`,
       );
@@ -48,11 +51,13 @@ export const useImageSelection = () => {
 
   return {
     masterImage,
+    mosaicImageSize,
     gridOverlay,
     tileImages,
     gridWidth,
     gridHeight,
     handleMasterImageSelect,
+    setMosaicImageSize,
     handleTileImagesSelect,
     handleRemoveMasterImage,
     handleClearTileImages,

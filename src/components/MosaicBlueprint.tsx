@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { Blueprint as BlueprintType } from "../types/blueprint";
-import { Tile } from "../types/tile";
+import { UserImage } from "../types/userImage";
 import TileModal from "./TileModal";
 
 interface BlueprintProps {
   blueprint: BlueprintType;
-  tileImages: Tile[];
-  originalTileImages: Tile[];
+  tileImages: UserImage[];
+  originalTileImages: UserImage[];
 }
 
 const MosaicBlueprint: React.FC<BlueprintProps> = ({
@@ -15,8 +15,8 @@ const MosaicBlueprint: React.FC<BlueprintProps> = ({
   originalTileImages,
 }) => {
   const [showTileModal, setShowTileModal] = useState<{
-    mosaicTile: Tile;
-    originalTile: Tile;
+    mosaicTile: UserImage;
+    originalTile: UserImage;
   } | null>(null);
 
   const memoizedCells = useMemo(() => {

@@ -17,49 +17,56 @@ import {
 import TileManagementModal from "./TileManagementModal";
 import { ResizeType } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
+import { UserImage } from "../types/userImage";
 
 interface MosaicControlsProps {
+  gridWidth: number;
+  gridHeight: number;
+  tileImages: UserImage[];
+  masterImage: UserImage | null;
+  gridOverlay: string | null;
+  colorMatchingMethod: string;
+  tileSizingMethod: ResizeType;
   onMasterImageSelect: (file: File) => void;
   onTileImagesSelect: (files: FileList) => void;
   onGridWidthChange: (width: number) => void;
   onGridHeightChange: (height: number) => void;
   onCreateMosaic: () => void;
-  gridWidth: number;
-  gridHeight: number;
-  tileImages: { url: string; name: string }[];
-  masterImage: string | null;
-  gridOverlay: string | null;
   onRemoveMasterImage: () => void;
   onRemoveTileImage: (index: number) => void;
   onClearTileImages: () => void;
-  colorMatchingMethod: string;
-  setColorMatchingMethod: (method: ColorMatchingMethod) => void;
-  tileSizingMethod: ResizeType;
-  setTileSizingMethod: (method: ResizeType) => void;
+  onColorMatchingMethodChange: (method: ColorMatchingMethod) => void;
+  onTileSizingMethodChange: (method: ResizeType) => void;
+  onMosaicSizeChange: (size: [number, number] | null) => void;
 }
 
 const MosaicControls: React.FC<MosaicControlsProps> = ({
-  onMasterImageSelect,
-  onTileImagesSelect,
-  onGridWidthChange,
-  onGridHeightChange,
-  onCreateMosaic,
   gridWidth,
   gridHeight,
   tileImages,
   masterImage,
   gridOverlay,
+  colorMatchingMethod,
+  tileSizingMethod,
+  onMasterImageSelect,
+  onTileImagesSelect,
+  onGridWidthChange,
+  onGridHeightChange,
+  onCreateMosaic,
   onRemoveMasterImage,
   onRemoveTileImage,
   onClearTileImages,
-  colorMatchingMethod,
-  setColorMatchingMethod,
-  tileSizingMethod,
-  setTileSizingMethod,
+  onColorMatchingMethodChange,
+  onTileSizingMethodChange,
+  onMosaicSizeChange,
 }) => {
   const [showGrid, setShowGrid] = useState(false);
   const [matchMasterAspectRatio, setMatchMasterAspectRatio] = useState(false);
   const [isTileModalOpen, setIsTileModalOpen] = useState(false);
+  const [upscale, setUpscale] = useState(1);
+  const [masterImageSize, setMasterImageSize] = useState<
+    [number, number] | null
+  >(null);
   const requiredTileImages = gridWidth * gridHeight;
   const isTileImagesEnough = tileImages.length >= requiredTileImages;
 
@@ -102,21 +109,35 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
     },
   ];
 
+  useEffect(() => {
+    if (masterImage) {
+      const img = new Image();
+      img.src = masterImage.url;
+      img.onload = () => {
+        setMasterImageSize([img.width, img.height]);
+      };
+    }
+  }, [masterImage]);
+
   const handleGridWidthChange = useMemo(
     () => (width: number) => {
       onGridWidthChange(width);
       if (matchMasterAspectRatio && masterImage) {
-        // compute master image aspect ratio
-        const img = new Image();
-        img.src = masterImage;
-        img.onload = () => {
-          const masterAspectRatio = img.width / img.height;
-          onGridHeightChange(Math.round(width / masterAspectRatio));
-        };
+        const masterAspectRatio = masterImageSize![0] / masterImageSize![1];
+        onGridHeightChange(Math.round(width / masterAspectRatio));
       }
     },
-    [masterImage, matchMasterAspectRatio],
+    [masterImage, matchMasterAspectRatio, masterImageSize],
   );
+
+  useEffect(() => {
+    if (masterImageSize) {
+      onMosaicSizeChange([
+        masterImageSize[0] * upscale,
+        masterImageSize[1] * upscale,
+      ]);
+    }
+  }, [masterImageSize, upscale]);
 
   useEffect(() => {
     if (matchMasterAspectRatio) {
@@ -138,14 +159,19 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Master Image
           </label>
-          <div className="h-48">
+          <div className="h-44">
             {masterImage ? (
               <div className="relative h-full">
                 <img
-                  src={masterImage}
+                  src={masterImage.url}
                   alt="Master"
                   className="w-full h-full object-cover rounded-lg"
                 />
+                {masterImageSize && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-1 text-xs truncate rounded-b-lg">
+                    {masterImage.name} {masterImageSize[0]}x{masterImageSize[1]}
+                  </div>
+                )}
                 <button
                   onClick={onRemoveMasterImage}
                   className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
@@ -175,6 +201,27 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 />
               </label>
             )}
+            <div className="flex items-center space-x-4 h-6">
+              <label
+                htmlFor="upsacle"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3"
+              >
+                <span className="">Upscale x{upscale}</span>
+              </label>
+              <input
+                id="upsacle"
+                type="range"
+                value={upscale}
+                onChange={(e) => setUpscale(parseInt(e.target.value))}
+                min={1}
+                max={10}
+                step={1}
+                className="w-5/6 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                style={{
+                  accentColor: "#3b82f6",
+                }}
+              />
+            </div>
           </div>
         </div>
         <div>
@@ -295,9 +342,9 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
             </span>
           </div>
         </div>
-        <div className="flex flex-row items-center gap-4">
+        <div className="flex sm:flex-row flex-col items-center gap-4">
           <div
-            className={`p-4 rounded-lg transition-colors ${
+            className={`p-4 rounded-lg transition-colors sm:w-2/3 w-full ${
               masterImage
                 ? matchMasterAspectRatio
                   ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500 cursor-pointer"
@@ -316,7 +363,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
               Match master image aspect ratio
             </p>
           </div>
-          <div className="flex-grow flex gap-2 flex-col">
+          <div className="flex-grow flex gap-2 flex-col w-full">
             <div className="flex items-center space-x-4 h-6">
               <input
                 type="range"
@@ -396,7 +443,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                   ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
                   : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
-              onClick={() => setColorMatchingMethod(option.value)}
+              onClick={() => onColorMatchingMethodChange(option.value)}
             >
               <div className="flex items-center mb-2">
                 <Palette className="w-5 h-5 mr-2 text-blue-500" />
@@ -424,7 +471,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                   ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
                   : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
-              onClick={() => setTileSizingMethod(option.value)}
+              onClick={() => onTileSizingMethodChange(option.value)}
             >
               <div className="flex items-center mb-2">
                 <option.icon className="w-5 h-5 mr-2 text-blue-500" />
