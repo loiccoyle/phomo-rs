@@ -84,10 +84,22 @@ const App: React.FC = () => {
                     className="flex items-center justify-center px-6 py-3 rounded-lg transition-colors text-lg font-semibold bg-green-500 hover:bg-green-600 text-white"
                     onClick={() => {
                       if (!mosaicImage) return;
+                      // Convert raw base64 string to a Blob
+                      const byteString = atob(mosaicImage);
+                      const ab = new ArrayBuffer(byteString.length);
+                      const ia = new Uint8Array(ab);
+                      for (let i = 0; i < byteString.length; i++) {
+                        ia[i] = byteString.charCodeAt(i);
+                      }
+                      // Define the MIME type of your image (e.g., PNG)
+                      const blob = new Blob([ia], { type: "image/png" });
+                      // Create a temporary URL for downloading the Blob
                       const link = document.createElement("a");
-                      link.href = mosaicImage;
+                      link.href = URL.createObjectURL(blob);
                       link.download = "mosaic.png";
                       link.click();
+                      // Clean up the object URL after download
+                      URL.revokeObjectURL(link.href);
                     }}
                   >
                     <Download className="w-6 h-6 mr-2" />
