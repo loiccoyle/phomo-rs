@@ -14,7 +14,10 @@ const Header: React.FC = () => {
     <header className="mb-4">
       <div className="flex items-center mb-2">
         <div className="flex flex-col md:flex-row items-center justify-around gap-2 w-full cursor-default">
-          <h1 className="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500">
+          <h1
+            className="text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-teal-400 checker-text"
+            data-text="Phomo"
+          >
             Phomo
           </h1>
           <p className="text-base text-center grow sm:text-lg text-gray-600 dark:text-gray-300 italic relative">
