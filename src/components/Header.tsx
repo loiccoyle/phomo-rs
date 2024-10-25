@@ -16,7 +16,7 @@ const Header: React.FC = () => {
       <div className="flex items-center mb-2">
         <div className="flex flex-col md:flex-row items-center justify-around gap-2 w-full cursor-default">
           <h1
-            className="text-5xl font-extrabold tracking-tight text-transparent bg-clip-text drop-shadow-[0_0_0.1rem_black] dark:text-white"
+            className="text-5xl font-extrabold tracking-tight text-transparent bg-clip-text drop-shadow-[0_0_0.1rem_black]"
             data-text="Phomo"
             style={{ backgroundImage: `url(${tiles})`, backgroundSize: "50%" }}
           >
