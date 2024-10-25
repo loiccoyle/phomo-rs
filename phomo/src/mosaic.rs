@@ -29,6 +29,7 @@ pub struct Mosaic {
     /// same size as the [`Master::cell_size`]. There should also be at least `Master::cells.len()`
     /// tiles.
     pub tiles: Vec<RgbImage>,
+    /// The number of cells horizontally and vertically in the mosaic.
     pub grid_size: (u32, u32),
 }
 
