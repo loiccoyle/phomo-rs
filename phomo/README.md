@@ -6,11 +6,14 @@
 
 To build a photo mosaic, you'll need a master image as well a bunch of so called tile images. The tile images will be arranged to best reconstruct the master image.
 The master image is initialized with the [`Master`] `struct`.
+
 The tile images can be loaded using some helper functions:
 
 - [`read_images_from_dir`]
 - [`read_images_from_dir_cropped`]
 - [`read_images_from_dir_resized`]
+
+The photo mosaic can be constructed using the [`Mosaic`] `struct`.
 
 ### Examples
 
