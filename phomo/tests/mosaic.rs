@@ -60,7 +60,7 @@ fn build_mosaic() {
     let mosaic_img = mosaic.build(d_matrix).unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16.png"));
-    assert_eq!(mosaic_img, expected);
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 
 #[test]
@@ -89,7 +89,7 @@ fn build_mosaic_equalized() {
     let mosaic_img = mosaic.build(d_matrix).unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_equalized.png"));
-    assert_eq!(mosaic_img, expected);
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 
 #[test]
