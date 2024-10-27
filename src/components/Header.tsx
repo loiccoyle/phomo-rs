@@ -41,6 +41,7 @@ const Header: React.FC = () => {
                 <a
                   href="https://github.com/loiccoyle/phomo-rs/tree/gh-pages"
                   className="underline font-bold"
+                  target="_blank"
                 >
                   open-source
                 </a>

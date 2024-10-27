@@ -5,7 +5,11 @@ const Footer: React.FC = () => {
     <footer className="text-center text-gray-600 dark:text-gray-300 text-xs">
       <p>
         Made with ❤️ by{" "}
-        <a href="https://loiccoyle.com" className="underline font-bold">
+        <a
+          href="https://loiccoyle.com"
+          className="underline font-bold"
+          target="_blank"
+        >
           Loic Coyle
         </a>
       </p>
@@ -13,6 +17,7 @@ const Footer: React.FC = () => {
       <a
         href="https://github.com/loiccoyle/phomo-rs/issues/new"
         className="underline font-bold"
+        target="_blank"
       >
         issue
       </a>
