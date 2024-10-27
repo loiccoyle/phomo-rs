@@ -1,6 +1,10 @@
-<!-- <p align="center"><img src="https://i.imgur.com/4jvon2p.png" width="1000"></p> -->
-<h1 align="center">phomo</h1>
-<p align="center"><b>create photo mosaics</b></p>
+<p align="center"><img src="https://github.com/loiccoyle/phomo-rs/blob/main/assets/cover.png?raw=true" width="800"></p>
+<p align="center"><b>Easy photo mosaics</b></p>
+<p align="center">
+  <b>
+  Make your own photo mosaics <a href="https://loiccoyle.com/phomo-rs">here</a>!
+  </b>
+</p>
 
 <p align="center">
   <a href="https://crates.io/crates/phomo"><img src="https://img.shields.io/crates/v/phomo"></a>
@@ -11,12 +15,6 @@
   <a href="https://github.com/loiccoyle/phomo-rs/actions"><img src="https://github.com/loiccoyle/phomo-rs/actions/workflows/ci.yml/badge.svg"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-mit-blue.svg"></a>
   <img src="https://img.shields.io/badge/platform-linux%20%7c%20macos%20%7c%20windows-informational">
-</p>
-
-<p align="center">
-  <b>
-  Make your own photo mosaics <a href="https://loiccoyle.com/phomo-rs">here</a>!
-  </b>
 </p>
 
 > Prefer python? Check out [`loiccoyle/phomo`](https://github.com/loiccoyle/phomo)!
