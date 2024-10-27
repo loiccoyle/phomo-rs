@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/loiccoyle/phomo-rs/blob/main/assets/cover.png?raw=true" width="800"></p>
+<p align="center"><img src="https://i.imgur.com/l6U2V9T.png" width="800"></p>
 <p align="center"><b>Easy photo mosaics</b></p>
 <p align="center">
   <b>
