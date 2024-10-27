@@ -6,6 +6,7 @@ import { useMosaicCreation } from "./hooks/useMosaicCreation";
 import { useImageSelection } from "./hooks/useImageSelection";
 import MosaicBlueprint from "./components/MosaicBlueprint";
 import { Download, Loader } from "lucide-react";
+import Footer from "./components/Footer";
 
 const App: React.FC = () => {
   const {
@@ -119,6 +120,7 @@ const App: React.FC = () => {
             ) : null}
           </div>
         </main>
+        <Footer />
       </div>
     </ThemeProvider>
   );
