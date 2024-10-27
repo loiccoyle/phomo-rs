@@ -37,8 +37,15 @@ const Header: React.FC = () => {
                   showTooltip ? "opacity-100 visible" : "opacity-0 invisible"
                 }`}
               >
-                All processing is done locally on your device. Your photos never
-                leave your device.
+                Free and{" "}
+                <a
+                  href="https://github.com/loiccoyle/phomo-rs/tree/gh-pages"
+                  className="underline font-bold"
+                >
+                  open-source
+                </a>
+                . All processing is done locally. Your photos never leave your
+                device.
               </span>
             </span>
           </p>
