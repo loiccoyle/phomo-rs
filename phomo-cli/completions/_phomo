@@ -15,8 +15,8 @@ _phomo() {
 
     local context curcontext="$curcontext" state line
     _arguments "${_arguments_options[@]}" : \
-'-g+[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT: ' \
-'--grid-size=[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT: ' \
+'-g+[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT:_default' \
+'--grid-size=[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT:_default' \
 '--metric=[The distance metric to use]:METRIC:(norm-l1 norm-l2)' \
 '--crop-tiles[Crop tiles to grid cell size]' \
 '--resize-tiles[Resize tiles to grid cell size]' \
