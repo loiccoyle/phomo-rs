@@ -26,7 +26,7 @@ export const useMosaicCreation = (
     ColorMatchingMethod.None,
   );
   const [mosaicTiles, setMosaicTiles] = useState<string[] | null>(null);
-  const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Resize);
+  const [tileSizingMethod, setTileSizingMethod] = useState(ResizeType.Crop);
   const [mosaicImage, setMosaicImage] = useState<string | null>(null);
   const [mosaicBlueprint, setMosaicBlueprint] = useState<Blueprint | null>(
     null,
