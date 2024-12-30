@@ -69,7 +69,7 @@ const App: React.FC = () => {
             onTileSizingMethodChange={setTileSizingMethod}
             onMosaicSizeChange={setMosaicImageSize}
           />
-          <div className="mt-8">
+          <div className="py-6">
             {buildingMosaic ? (
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 flex items-center justify-center">
                 <Loader className="w-8 h-8 text-blue-500 animate-spin mr-2" />
