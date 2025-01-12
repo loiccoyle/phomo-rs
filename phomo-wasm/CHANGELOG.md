@@ -1,5 +1,9 @@
 # Changelog
 
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.3.1 to 0.3.2
+
 ## [0.4.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.3.0...phomo-wasm-v0.4.0) (2024-10-24)
 
 

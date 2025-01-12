@@ -5,7 +5,7 @@ license.workspace = true
 authors.workspace = true
 
 name = "phomo"
-version = "0.3.1"
+version = "0.3.2"
 description = "A photo mosaic generation library"
 keywords = ["photo-mosaic", "image", "art"]
 

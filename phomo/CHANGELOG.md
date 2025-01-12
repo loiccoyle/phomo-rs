@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.3.1...phomo-v0.3.2) (2025-01-12)
+
+
+### Bug Fixes
+
+* **phomo:** update deps ([0511aaf](https://github.com/loiccoyle/phomo-rs/commit/0511aafcd9464f72fb1f0582c86d4a3e0f3eb142))
+* rm old lock file ([9cb7b15](https://github.com/loiccoyle/phomo-rs/commit/9cb7b154e9c819b8bfa225f894645aab497d9a2e))
+
 ## [0.3.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.3.0...phomo-v0.3.1) (2024-10-21)
 
 

@@ -4,6 +4,20 @@
   * dependencies
     * phomo bumped from 0.3.0 to 0.3.1
 
+## [0.2.4](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.2.3...phomo-cli-v0.2.4) (2025-01-12)
+
+
+### Bug Fixes
+
+* **phomo:** update deps ([0511aaf](https://github.com/loiccoyle/phomo-rs/commit/0511aafcd9464f72fb1f0582c86d4a3e0f3eb142))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.3.1 to 0.3.2
+
 ## [0.2.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.2.1...phomo-cli-v0.2.2) (2024-10-21)
 
 
