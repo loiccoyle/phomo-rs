@@ -14,11 +14,11 @@ image = { workspace = true }
 log = { workspace = true }
 
 palette = "0.7.6"
-pathfinding = "4.11.0"
+pathfinding = "4.13.0"
 rayon = { optional = true, version = "1.10.0" }
-indicatif = { optional = true, version = "0.17.8" }
-serde = { version = "1.0.210", features = ["derive"], optional = true }
-serde_json = { version = "1.0.131", optional = true }
+indicatif = { optional = true, version = "0.17.9" }
+serde = { version = "1.0.217", features = ["derive"], optional = true }
+serde_json = { version = "1.0.135", optional = true }
 
 [features]
 default = ["parallel"]

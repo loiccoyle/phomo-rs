@@ -18,10 +18,10 @@ phomo = { path = "../phomo", version = "0.3.1", features = [
   "progress_bar",
 ] }
 
-clap = { version = "4.5.20", features = ["derive"] }
-clap-verbosity-flag = "2.2.2"
-clap_complete = { version = "4.5.32" }
-env_logger = "0.11.5"
+clap = { version = "4.5.26", features = ["derive"] }
+clap-verbosity-flag = "3.0.2"
+clap_complete = { version = "4.5.42" }
+env_logger = "0.11.6"
 
 image = { workspace = true }
 log = { workspace = true }
@@ -31,6 +31,6 @@ assert_cmd = "2.0.16"
 assert_fs = "1.0.7"
 
 [build-dependencies]
-clap = { version = "4.5.12", features = ["derive"] }
-clap_complete = { version = "4.5.32" }
-clap-verbosity-flag = "2.2.2"
+clap = { version = "4.5.26", features = ["derive"] }
+clap_complete = { version = "4.5.42" }
+clap-verbosity-flag = "3.0.2"
