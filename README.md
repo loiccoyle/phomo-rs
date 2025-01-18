@@ -2,7 +2,7 @@
 <p align="center"><b>Easy photo mosaics</b></p>
 <p align="center">
   <b>
-  Make your own photo mosaics <a href="https://loiccoyle.com/phomo-rs">here</a>!
+  Make your own photo mosaics <a href="https://phomo.loiccoyle.com/">here</a>!
   </b>
 </p>
 
