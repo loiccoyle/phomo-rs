@@ -106,7 +106,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         cli::Metric::NormL2 => phomo::metrics::norm_l2,
     };
     // Compute the distance matrix
-    let d_matrix = mosaic.distance_matrix_with_metric(metric);
+    let mut d_matrix = mosaic.distance_matrix_with_metric(metric);
+    if args.n_appearances > 1 {
+        d_matrix = d_matrix.with_repeat_tiles(args.n_appearances as usize);
+    }
 
     // Build the mosaic image
     let mosaic_img = mosaic

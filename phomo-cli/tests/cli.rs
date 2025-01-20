@@ -71,6 +71,23 @@ fn build_mosaic_resized() {
 }
 
 #[test]
+fn build_mosaic_repeats() {
+    let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
+    let expected_file = test_data_dir().join("mosaic_repeats.png");
+
+    let mut cmd = assert_cmd::Command::cargo_bin("phomo").unwrap();
+    cmd.arg(master_img_file().to_str().unwrap());
+    cmd.arg(tile_dir().to_str().unwrap());
+    cmd.arg(output_file.path().to_str().unwrap());
+    cmd.arg("--resize-tiles");
+    cmd.arg("--n-appearances=2");
+
+    cmd.assert().success();
+    assert!(output_file.path().exists());
+    assert!(check_expected(output_file.path(), expected_file));
+}
+
+#[test]
 fn build_mosaic_equalized() {
     let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
     let expected_file = test_data_dir().join("mosaic_equalized.png");

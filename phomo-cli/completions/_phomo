@@ -17,6 +17,8 @@ _phomo() {
     _arguments "${_arguments_options[@]}" : \
 '-g+[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT:_default' \
 '--grid-size=[Grid size, the number of tiles along the width and height]:WIDTH,HEIGHT:_default' \
+'-n+[The number of times a tile can appear in the mosaic]:N_APPEARANCES:_default' \
+'--n-appearances=[The number of times a tile can appear in the mosaic]:N_APPEARANCES:_default' \
 '--metric=[The distance metric to use]:METRIC:(norm-l1 norm-l2)' \
 '--crop-tiles[Crop tiles to grid cell size]' \
 '--resize-tiles[Resize tiles to grid cell size]' \

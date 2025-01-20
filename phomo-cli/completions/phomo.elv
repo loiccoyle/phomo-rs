@@ -20,6 +20,8 @@ set edit:completion:arg-completer[phomo] = {|@words|
         &'phomo'= {
             cand -g 'Grid size, the number of tiles along the width and height'
             cand --grid-size 'Grid size, the number of tiles along the width and height'
+            cand -n 'The number of times a tile can appear in the mosaic'
+            cand --n-appearances 'The number of times a tile can appear in the mosaic'
             cand --metric 'The distance metric to use'
             cand --crop-tiles 'Crop tiles to grid cell size'
             cand --resize-tiles 'Resize tiles to grid cell size'

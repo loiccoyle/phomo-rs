@@ -71,6 +71,9 @@ pub(crate) struct Arguments {
     /// If not provided, the grid size will be set to a sane value depending on the number of tiles images.
     #[arg(short = 'g', long, value_name = "WIDTH,HEIGHT")]
     pub(crate) grid_size: Option<TwoNumbers>,
+    /// The number of times a tile can appear in the mosaic.
+    #[arg(short = 'n', long, default_value_t = 1)]
+    pub(crate) n_appearances: i32,
     /// Crop tiles to grid cell size.
     #[arg(long)]
     pub(crate) crop_tiles: bool,

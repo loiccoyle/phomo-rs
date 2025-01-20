@@ -1,5 +1,6 @@
 use base64::{engine::general_purpose, Engine as _};
 use image::RgbImage;
+use phomo::DistanceMatrix;
 use phomo::{metrics, utils, Blueprint, ColorMatch, Master as MasterRs, Mosaic as MosaicRs};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
@@ -128,7 +129,10 @@ impl Mosaic {
         Ok(())
     }
 
-    fn distance_matrix_with_metric(&self, metric_type: &str) -> Result<Vec<i64>, JsValue> {
+    fn distance_matrix_with_metric(
+        &self,
+        metric_type: &str,
+    ) -> Result<DistanceMatrix<i64>, JsValue> {
         let metric = match metric_type {
             "NormL1" => metrics::norm_l1,
             "NormL2" => metrics::norm_l2,
@@ -139,8 +143,11 @@ impl Mosaic {
     }
 
     // Build the mosaic after applying palette matching or equalization
-    pub fn build(&self, metric_type: &str) -> Result<String, JsValue> {
-        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+    pub fn build(&self, metric_type: &str, tile_repeats: Option<usize>) -> Result<String, JsValue> {
+        let mut d_matrix = self.distance_matrix_with_metric(metric_type)?;
+        if let Some(n) = tile_repeats {
+            d_matrix = d_matrix.with_repeat_tiles(n);
+        }
 
         let mosaic_img = self
             .inner
@@ -166,14 +173,22 @@ impl Mosaic {
     }
 
     #[wasm_bindgen(js_name = buildBlueprint)]
-    pub fn build_blueprint(&self, metric_type: &str) -> Result<JsValue, JsValue> {
-        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+    pub fn build_blueprint(
+        &self,
+        metric_type: &str,
+        tile_repeats: Option<usize>,
+    ) -> Result<JsValue, JsValue> {
+        let mut d_matrix = self.distance_matrix_with_metric(metric_type)?;
+        if let Some(n) = tile_repeats {
+            d_matrix = d_matrix.with_repeat_tiles(n);
+        }
+
         let mosaic = self
             .inner
             .build_blueprint(d_matrix)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
-        Ok(serde_wasm_bindgen::to_value(&mosaic).unwrap())
+        Ok(serde_wasm_bindgen::to_value(&mosaic)?)
     }
 
     #[wasm_bindgen(js_name = renderBlueprint)]

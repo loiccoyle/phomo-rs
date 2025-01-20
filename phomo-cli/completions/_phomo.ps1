@@ -23,6 +23,8 @@ Register-ArgumentCompleter -Native -CommandName 'phomo' -ScriptBlock {
         'phomo' {
             [CompletionResult]::new('-g', '-g', [CompletionResultType]::ParameterName, 'Grid size, the number of tiles along the width and height')
             [CompletionResult]::new('--grid-size', '--grid-size', [CompletionResultType]::ParameterName, 'Grid size, the number of tiles along the width and height')
+            [CompletionResult]::new('-n', '-n', [CompletionResultType]::ParameterName, 'The number of times a tile can appear in the mosaic')
+            [CompletionResult]::new('--n-appearances', '--n-appearances', [CompletionResultType]::ParameterName, 'The number of times a tile can appear in the mosaic')
             [CompletionResult]::new('--metric', '--metric', [CompletionResultType]::ParameterName, 'The distance metric to use')
             [CompletionResult]::new('--crop-tiles', '--crop-tiles', [CompletionResultType]::ParameterName, 'Crop tiles to grid cell size')
             [CompletionResult]::new('--resize-tiles', '--resize-tiles', [CompletionResultType]::ParameterName, 'Resize tiles to grid cell size')

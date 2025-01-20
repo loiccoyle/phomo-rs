@@ -1,4 +1,5 @@
 complete -c phomo -s g -l grid-size -d 'Grid size, the number of tiles along the width and height' -r
+complete -c phomo -s n -l n-appearances -d 'The number of times a tile can appear in the mosaic' -r
 complete -c phomo -l metric -d 'The distance metric to use' -r -f -a "norm-l1\t''
 norm-l2\t''"
 complete -c phomo -l crop-tiles -d 'Crop tiles to grid cell size'

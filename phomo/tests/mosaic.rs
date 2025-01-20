@@ -53,7 +53,7 @@ fn build_mosaic() {
 
     let d_matrix = mosaic.distance_matrix();
     assert_eq!(
-        d_matrix.len(),
+        d_matrix.data.len(),
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
@@ -82,7 +82,7 @@ fn build_mosaic_equalized() {
 
     let d_matrix = mosaic.distance_matrix();
     assert_eq!(
-        d_matrix.len(),
+        d_matrix.data.len(),
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
@@ -110,7 +110,7 @@ fn build_mosaic_match_tiles_to_master() {
 
     let d_matrix = mosaic.distance_matrix();
     assert_eq!(
-        d_matrix.len(),
+        d_matrix.data.len(),
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
@@ -143,7 +143,7 @@ fn build_mosaic_match_master_to_tiles() {
 
     let d_matrix = mosaic.distance_matrix();
     assert_eq!(
-        d_matrix.len(),
+        d_matrix.data.len(),
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
