@@ -222,7 +222,6 @@ impl Mosaic {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use std::path::PathBuf;
 
@@ -378,6 +377,7 @@ mod tests {
     }
 
     // TODO: these tests fail when running on GitHub Actions
+    #[cfg(feature = "blueprint")]
     #[test]
     fn test_mosaic_build_blueprint() {
         if std::env::var("CI").is_ok() {
@@ -414,6 +414,7 @@ mod tests {
         assert_eq!(expected_blueprint, blueprint);
     }
 
+    #[cfg(feature = "blueprint")]
     #[test]
     fn test_mosaic_blueprint_render() {
         if std::env::var("CI").is_ok() {
