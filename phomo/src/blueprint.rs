@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Blueprint {
     pub cells: Vec<Cell>,
     pub cell_width: u32,
@@ -13,14 +13,16 @@ pub struct Blueprint {
     pub grid_height: u32,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Cell {
     pub tile_index: usize,
     pub x: u32,
     pub y: u32,
 }
 
+/// A serializable struct which represents a [crate::mosaic::Mosaic] that has yet to be rendered.
 impl Blueprint {
+    /// Render the [Blueprint].
     pub fn render(&self, master_img: &RgbImage, tiles: &[RgbImage]) -> Result<RgbImage, Error> {
         let mut mosaic_img = RgbImage::new(master_img.width(), master_img.height());
         info!(

@@ -333,4 +333,35 @@ mod tests {
         let expected_img = image::open(expected_path).unwrap().to_rgb8();
         assert_eq!(expected_img, mosaic_img);
     }
+
+    #[test]
+    fn test_mosaic_build_blueprint() {
+        let master_img = image::imageops::resize(
+            &image::open(test_master_img()).unwrap().to_rgb8(),
+            240,
+            240,
+            image::imageops::FilterType::Nearest,
+        );
+
+        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
+        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
+        assert!(result.is_ok());
+        let mosaic = result.unwrap();
+
+        assert_eq!(mosaic.master.cells.len(), 144);
+        let d_matrix = mosaic.distance_matrix();
+        let result = mosaic.build_blueprint(d_matrix);
+        assert!(result.is_ok());
+        let blueprint = result.unwrap();
+
+        // serialize and save the blueprint
+        let serialized = serde_json::to_string_pretty(&blueprint).unwrap();
+        let expected_path = test_dir().join("mosaic_blueprint.json");
+        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
+            std::fs::write(&expected_path, serialized).unwrap();
+        }
+        let expected_blueprint: Blueprint =
+            serde_json::from_str(&std::fs::read_to_string(&expected_path).unwrap()).unwrap();
+        assert_eq!(blueprint, expected_blueprint);
+    }
 }
