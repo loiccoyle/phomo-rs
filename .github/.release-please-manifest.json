@@ -1,5 +1,5 @@
 {
-  "phomo": "0.3.2",
-  "phomo-cli": "0.2.4",
-  "phomo-wasm": "0.4.1"
+  "phomo": "0.4.0",
+  "phomo-cli": "0.3.0",
+  "phomo-wasm": "0.5.0"
 }

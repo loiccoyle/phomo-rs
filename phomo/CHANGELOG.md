@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.3.2...phomo-v0.4.0) (2025-01-20)
+
+
+### Features
+
+* **phomo:** repeated tiles ([ad5e6e7](https://github.com/loiccoyle/phomo-rs/commit/ad5e6e71c5ddfdb4b35703aa7781eb47ffa07183))
+
+
+### Bug Fixes
+
+* unused import when building wasm package ([2572f79](https://github.com/loiccoyle/phomo-rs/commit/2572f7976f3e2fa7556307314ddf7c06f381e94f))
+
 ## [0.3.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.3.1...phomo-v0.3.2) (2025-01-12)
 
 
