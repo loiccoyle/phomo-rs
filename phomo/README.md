@@ -21,7 +21,7 @@ I'll be using this 256x256 image as master image:
 
 <img src="https://raw.githubusercontent.com/loiccoyle/phomo-rs/refs/heads/main/phomo/tests/data/master/master.png" alt="master.png" width="256" />
 
-And for the tile images, we'll be using a susbset of the [UTKfaces](https://susanqq.github.io/UTKFace/).
+And for the tile images, we'll be using a susbset of the [UTKfaces](https://susanqq.github.io/UTKFace/) dataset.
 
 #### Basic mosaic
 
