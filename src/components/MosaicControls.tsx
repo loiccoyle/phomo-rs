@@ -23,12 +23,14 @@ interface MosaicControlsProps {
   gridWidth: number;
   gridHeight: number;
   tileImages: UserImage[];
+  tileRepeats: number;
   masterImage: UserImage | null;
   gridOverlay: string | null;
   colorMatchingMethod: string;
   tileSizingMethod: ResizeType;
   onMasterImageSelect: (file: File) => void;
   onTileImagesSelect: (files: FileList) => void;
+  onTileRepeatsChange: (n: number) => void;
   onGridWidthChange: (width: number) => void;
   onGridHeightChange: (height: number) => void;
   onCreateMosaic: () => void;
@@ -44,12 +46,14 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   gridWidth,
   gridHeight,
   tileImages,
+  tileRepeats,
   masterImage,
   gridOverlay,
   colorMatchingMethod,
   tileSizingMethod,
   onMasterImageSelect,
   onTileImagesSelect,
+  onTileRepeatsChange,
   onGridWidthChange,
   onGridHeightChange,
   onCreateMosaic,
@@ -67,7 +71,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   const [masterImageSize, setMasterImageSize] = useState<
     [number, number] | null
   >(null);
-  const requiredTileImages = gridWidth * gridHeight;
+  const requiredTileImages = Math.ceil((gridWidth * gridHeight) / tileRepeats);
   const isTileImagesEnough = tileImages.length >= requiredTileImages;
 
   const colorMatchingOptions = [
@@ -203,13 +207,13 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
             )}
             <div className="flex items-center space-x-4 h-6">
               <label
-                htmlFor="upsacle"
+                htmlFor="upscale"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3"
               >
                 <span className="">Upscale x{upscale}</span>
               </label>
               <input
-                id="upsacle"
+                id="upscale"
                 type="range"
                 value={upscale}
                 onChange={(e) => setUpscale(parseInt(e.target.value))}
@@ -240,8 +244,8 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 <X size={16} />
               </button>
             </div>
-            <div className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg bg-gray-50 dark:bg-gray-700 mb-2">
-              <div className="flex flex-col items-center justify-center pt-3 pb-2">
+            <div className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg bg-gray-50 dark:bg-gray-700 mb-1">
+              <div className="flex flex-col items-center justify-center pt-1 pb-2">
                 <Upload className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
                 <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                   <span className="font-semibold">Select</span> or drag and drop
@@ -314,6 +318,41 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 </p>
               </div>
             </div>
+            <div className="flex items-center w-full justify-between pb-1">
+              <label
+                htmlFor="tileRepeats"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3"
+              >
+                <span className="">Tile Repeats</span>
+              </label>
+              <div className="flex items-center space-x-4 h-6 w-full">
+                <input
+                  id="tileRepeats"
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={tileRepeats}
+                  onChange={(e) =>
+                    onTileRepeatsChange(parseInt(e.target.value))
+                  }
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
+                  style={{
+                    accentColor: "#3b82f6",
+                  }}
+                />
+                <input
+                  id="tileRepeats"
+                  type="number"
+                  min="2"
+                  value={tileRepeats}
+                  onChange={(e) => {
+                    onTileRepeatsChange(Math.max(parseInt(e.target.value), 1));
+                  }}
+                  className="w-12 text-center rounded-md text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+                  disabled={matchMasterAspectRatio}
+                />
+              </div>
+            </div>
             <button
               disabled={!tileImages.length}
               onClick={() => setIsTileModalOpen(true)}
@@ -325,7 +364,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
               }
             >
               <ImageIcon className="w-5 h-5 mr-2" />
-              Tile Images
+              Manage
             </button>
           </div>
         </div>
@@ -351,7 +390,11 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                   : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
                 : "opacity-50 cursor-default"
             }`}
-            onClick={() => setMatchMasterAspectRatio((prev) => !prev)}
+            onClick={
+              masterImage
+                ? () => setMatchMasterAspectRatio((prev) => !prev)
+                : undefined
+            }
           >
             <div className="flex items-center mb-2">
               <Ratio className="w-5 h-5 mr-2 text-blue-500" />
@@ -363,9 +406,16 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
               Match master image aspect ratio
             </p>
           </div>
-          <div className="flex-grow flex gap-2 flex-col w-full">
+          <div className="flex gap-2 flex-col w-full">
             <div className="flex items-center space-x-4 h-6">
+              <label
+                htmlFor="gridWidth"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/6"
+              >
+                <span className="">Width</span>
+              </label>
               <input
+                id="gridWidth"
                 type="range"
                 min="2"
                 value={gridWidth}
@@ -378,6 +428,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 }}
               />
               <input
+                id="gridWidth"
                 type="number"
                 min="2"
                 value={gridWidth}
@@ -388,7 +439,14 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
               />
             </div>
             <div className="flex items-center space-x-4 h-6">
+              <label
+                htmlFor="gridHeight"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/6"
+              >
+                <span className="">Height</span>
+              </label>
               <input
+                id="gridHeight"
                 type="range"
                 min="2"
                 value={gridHeight}
@@ -400,6 +458,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 disabled={matchMasterAspectRatio}
               />
               <input
+                id="gridHeight"
                 type="number"
                 min="2"
                 value={gridHeight}

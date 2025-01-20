@@ -17,6 +17,7 @@ const createWorker = () => {
 export const useMosaicCreation = (
   masterImage: UserImage | null,
   tileImages: UserImage[],
+  tileRepeats: number,
   gridWidth: number,
   gridHeight: number,
   mosaicImageSize: [number, number] | null,
@@ -75,6 +76,7 @@ export const useMosaicCreation = (
       gridWidth,
       gridHeight,
       tileSizingMethod,
+      tileRepeats,
       colorMatchingMethod,
       mosaicImageSize,
     });

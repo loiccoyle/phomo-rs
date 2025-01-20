@@ -12,6 +12,7 @@ export const useImageSelection = () => {
   const [tileImages, setTileImages] = useState<UserImage[]>([]);
   const [gridWidth, setGridWidth] = useState(20);
   const [gridHeight, setGridHeight] = useState(20);
+  const [tileRepeats, setTileRepeats] = useState(1);
 
   const handleMasterImageSelect = (file: File) => {
     const imageUrl = URL.createObjectURL(file);
@@ -54,11 +55,13 @@ export const useImageSelection = () => {
     mosaicImageSize,
     gridOverlay,
     tileImages,
+    tileRepeats,
     gridWidth,
     gridHeight,
     handleMasterImageSelect,
     setMosaicImageSize,
     handleTileImagesSelect,
+    setTileRepeats,
     handleRemoveMasterImage,
     handleClearTileImages,
     handleRemoveTileImage,

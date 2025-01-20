@@ -14,6 +14,7 @@ self.onmessage = async (event) => {
     gridWidth,
     gridHeight,
     tileSizingMethod,
+    tileRepeats,
     colorMatchingMethod,
     mosaicImageSize,
   } = event.data;
@@ -42,7 +43,7 @@ self.onmessage = async (event) => {
         break;
     }
 
-    const blueprint = mosaic.buildBlueprint("NormL1");
+    const blueprint = mosaic.buildBlueprint("NormL1", tileRepeats);
     const mosaicBase64 = mosaic.renderBlueprint(blueprint);
 
     self.postMessage({

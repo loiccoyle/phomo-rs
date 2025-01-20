@@ -14,6 +14,7 @@ const App: React.FC = () => {
     mosaicImageSize,
     gridOverlay,
     tileImages,
+    tileRepeats,
     gridWidth,
     gridHeight,
     handleMasterImageSelect,
@@ -21,6 +22,7 @@ const App: React.FC = () => {
     handleRemoveMasterImage,
     handleClearTileImages,
     handleRemoveTileImage,
+    setTileRepeats,
     setGridWidth,
     setGridHeight,
     setMosaicImageSize,
@@ -39,6 +41,7 @@ const App: React.FC = () => {
   } = useMosaicCreation(
     masterImage,
     tileImages,
+    tileRepeats,
     gridWidth,
     gridHeight,
     mosaicImageSize,
@@ -53,6 +56,7 @@ const App: React.FC = () => {
             gridWidth={gridWidth}
             gridHeight={gridHeight}
             tileImages={tileImages}
+            tileRepeats={tileRepeats}
             masterImage={masterImage}
             gridOverlay={gridOverlay}
             colorMatchingMethod={colorMatchingMethod}
@@ -67,6 +71,7 @@ const App: React.FC = () => {
             onClearTileImages={handleClearTileImages}
             onColorMatchingMethodChange={setColorMatchingMethod}
             onTileSizingMethodChange={setTileSizingMethod}
+            onTileRepeatsChange={setTileRepeats}
             onMosaicSizeChange={setMosaicImageSize}
           />
           <div className="py-6">
