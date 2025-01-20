@@ -15,6 +15,7 @@ use rayon::prelude::*;
 
 #[cfg(feature = "blueprint")]
 use crate::blueprint::{Blueprint, Cell};
+use crate::distance_matrix::DistanceMatrix;
 use crate::error::Error;
 use crate::macros;
 use crate::master::Master;
@@ -107,7 +108,7 @@ impl Mosaic {
     /// To use a different distance metric, use the [`distance_matrix_with_metric`](Mosaic::distance_matrix_with_metric) method.
     ///
     /// The row index is the cell index and the column index is the tile index.
-    pub fn distance_matrix(&self) -> Vec<i64> {
+    pub fn distance_matrix(&self) -> DistanceMatrix<i64> {
         self.distance_matrix_with_metric(norm_l1)
     }
 
@@ -115,7 +116,7 @@ impl Mosaic {
     /// `metric` function, see [`phomo::metrics`](crate::metrics) for implemented distance metrics.
     ///
     /// The row index is the cell index and the column index is the tile index.
-    pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> Vec<i64> {
+    pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> DistanceMatrix<i64> {
         #[cfg(not(target_family = "wasm"))]
         info!("Starting distance matrix computation...");
         #[cfg(not(target_family = "wasm"))]
@@ -131,33 +132,28 @@ impl Mosaic {
 
         #[cfg(not(target_family = "wasm"))]
         info!("Completed in {:?}", start_time.elapsed());
-        d_matrix
-    }
 
-    fn compute_assignments(&self, distance_matrix: Vec<i64>) -> Result<Vec<usize>, Error> {
-        // use the hungarian algorithm to find the best tile to cell assignments
-        let weights = pathfinding::matrix::Matrix::from_vec(
-            self.master.cells.len(),
-            self.tiles.len(),
-            distance_matrix,
-        )?;
-        // the indice in assignments is the tile index
-        // The value at the index is the index of the cell where is should be assigned
-        #[cfg(not(target_family = "wasm"))]
-        info!("Solving the assignment problem...");
-        #[cfg(not(target_family = "wasm"))]
-        let start_time = time::Instant::now();
-        let (_, assignments) = pathfinding::kuhn_munkres::kuhn_munkres_min(&weights);
-        #[cfg(not(target_family = "wasm"))]
-        info!("Completed in {:?}", start_time.elapsed());
-        Ok(assignments)
+        // We can construct the struct directly because we know the sizes should line up
+        DistanceMatrix {
+            rows: self.master.cells.len(),
+            columns: self.tiles.len(),
+            data: d_matrix,
+        }
     }
 
     /// Compute the tile to master cell assignments using the
     /// [pathfinding::kuhn_munkres](pathfinding::kuhn_munkres::kuhn_munkres_min) algorithm and
     /// build the photo mosaic image.
-    pub fn build(&self, distance_matrix: Vec<i64>) -> Result<RgbImage, Error> {
-        let assignments = self.compute_assignments(distance_matrix)?;
+    pub fn build(&self, distance_matrix: DistanceMatrix<i64>) -> Result<RgbImage, Error> {
+        if distance_matrix.rows != self.master.cells.len()
+            || distance_matrix.columns < self.tiles.len()
+        {
+            return Err(
+                "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
+            );
+        }
+
+        let assignments = distance_matrix.assignments();
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
@@ -175,7 +171,7 @@ impl Mosaic {
         for (cell_idx, tile_idx) in assignments.into_iter().enumerate() {
             let x = (cell_idx as u32 % grid_width) * cell_width;
             let y = (cell_idx as u32 / grid_width) * cell_height;
-            let tile = self.tiles.get(tile_idx).unwrap();
+            let tile = self.tiles.get(tile_idx % self.tiles.len()).unwrap();
             mosaic_img.copy_from(tile, x, y)?;
         }
         Ok(mosaic_img)
@@ -184,8 +180,19 @@ impl Mosaic {
     #[cfg(feature = "blueprint")]
     /// Compute the tile to master cell assignments, and construct a [`Blueprint`] of the mosaic
     /// image.
-    pub fn build_blueprint(&self, distance_matrix: Vec<i64>) -> Result<Blueprint, Error> {
-        let assignments = self.compute_assignments(distance_matrix)?;
+    pub fn build_blueprint(
+        &self,
+        distance_matrix: DistanceMatrix<i64>,
+    ) -> Result<Blueprint, Error> {
+        if distance_matrix.rows != self.master.cells.len()
+            || distance_matrix.columns < self.tiles.len()
+        {
+            return Err(
+                "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
+            );
+        }
+
+        let assignments = distance_matrix.assignments();
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
 
@@ -196,7 +203,7 @@ impl Mosaic {
                 let x = (cell_idx as u32 % grid_width) * cell_width;
                 let y = (cell_idx as u32 / grid_width) * cell_height;
                 Cell {
-                    tile_index: tile_idx,
+                    tile_index: tile_idx % self.tiles.len(),
                     x,
                     y,
                 }
@@ -215,6 +222,7 @@ impl Mosaic {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use std::path::PathBuf;
 
@@ -299,7 +307,7 @@ mod tests {
         let mosaic = Mosaic::from_images(master_img, tiles, (4, 4)).unwrap();
         let distance_matrix = mosaic.distance_matrix();
         assert_eq!(
-            distance_matrix.len(),
+            distance_matrix.data.len(),
             mosaic.master.cells.len() * mosaic.tiles.len()
         );
     }
@@ -327,6 +335,41 @@ mod tests {
         assert_eq!(mosaic_img.height(), 240);
 
         let expected_path = test_dir().join("mosaic.png");
+        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
+            mosaic_img.save(&expected_path).unwrap();
+        }
+        let expected_img = image::open(expected_path).unwrap().to_rgb8();
+        assert_eq!(expected_img, mosaic_img);
+    }
+
+    #[test]
+    fn test_mosaic_build_repeat() {
+        let master_img = image::imageops::resize(
+            &image::open(test_master_img()).unwrap().to_rgb8(),
+            240,
+            240,
+            image::imageops::FilterType::Nearest,
+        );
+
+        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
+        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
+        assert!(result.is_ok());
+        let mosaic = result.unwrap();
+
+        assert_eq!(mosaic.master.cells.len(), 144);
+        let d_matrix = mosaic.distance_matrix();
+
+        let repeat_amount = 2;
+        let d_matrix_repeat = d_matrix.with_repeat_tiles(repeat_amount);
+
+        let result = mosaic.build(d_matrix_repeat);
+        assert!(result.is_ok());
+        let mosaic_img = result.unwrap();
+        assert_eq!(mosaic_img.width(), 240);
+        assert_eq!(mosaic_img.height(), 240);
+
+        let expected_path = test_dir().join("mosaic_repeats.png");
+        mosaic_img.save(&expected_path).unwrap();
         if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
             mosaic_img.save(&expected_path).unwrap();
         }
@@ -368,7 +411,7 @@ mod tests {
         }
         let expected_blueprint: Blueprint =
             serde_json::from_str(&std::fs::read_to_string(&expected_path).unwrap()).unwrap();
-        assert_eq!(blueprint, expected_blueprint);
+        assert_eq!(expected_blueprint, blueprint);
     }
 
     #[test]
