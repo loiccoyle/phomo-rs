@@ -4,6 +4,20 @@
   * dependencies
     * phomo bumped from 0.3.1 to 0.3.2
 
+## [0.5.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.4.1...phomo-wasm-v0.5.0) (2025-01-20)
+
+
+### Features
+
+* **phomo:** repeated tiles ([ad5e6e7](https://github.com/loiccoyle/phomo-rs/commit/ad5e6e71c5ddfdb4b35703aa7781eb47ffa07183))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.3.2 to 0.4.0
+
 ## [0.4.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.3.0...phomo-wasm-v0.4.0) (2024-10-24)
 
 
