@@ -1,8 +1,9 @@
 #[cfg(not(target_family = "wasm"))]
+use log::info;
+#[cfg(not(target_family = "wasm"))]
 use std::time;
 
 extern crate pathfinding;
-use log::info;
 use pathfinding::matrix::Matrix;
 use pathfinding::matrix::MatrixFormatError;
 
