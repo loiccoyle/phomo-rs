@@ -45,6 +45,26 @@ let mosaic_img = mosaic.build(distance_matrix);
 
 <img src="https://raw.githubusercontent.com/loiccoyle/phomo-rs/refs/heads/main/phomo/tests/data/mosaic/mosaic_16_16.png" alt="mosaic.png" width="256" />
 
+### With repeated tiles
+
+```rust
+use phomo::{Master, Mosaic, read_images_from_dir_cropped};
+
+let master_file = "tests/data/master/master.png";
+let grid_size = (16, 16);
+let master = Master::from_file(master_file, grid_size).unwrap();
+
+let tile_dir = "tests/data/mosaic/faces/";
+let tiles = read_images_from_dir_cropped(tile_dir, master.cell_size.0, master.cell_size.1).unwrap();
+
+let mosaic = Mosaic {master, tiles, grid_size};
+let distance_matrix = mosaic.distance_matrix().with_repeat_tiles(2);
+
+let mosaic_img = mosaic.build(distance_matrix);
+```
+
+<img src="https://raw.githubusercontent.com/loiccoyle/phomo-rs/refs/heads/main/phomo/tests/data/mosaic/mosaic_repeats.png" alt="mosaic.png" width="256" />
+
 ### Palette transfer - Tiles to master
 
 Build a 8x8 photo mosaic, with palette transfer of the master image to the tile images. The color of the tiles will be adjusted to match the color distribution of the master image.
