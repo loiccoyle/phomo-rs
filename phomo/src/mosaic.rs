@@ -333,11 +333,6 @@ mod tests {
         test_dir().join("tiles/")
     }
 
-    fn test_faces_dir() -> PathBuf {
-        // from the UTKfaces dataset 1000 20x20 images of faces
-        test_dir().join("faces/")
-    }
-
     #[test]
     fn test_mosaic_creation_from_valid_data() {
         let grid_size = (4, 4);
