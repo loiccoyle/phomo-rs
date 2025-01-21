@@ -203,6 +203,9 @@ impl Mosaic {
         Ok(mosaic_img)
     }
 
+    /// Build the mosaic image using a greedy tile assignment algorithm. This leads to less
+    /// accurate mosaics, but should be significantly faster, especially when the distance matrix
+    /// is large.
     pub fn build_greedy(&self, distance_matrix: DistanceMatrix<i64>) -> Result<RgbImage, Error> {
         if distance_matrix.rows != self.master.cells.len()
             || distance_matrix.columns < self.tiles.len()
