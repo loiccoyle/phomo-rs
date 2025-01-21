@@ -229,7 +229,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 />
               </label>
             )}
-            <div className="flex items-center space-x-4 h-6">
+            <div className="flex items-center space-x-4 h-8">
               <label
                 htmlFor="upscale"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3"
@@ -268,8 +268,8 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 <X size={16} />
               </button>
             </div>
-            <div className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg bg-gray-50 dark:bg-gray-700 mb-1">
-              <div className="flex flex-col items-center justify-center pt-1 pb-2">
+            <div className="flex flex-col items-center justify-center w-full h-full border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-lg bg-gray-50 dark:bg-gray-700">
+              <div className="flex flex-col items-center justify-center pt-3 pb-2">
                 <Upload className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
                 <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                   <span className="font-semibold">Select</span> or drag and drop
@@ -340,9 +340,22 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 >
                   {tileImages.length} / {requiredTileImages} images selected
                 </p>
+                <button
+                  disabled={!tileImages.length}
+                  onClick={() => setIsTileModalOpen(true)}
+                  className={
+                    "flex items-center justify-center px-4 py-1 rounded-lg" +
+                    (tileImages.length === 0
+                      ? " bg-gray-200 dark:bg-gray-600 text-gray-400"
+                      : " bg-blue-500 text-white hover:bg-blue-600 transition-colors")
+                  }
+                >
+                  <ImageIcon className="w-5 h-5 mr-2" />
+                  Manage
+                </button>
               </div>
             </div>
-            <div className="flex items-center w-full justify-between pb-1">
+            <div className="flex items-center w-full justify-between pt-1">
               <label
                 htmlFor="tileRepeats"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3"
@@ -377,19 +390,6 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 />
               </div>
             </div>
-            <button
-              disabled={!tileImages.length}
-              onClick={() => setIsTileModalOpen(true)}
-              className={
-                "flex items-center justify-center px-4 py-2 rounded-lg mt-auto" +
-                (tileImages.length === 0
-                  ? " bg-gray-200 dark:bg-gray-600 text-gray-400"
-                  : " bg-blue-500 text-white hover:bg-blue-600 transition-colors")
-              }
-            >
-              <ImageIcon className="w-5 h-5 mr-2" />
-              Manage
-            </button>
           </div>
         </div>
       </div>
