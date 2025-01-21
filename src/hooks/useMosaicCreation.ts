@@ -3,6 +3,7 @@ import { ResizeType } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { Blueprint } from "../types/blueprint";
 import { UserImage } from "../types/userImage";
+import { TileAssignment } from "../types/tileAssignment";
 
 // Worker creation function
 const createWorker = () => {
@@ -31,6 +32,9 @@ export const useMosaicCreation = (
   const [mosaicImage, setMosaicImage] = useState<string | null>(null);
   const [mosaicBlueprint, setMosaicBlueprint] = useState<Blueprint | null>(
     null,
+  );
+  const [tileAssignmentMethod, setTileAssignmentMethod] = useState(
+    TileAssignment.Optimal,
   );
 
   // Create worker only once
@@ -77,6 +81,7 @@ export const useMosaicCreation = (
       gridHeight,
       tileSizingMethod,
       tileRepeats,
+      tileAssignmentMethod,
       colorMatchingMethod,
       mosaicImageSize,
     });
@@ -87,6 +92,8 @@ export const useMosaicCreation = (
     setColorMatchingMethod,
     tileSizingMethod,
     setTileSizingMethod,
+    tileAssignmentMethod,
+    setTileAssignmentMethod,
     buildingMosaic,
     mosaicTiles,
     mosaicImage,

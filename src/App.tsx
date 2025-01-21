@@ -33,6 +33,8 @@ const App: React.FC = () => {
     setColorMatchingMethod,
     tileSizingMethod,
     setTileSizingMethod,
+    tileAssignmentMethod,
+    setTileAssignmentMethod,
     buildingMosaic,
     mosaicTiles,
     mosaicImage,
@@ -61,6 +63,7 @@ const App: React.FC = () => {
             gridOverlay={gridOverlay}
             colorMatchingMethod={colorMatchingMethod}
             tileSizingMethod={tileSizingMethod}
+            tileAssignmentMethod={tileAssignmentMethod}
             onMasterImageSelect={handleMasterImageSelect}
             onTileImagesSelect={handleTileImagesSelect}
             onGridWidthChange={setGridWidth}
@@ -71,6 +74,7 @@ const App: React.FC = () => {
             onClearTileImages={handleClearTileImages}
             onColorMatchingMethodChange={setColorMatchingMethod}
             onTileSizingMethodChange={setTileSizingMethod}
+            onTileAssignmentMethodChange={setTileAssignmentMethod}
             onTileRepeatsChange={setTileRepeats}
             onMosaicSizeChange={setMosaicImageSize}
           />
