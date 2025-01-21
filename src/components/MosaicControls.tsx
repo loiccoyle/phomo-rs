@@ -405,9 +405,9 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
             </span>
           </div>
         </div>
-        <div className="flex sm:flex-row flex-col items-center gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div
-            className={`p-4 rounded-lg transition-colors sm:w-2/3 w-full ${
+            className={`p-4 rounded-lg transition-colors ${
               masterImage
                 ? matchMasterAspectRatio
                   ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500 cursor-pointer"
@@ -430,7 +430,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
               Match master image aspect ratio
             </p>
           </div>
-          <div className="flex gap-2 flex-col w-full">
+          <div className="p-4 flex gap-2 flex-col w-full">
             <div className="flex items-center space-x-4 h-6">
               <label
                 htmlFor="gridWidth"
