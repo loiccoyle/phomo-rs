@@ -209,14 +209,14 @@ fn build_mosaic_match_master_to_tiles() {
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 
-// TODO: these tests fail when running on GitHub Actions
+// TODO: this test fails when running on GitHub Actions
 #[cfg(feature = "blueprint")]
 #[test]
 fn build_mosaic_blueprint() {
-    // if std::env::var("CI").is_ok() {
-    //     println!("Test skipped: Running on GitHub Actions.");
-    //     return;
-    // }
+    if std::env::var("CI").is_ok() {
+        println!("Test skipped: Running on GitHub Actions.");
+        return;
+    }
     let (tile_imgs, master_img) = setup_imgs();
 
     let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
