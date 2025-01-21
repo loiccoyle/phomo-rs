@@ -32,12 +32,13 @@ use phomo::{Master, Mosaic, read_images_from_dir_cropped};
 
 let master_file = "tests/data/master/master.png";
 let grid_size = (16, 16);
+let max_tile_occurrences = 1;
 let master = Master::from_file(master_file, grid_size).unwrap();
 
 let tile_dir = "tests/data/mosaic/faces/";
 let tiles = read_images_from_dir_cropped(tile_dir, master.cell_size.0, master.cell_size.1).unwrap();
 
-let mosaic = Mosaic {master, tiles, grid_size};
+let mosaic = Mosaic::new(master, tiles, grid_size, max_tile_occurrences).unwrap();
 let distance_matrix = mosaic.distance_matrix();
 
 let mosaic_img = mosaic.build(distance_matrix);
@@ -52,18 +53,19 @@ use phomo::{Master, Mosaic, read_images_from_dir_cropped};
 
 let master_file = "tests/data/master/master.png";
 let grid_size = (16, 16);
+let max_tile_occurrences = 2;
 let master = Master::from_file(master_file, grid_size).unwrap();
 
 let tile_dir = "tests/data/mosaic/faces/";
 let tiles = read_images_from_dir_cropped(tile_dir, master.cell_size.0, master.cell_size.1).unwrap();
 
-let mosaic = Mosaic {master, tiles, grid_size};
-let distance_matrix = mosaic.distance_matrix().with_repeat_tiles(2);
+let mosaic = Mosaic::new(master, tiles, grid_size, max_tile_occurrences).unwrap();
+let distance_matrix = mosaic.distance_matrix();
 
 let mosaic_img = mosaic.build(distance_matrix);
 ```
 
-<img src="https://raw.githubusercontent.com/loiccoyle/phomo-rs/refs/heads/main/phomo/tests/data/mosaic/mosaic_repeats.png" alt="mosaic.png" width="256" />
+<img src="https://raw.githubusercontent.com/loiccoyle/phomo-rs/refs/heads/main/phomo/tests/data/mosaic/mosaic_16_16_repeats.png" alt="mosaic.png" width="256" />
 
 ### Palette transfer - Tiles to master
 
@@ -74,6 +76,7 @@ use phomo::{Master, Mosaic, read_images_from_dir_cropped, ColorMatch};
 
 let master_file = "tests/data/master/master.png";
 let grid_size = (16, 16);
+let max_tile_occurrences = 1;
 let master = Master::from_file(master_file, grid_size).unwrap();
 
 let tile_dir = "tests/data/mosaic/faces/";
@@ -81,7 +84,7 @@ let mut tiles = read_images_from_dir_cropped(tile_dir, master.cell_size.0, maste
 
 tiles = tiles.match_palette(&master.img);
 
-let mosaic = Mosaic {master, tiles, grid_size};
+let mosaic = Mosaic::new(master, tiles, grid_size, max_tile_occurrences).unwrap();
 let distance_matrix = mosaic.distance_matrix();
 
 let mosaic_img = mosaic.build(distance_matrix);
@@ -99,6 +102,7 @@ use phomo::{Master, Mosaic, read_images_from_dir_cropped, ColorMatch};
 
 let master_file = "tests/data/master/master.png";
 let grid_size = (16, 16);
+let max_tile_occurrences = 1;
 
 let master_img = image::open(master_file).unwrap().to_rgb8();
 let cell_size = (master_img.width() / grid_size.0, master_img.height() / grid_size.1);
@@ -108,7 +112,7 @@ let tiles = read_images_from_dir_cropped(tile_dir, cell_size.0, cell_size.1).unw
 
 let master = Master::from_image(master_img.match_palette(&tiles), grid_size).unwrap();
 
-let mosaic = Mosaic {master, tiles, grid_size};
+let mosaic = Mosaic::new(master, tiles, grid_size, max_tile_occurrences).unwrap();
 let distance_matrix = mosaic.distance_matrix();
 
 let mosaic_img = mosaic.build(distance_matrix);
@@ -126,6 +130,7 @@ use phomo::{Master, Mosaic, read_images_from_dir_cropped, ColorMatch};
 
 let master_file = "tests/data/master/master.png";
 let grid_size = (16, 16);
+let max_tile_occurrences = 1;
 let master_img = image::open(master_file).unwrap().to_rgb8();
 
 let master = Master::from_image(master_img.equalize(), grid_size).unwrap();
@@ -136,7 +141,7 @@ tiles = tiles.equalize();
 
 let master = Master::from_image(master_img.match_palette(&tiles), grid_size).unwrap();
 
-let mosaic = Mosaic {master, tiles, grid_size};
+let mosaic = Mosaic::new(master, tiles, grid_size, max_tile_occurrences).unwrap();
 let distance_matrix = mosaic.distance_matrix();
 
 let mosaic_img = mosaic.build(distance_matrix);

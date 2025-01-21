@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashSet};
 use std::path::Path;
 #[cfg(not(target_family = "wasm"))]
 use std::time;
@@ -32,6 +34,9 @@ pub struct Mosaic {
     pub tiles: Vec<RgbImage>,
     /// The number of cells horizontally and vertically in the mosaic.
     pub grid_size: (u32, u32),
+    /// Tile can be repeated up to `max_tile_occurrences` times in the mosaic. Should be greater
+    /// than 0.
+    pub max_tile_occurrences: usize,
 }
 
 /// Represents a photo mosaic.
@@ -50,12 +55,13 @@ impl Mosaic {
         master_file: P,
         tile_dir: Q,
         grid_size: (u32, u32),
+        max_tile_occurrences: usize,
     ) -> Result<Self, Error> {
         let master_img = image::open(master_file)?.to_rgb8();
         info!("Loading tiles");
         let tiles = utils::read_images_from_dir(tile_dir)?;
 
-        Self::from_images(master_img, tiles, grid_size)
+        Self::from_images(master_img, tiles, grid_size, max_tile_occurrences)
     }
 
     /// Construct a [`Mosaic`] from [`RgbImage`] buffers of the master images and the tile
@@ -74,8 +80,21 @@ impl Mosaic {
         master_img: RgbImage,
         tiles: Vec<RgbImage>,
         grid_size: (u32, u32),
+        max_tile_occurrences: usize,
     ) -> Result<Self, Error> {
         let master = Master::from_image(master_img, grid_size)?;
+        Self::new(master, tiles, grid_size, max_tile_occurrences)
+    }
+
+    pub fn new(
+        master: Master,
+        tiles: Vec<RgbImage>,
+        grid_size: (u32, u32),
+        max_tile_occurrences: usize,
+    ) -> Result<Self, Error> {
+        if max_tile_occurrences == 0 {
+            return Err("max_tile_occurrences must be greater than 0".into());
+        }
 
         if tiles.iter().any(|img| img.dimensions() != master.cell_size) {
             return Err(format!(
@@ -85,12 +104,13 @@ impl Mosaic {
             .into());
         }
 
-        if tiles.len() < grid_size.0 as usize * grid_size.1 as usize {
+        if tiles.len() * max_tile_occurrences < grid_size.0 as usize * grid_size.1 as usize {
             return Err(format!(
-                "Not enough tiles: {} for grid size: {}x{}",
+                "Not enough tiles: {} for grid size: {}x{} and max tile occurrences: {}",
                 tiles.len(),
                 grid_size.0,
-                grid_size.1
+                grid_size.1,
+                max_tile_occurrences
             )
             .into());
         }
@@ -99,6 +119,7 @@ impl Mosaic {
             master,
             tiles,
             grid_size,
+            max_tile_occurrences,
         })
     }
 
@@ -153,7 +174,12 @@ impl Mosaic {
             );
         }
 
-        let assignments = distance_matrix.assignments();
+        let assignments = if self.max_tile_occurrences > 1 {
+            distance_matrix.tile(self.max_tile_occurrences)
+        } else {
+            distance_matrix
+        }
+        .assignments();
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
@@ -177,6 +203,72 @@ impl Mosaic {
         Ok(mosaic_img)
     }
 
+    /// Build the mosaic image using a greedy tile assignment algorithm. This leads to less
+    /// accurate mosaics, but should be significantly faster, especially when the distance matrix
+    /// is large.
+    pub fn build_greedy(&self, distance_matrix: DistanceMatrix<i64>) -> Result<RgbImage, Error> {
+        if distance_matrix.rows != self.master.cells.len()
+            || distance_matrix.columns < self.tiles.len()
+        {
+            return Err(
+            "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
+        );
+        }
+
+        let (grid_width, grid_height) = self.grid_size;
+        let (cell_width, cell_height) = self.master.cell_size;
+        let mut mosaic_img = RgbImage::new(self.master.img.width(), self.master.img.height());
+        info!(
+            "Building mosaic, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
+            mosaic_img.width(),
+            mosaic_img.height(),
+            cell_width,
+            cell_height,
+            grid_width,
+            grid_height
+        );
+
+        let mut filled_master_cells = HashSet::with_capacity(self.master.cells.len());
+        let mut placed_tiles = HashSet::with_capacity(self.tiles.len());
+        let mut n_appearances = vec![0; self.tiles.len()];
+        let mut heap = BinaryHeap::with_capacity(distance_matrix.rows * distance_matrix.columns);
+
+        // Populate the heap with (distance, row_idx, col_idx)
+        for row_idx in 0..distance_matrix.rows {
+            for col_idx in 0..distance_matrix.columns {
+                let distance = distance_matrix.data[row_idx * distance_matrix.columns + col_idx];
+                heap.push(Reverse((distance, row_idx, col_idx)));
+            }
+        }
+
+        // Process elements in ascending order of distance
+        while let Some(Reverse((_, cell_idx, tile_idx))) = heap.pop() {
+            if filled_master_cells.len() == self.master.cells.len() {
+                // stop early if all the master cells have been filled
+                break;
+            }
+
+            if filled_master_cells.contains(&cell_idx) || placed_tiles.contains(&tile_idx) {
+                continue;
+            }
+
+            let x = (cell_idx as u32 % grid_width) * cell_width;
+            let y = (cell_idx as u32 / grid_width) * cell_height;
+
+            let tile = self.tiles.get(tile_idx).ok_or("Invalid tile index")?;
+            mosaic_img.copy_from(tile, x, y)?;
+
+            filled_master_cells.insert(cell_idx);
+            n_appearances[tile_idx] += 1;
+
+            if n_appearances[tile_idx] == self.max_tile_occurrences {
+                placed_tiles.insert(tile_idx);
+            }
+        }
+
+        Ok(mosaic_img)
+    }
+
     #[cfg(feature = "blueprint")]
     /// Compute the tile to master cell assignments, and construct a [`Blueprint`] of the mosaic
     /// image.
@@ -192,7 +284,12 @@ impl Mosaic {
             );
         }
 
-        let assignments = distance_matrix.assignments();
+        let assignments = if self.max_tile_occurrences > 1 {
+            distance_matrix.tile(self.max_tile_occurrences)
+        } else {
+            distance_matrix
+        }
+        .assignments();
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
 
@@ -209,6 +306,75 @@ impl Mosaic {
                 }
             })
             .collect::<Vec<_>>();
+
+        Ok(Blueprint {
+            cells,
+            cell_width,
+            cell_height,
+            grid_width,
+            grid_height,
+        })
+    }
+
+    #[cfg(feature = "blueprint")]
+    /// Compute the tile to master cell assignments using a greedy algorithm, and construct a [`Blueprint`] of the mosaic
+    /// image.
+    pub fn build_blueprint_greedy(
+        &self,
+        distance_matrix: DistanceMatrix<i64>,
+    ) -> Result<Blueprint, Error> {
+        if distance_matrix.rows != self.master.cells.len()
+            || distance_matrix.columns < self.tiles.len()
+        {
+            return Err(
+            "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
+        );
+        }
+
+        let (grid_width, grid_height) = self.grid_size;
+        let (cell_width, cell_height) = self.master.cell_size;
+
+        let mut filled_master_cells = HashSet::with_capacity(self.master.cells.len());
+        let mut placed_tiles = HashSet::with_capacity(self.tiles.len());
+        let mut n_appearances = vec![0; self.tiles.len()];
+        let mut heap = BinaryHeap::with_capacity(distance_matrix.rows * distance_matrix.columns);
+
+        // Populate the heap with (distance, row_idx, col_idx)
+        for row_idx in 0..distance_matrix.rows {
+            for col_idx in 0..distance_matrix.columns {
+                let distance = distance_matrix.data[row_idx * distance_matrix.columns + col_idx];
+                heap.push(Reverse((distance, row_idx, col_idx)));
+            }
+        }
+
+        let mut cells = Vec::with_capacity(self.master.cells.len());
+
+        // Process elements in ascending order of distance
+        while let Some(Reverse((_, cell_idx, tile_idx))) = heap.pop() {
+            if filled_master_cells.len() == self.master.cells.len() {
+                // stop early if all the master cells have been filled
+                break;
+            }
+
+            if filled_master_cells.contains(&cell_idx) || placed_tiles.contains(&tile_idx) {
+                continue;
+            }
+
+            let x = (cell_idx as u32 % grid_width) * cell_width;
+            let y = (cell_idx as u32 / grid_width) * cell_height;
+            cells.push(Cell {
+                tile_index: tile_idx,
+                x,
+                y,
+            });
+
+            filled_master_cells.insert(cell_idx);
+            n_appearances[tile_idx] += 1;
+
+            if n_appearances[tile_idx] == self.max_tile_occurrences {
+                placed_tiles.insert(tile_idx);
+            }
+        }
 
         Ok(Blueprint {
             cells,
@@ -238,15 +404,10 @@ mod tests {
         test_dir().join("tiles/")
     }
 
-    fn test_faces_dir() -> PathBuf {
-        // from the UTKfaces dataset 1000 20x20 images of faces
-        test_dir().join("faces/")
-    }
-
     #[test]
     fn test_mosaic_creation_from_valid_data() {
         let grid_size = (4, 4);
-        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size);
+        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size, 1);
         // Check if the mosaic was created successfully
         assert!(mosaic.is_ok());
         let mosaic = mosaic.unwrap();
@@ -267,21 +428,21 @@ mod tests {
         // 5x5 grid which will not work with a 256x256 master image and 64x64 tiles
         let grid_size = (5, 5);
         // Attempt to create a mosaic and expect an error due to tile size mismatch
-        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size);
+        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size, 1);
         assert!(mosaic.is_err());
     }
 
     #[test]
     fn test_invalid_master_file_path() {
         let grid_size = (4, 4);
-        let mosaic = Mosaic::from_file_and_dir("invalid/master.png", test_tile_dir(), grid_size);
+        let mosaic = Mosaic::from_file_and_dir("invalid/master.png", test_tile_dir(), grid_size, 1);
         assert!(mosaic.is_err());
     }
 
     #[test]
     fn test_invalid_tile_directory() {
         let grid_size = (4, 4);
-        let mosaic = Mosaic::from_file_and_dir(test_master_img(), "invalid/tile_dir", grid_size);
+        let mosaic = Mosaic::from_file_and_dir(test_master_img(), "invalid/tile_dir", grid_size, 1);
         assert!(mosaic.is_err());
     }
 
@@ -295,7 +456,7 @@ mod tests {
             64,
             image::imageops::FilterType::Nearest,
         )];
-        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4));
+        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4), 1);
         assert!(mosaic.is_err());
     }
 
@@ -303,145 +464,11 @@ mod tests {
     fn test_distance_matrix() {
         let master_img = image::open(test_master_img()).unwrap().to_rgb8();
         let tiles = utils::read_images_from_dir(test_tile_dir()).unwrap();
-        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4)).unwrap();
+        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4), 1).unwrap();
         let distance_matrix = mosaic.distance_matrix();
         assert_eq!(
             distance_matrix.data.len(),
             mosaic.master.cells.len() * mosaic.tiles.len()
         );
-    }
-
-    #[test]
-    fn test_mosaic_build() {
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
-        assert!(result.is_ok());
-        let mosaic = result.unwrap();
-
-        assert_eq!(mosaic.master.cells.len(), 144);
-        let d_matrix = mosaic.distance_matrix();
-        let result = mosaic.build(d_matrix);
-        assert!(result.is_ok());
-        let mosaic_img = result.unwrap();
-        assert_eq!(mosaic_img.width(), 240);
-        assert_eq!(mosaic_img.height(), 240);
-
-        let expected_path = test_dir().join("mosaic.png");
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            mosaic_img.save(&expected_path).unwrap();
-        }
-        let expected_img = image::open(expected_path).unwrap().to_rgb8();
-        assert_eq!(expected_img, mosaic_img);
-    }
-
-    #[test]
-    fn test_mosaic_build_repeat() {
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
-        assert!(result.is_ok());
-        let mosaic = result.unwrap();
-
-        assert_eq!(mosaic.master.cells.len(), 144);
-        let d_matrix = mosaic.distance_matrix();
-
-        let repeat_amount = 2;
-        let d_matrix_repeat = d_matrix.with_repeat_tiles(repeat_amount);
-
-        let result = mosaic.build(d_matrix_repeat);
-        assert!(result.is_ok());
-        let mosaic_img = result.unwrap();
-        assert_eq!(mosaic_img.width(), 240);
-        assert_eq!(mosaic_img.height(), 240);
-
-        let expected_path = test_dir().join("mosaic_repeats.png");
-        mosaic_img.save(&expected_path).unwrap();
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            mosaic_img.save(&expected_path).unwrap();
-        }
-        let expected_img = image::open(expected_path).unwrap().to_rgb8();
-        assert_eq!(expected_img, mosaic_img);
-    }
-
-    // TODO: these tests fail when running on GitHub Actions
-    #[cfg(feature = "blueprint")]
-    #[test]
-    fn test_mosaic_build_blueprint() {
-        if std::env::var("CI").is_ok() {
-            println!("Test skipped: Running on GitHub Actions.");
-            return;
-        }
-
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
-        assert!(result.is_ok());
-        let mosaic = result.unwrap();
-
-        assert_eq!(mosaic.master.cells.len(), 144);
-        let d_matrix = mosaic.distance_matrix();
-        let result = mosaic.build_blueprint(d_matrix);
-        assert!(result.is_ok());
-        let blueprint = result.unwrap();
-
-        // serialize and save the blueprint
-        let serialized = serde_json::to_string_pretty(&blueprint).unwrap();
-        let expected_path = test_dir().join("mosaic_blueprint.json");
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            std::fs::write(&expected_path, serialized).unwrap();
-        }
-        let expected_blueprint: Blueprint =
-            serde_json::from_str(&std::fs::read_to_string(&expected_path).unwrap()).unwrap();
-        assert_eq!(expected_blueprint, blueprint);
-    }
-
-    #[cfg(feature = "blueprint")]
-    #[test]
-    fn test_mosaic_blueprint_render() {
-        if std::env::var("CI").is_ok() {
-            println!("Test skipped: Running on GitHub Actions.");
-            return;
-        }
-
-        let blueprint_path = test_dir().join("mosaic_blueprint.json");
-        let blueprint: Blueprint =
-            serde_json::from_str(&std::fs::read_to_string(&blueprint_path).unwrap()).unwrap();
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-
-        let result = blueprint.render(&master_img, &tiles_imgs);
-        assert!(result.is_ok());
-        let mosaic_img = result.unwrap();
-        let expected_path = test_dir().join("mosaic_blueprint_rendered.png");
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            mosaic_img.save(&expected_path).unwrap();
-        }
-        let expected_img = image::open(expected_path).unwrap().to_rgb8();
-        assert_eq!(expected_img, mosaic_img);
     }
 }
