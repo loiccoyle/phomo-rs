@@ -1,10 +1,10 @@
 # Phomo
 
-> Photo mosaic generation library.
+A Photo mosaic generation library.
 
 ## Usage
 
-To build a photo mosaic, you'll need a master image as well a bunch of so called tile images. The tile images will be arranged to best reconstruct the master image.
+To build a photo mosaic, you'll need a master image as well as a bunch of so called tile images. The tile images will be arranged to best reconstruct the master image.
 The master image is initialized with the [`Master`] `struct`.
 
 The tile images can be loaded using some helper functions:
@@ -25,7 +25,7 @@ And for the tile images, we'll be using a susbset of the [UTKfaces](https://susa
 
 #### Basic mosaic
 
-Build a 12x12 photo mosaic.
+Build a 16x16 photo mosaic.
 
 ```rust
 use phomo::{Master, Mosaic, read_images_from_dir_cropped};
@@ -48,6 +48,8 @@ let mosaic_img = mosaic.build(distance_matrix);
 
 ### With repeated tiles
 
+Build a 16x16 photo mosaic, with tiles able to repeat up to twice.
+
 ```rust
 use phomo::{Master, Mosaic, read_images_from_dir_cropped};
 
@@ -69,7 +71,7 @@ let mosaic_img = mosaic.build(distance_matrix);
 
 ### Palette transfer - Tiles to master
 
-Build a 8x8 photo mosaic, with palette transfer of the master image to the tile images. The color of the tiles will be adjusted to match the color distribution of the master image.
+Build a 16x16 photo mosaic, with palette transfer of the master image to the tile images. The color of the tiles will be adjusted to match the color distribution of the master image.
 
 ```rust
 use phomo::{Master, Mosaic, read_images_from_dir_cropped, ColorMatch};
@@ -94,7 +96,7 @@ let mosaic_img = mosaic.build(distance_matrix);
 
 ### Palette transfer - Master to tiles
 
-Build a 12x12 photo mosaic, with palette transfer of the tile images onto the master image. The color of the master image will be adjusted to match the color distribution of the tile images.
+Build a 16x16 photo mosaic, with palette transfer of the tile images onto the master image. The color of the master image will be adjusted to match the color distribution of the tile images.
 
 ```rust
 use image;
@@ -122,7 +124,7 @@ let mosaic_img = mosaic.build(distance_matrix);
 
 ### Color Normalization
 
-Build a 12x12 photo mosaic, with color distribution normalization. The colors of both the master image and tiles images will be adjusted to cover the full color space.
+Build a 16x16 photo mosaic, with color distribution normalization. The colors of both the master image and tiles images will be adjusted to cover the full color space.
 
 ```rust
 use image;
