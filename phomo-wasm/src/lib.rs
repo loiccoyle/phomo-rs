@@ -156,6 +156,18 @@ impl Mosaic {
         to_base64(mosaic_img)
     }
 
+    #[wasm_bindgen(js_name = buildGreedy)]
+    pub fn build_greedy(&self, metric_type: &str) -> Result<String, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+
+        let mosaic_img = self
+            .inner
+            .build_greedy(d_matrix)
+            .map_err(|err| JsValue::from(err.to_string()))?;
+
+        to_base64(mosaic_img)
+    }
+
     #[wasm_bindgen(js_name = getTiles)]
     pub fn get_tiles(&self) -> Result<Vec<String>, JsValue> {
         let mut tiles = Vec::with_capacity(self.inner.tiles.len());
@@ -178,6 +190,18 @@ impl Mosaic {
         let mosaic = self
             .inner
             .build_blueprint(d_matrix)
+            .map_err(|err| JsValue::from(err.to_string()))?;
+
+        Ok(serde_wasm_bindgen::to_value(&mosaic)?)
+    }
+
+    #[wasm_bindgen(js_name = buildBlueprintGreedy)]
+    pub fn build_blueprint_greedy(&self, metric_type: &str) -> Result<JsValue, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+
+        let mosaic = self
+            .inner
+            .build_blueprint_greedy(d_matrix)
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         Ok(serde_wasm_bindgen::to_value(&mosaic)?)
