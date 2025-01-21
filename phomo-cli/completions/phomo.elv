@@ -28,6 +28,7 @@ set edit:completion:arg-completer[phomo] = {|@words|
             cand --equalize 'Equalize the master and tile image color distributions'
             cand --transfer-master-to-tiles 'Transfer the color palette of the master image to the tile images'
             cand --transfer-tiles-to-master 'Transfer the color palette of the tile images to the master image'
+            cand --greedy 'Use a greedy tile assignment algorithm. Should improve performance at the expense of accuracy'
             cand -v 'Increase logging verbosity'
             cand --verbose 'Increase logging verbosity'
             cand -q 'Decrease logging verbosity'

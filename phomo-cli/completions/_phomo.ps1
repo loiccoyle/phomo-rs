@@ -31,6 +31,7 @@ Register-ArgumentCompleter -Native -CommandName 'phomo' -ScriptBlock {
             [CompletionResult]::new('--equalize', '--equalize', [CompletionResultType]::ParameterName, 'Equalize the master and tile image color distributions')
             [CompletionResult]::new('--transfer-master-to-tiles', '--transfer-master-to-tiles', [CompletionResultType]::ParameterName, 'Transfer the color palette of the master image to the tile images')
             [CompletionResult]::new('--transfer-tiles-to-master', '--transfer-tiles-to-master', [CompletionResultType]::ParameterName, 'Transfer the color palette of the tile images to the master image')
+            [CompletionResult]::new('--greedy', '--greedy', [CompletionResultType]::ParameterName, 'Use a greedy tile assignment algorithm. Should improve performance at the expense of accuracy')
             [CompletionResult]::new('-v', '-v', [CompletionResultType]::ParameterName, 'Increase logging verbosity')
             [CompletionResult]::new('--verbose', '--verbose', [CompletionResultType]::ParameterName, 'Increase logging verbosity')
             [CompletionResult]::new('-q', '-q', [CompletionResultType]::ParameterName, 'Decrease logging verbosity')

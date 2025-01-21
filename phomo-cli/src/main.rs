@@ -114,9 +114,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let d_matrix = mosaic.distance_matrix_with_metric(metric);
 
     // Build the mosaic image
-    let mosaic_img = mosaic
-        .build(d_matrix)
-        .map_err(|e| format!("Failed to build mosaic image: {}", e))?;
+    let mosaic_img = if args.greedy {
+        mosaic.build_greedy(d_matrix)
+    } else {
+        mosaic.build(d_matrix)
+    }
+    .map_err(|e| format!("Failed to build mosaic image: {}", e))?;
 
     // Save the final mosaic image to output
     mosaic_img

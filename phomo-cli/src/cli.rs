@@ -91,6 +91,9 @@ pub(crate) struct Arguments {
     #[arg(long)]
     pub(crate) transfer_tiles_to_master: bool,
 
+    /// Use a greedy tile assignment algorithm. Should improve performance at the expense of accuracy.
+    #[arg(long)]
+    pub(crate) greedy: bool,
     /// The distance metric to use.
     #[arg(long, default_value_t = Metric::NormL1)]
     pub(crate) metric: Metric,
