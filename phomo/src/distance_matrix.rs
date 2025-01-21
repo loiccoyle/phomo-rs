@@ -31,8 +31,7 @@ impl<C> From<DistanceMatrix<C>> for Matrix<C> {
 }
 
 impl<C: std::marker::Copy> DistanceMatrix<C> {
-    /// Create a new [DistanceMatrix] which allows for repeated tiles when use with the
-    /// [crate::mosaic::Mosaic::build] function.
+    /// Create a new [DistanceMatrix] which is tiled `n` times horizontally.
     pub(crate) fn tile(&self, n: usize) -> DistanceMatrix<C> {
         DistanceMatrix {
             rows: self.rows,
