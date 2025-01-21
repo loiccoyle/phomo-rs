@@ -543,7 +543,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
       </div>
       <div className="mt-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Tile Sizing Method
+          Tile Sizing
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {tileSizingOptions.map((option) => (
@@ -571,7 +571,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
       </div>
       <div className="mt-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Tile Assignment Method
+          Tile Assignment
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {tileAssignmentOptions.map((option) => (
