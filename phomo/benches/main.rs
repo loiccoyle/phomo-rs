@@ -76,9 +76,20 @@ fn bench_build_mosaic(c: &mut Criterion) {
     });
 }
 
+fn bench_build_mosaic_greedy(c: &mut Criterion) {
+    let mosaic = create_mosaic();
+    let distance_matrix = mosaic.distance_matrix();
+    c.bench_function("build_mosaic_greedy", |b| {
+        b.iter(|| {
+            let result = black_box(mosaic.build_greedy(distance_matrix.clone()));
+            assert!(result.is_ok());
+        });
+    });
+}
+
 criterion_group! {
     name = benches;
     config = Criterion::default().sample_size(100).measurement_time(Duration::from_secs(10));
-    targets = bench_distance_matrix, bench_build_mosaic, bench_metrics
+    targets = bench_distance_matrix, bench_build_mosaic, bench_metrics, bench_build_mosaic_greedy
 }
 criterion_main!(benches);

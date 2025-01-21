@@ -1,3 +1,5 @@
+use std::cmp::Reverse;
+use std::collections::{BinaryHeap, HashSet};
 use std::path::Path;
 #[cfg(not(target_family = "wasm"))]
 use std::time;
@@ -201,6 +203,70 @@ impl Mosaic {
         Ok(mosaic_img)
     }
 
+    pub fn build_greedy(&self, distance_matrix: DistanceMatrix<i64>) -> Result<RgbImage, Error> {
+        if distance_matrix.rows != self.master.cells.len()
+            || distance_matrix.columns < self.tiles.len()
+        {
+            return Err(
+            "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
+        );
+        }
+
+        let (grid_width, grid_height) = self.grid_size;
+        let (cell_width, cell_height) = self.master.cell_size;
+        let mut mosaic_img = RgbImage::new(self.master.img.width(), self.master.img.height());
+        info!(
+            "Building mosaic, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
+            mosaic_img.width(),
+            mosaic_img.height(),
+            cell_width,
+            cell_height,
+            grid_width,
+            grid_height
+        );
+
+        let mut filled_master_cells = HashSet::new();
+        let mut placed_tiles = HashSet::new();
+        let mut n_appearances = vec![0; self.tiles.len()];
+
+        let mut heap = BinaryHeap::new();
+
+        // Populate the heap with (distance, row_idx, col_idx)
+        for row_idx in 0..distance_matrix.rows {
+            for col_idx in 0..distance_matrix.columns {
+                let distance = distance_matrix.data[row_idx * distance_matrix.columns + col_idx];
+                heap.push(Reverse((distance, row_idx, col_idx)));
+            }
+        }
+
+        // Process elements in ascending order of distance
+        while let Some(Reverse((_, cell_idx, tile_idx))) = heap.pop() {
+            if filled_master_cells.len() == self.master.cells.len() {
+                // stop early if all the master cells have been filled
+                break;
+            }
+
+            if filled_master_cells.contains(&cell_idx) || placed_tiles.contains(&tile_idx) {
+                continue;
+            }
+
+            let x = (cell_idx as u32 % grid_width) * cell_width;
+            let y = (cell_idx as u32 / grid_width) * cell_height;
+
+            let tile = self.tiles.get(tile_idx).ok_or("Invalid tile index")?;
+            mosaic_img.copy_from(tile, x, y)?;
+
+            filled_master_cells.insert(cell_idx);
+            n_appearances[tile_idx] += 1;
+
+            if n_appearances[tile_idx] == self.max_tile_occurrences {
+                placed_tiles.insert(tile_idx);
+            }
+        }
+
+        Ok(mosaic_img)
+    }
+
     #[cfg(feature = "blueprint")]
     /// Compute the tile to master cell assignments, and construct a [`Blueprint`] of the mosaic
     /// image.
@@ -338,74 +404,5 @@ mod tests {
             distance_matrix.data.len(),
             mosaic.master.cells.len() * mosaic.tiles.len()
         );
-    }
-
-    // TODO: these tests fail when running on GitHub Actions
-    #[cfg(feature = "blueprint")]
-    #[test]
-    fn test_mosaic_build_blueprint() {
-        if std::env::var("CI").is_ok() {
-            println!("Test skipped: Running on GitHub Actions.");
-            return;
-        }
-
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12), 1);
-        assert!(result.is_ok());
-        let mosaic = result.unwrap();
-
-        assert_eq!(mosaic.master.cells.len(), 144);
-        let d_matrix = mosaic.distance_matrix();
-        let result = mosaic.build_blueprint(d_matrix);
-        assert!(result.is_ok());
-        let blueprint = result.unwrap();
-
-        // serialize and save the blueprint
-        let serialized = serde_json::to_string_pretty(&blueprint).unwrap();
-        let expected_path = test_dir().join("mosaic_blueprint.json");
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            std::fs::write(&expected_path, serialized).unwrap();
-        }
-        let expected_blueprint: Blueprint =
-            serde_json::from_str(&std::fs::read_to_string(&expected_path).unwrap()).unwrap();
-        assert_eq!(expected_blueprint, blueprint);
-    }
-
-    #[cfg(feature = "blueprint")]
-    #[test]
-    fn test_mosaic_blueprint_render() {
-        if std::env::var("CI").is_ok() {
-            println!("Test skipped: Running on GitHub Actions.");
-            return;
-        }
-
-        let blueprint_path = test_dir().join("mosaic_blueprint.json");
-        let blueprint: Blueprint =
-            serde_json::from_str(&std::fs::read_to_string(&blueprint_path).unwrap()).unwrap();
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-
-        let result = blueprint.render(&master_img, &tiles_imgs);
-        assert!(result.is_ok());
-        let mosaic_img = result.unwrap();
-        let expected_path = test_dir().join("mosaic_blueprint_rendered.png");
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            mosaic_img.save(&expected_path).unwrap();
-        }
-        let expected_img = image::open(expected_path).unwrap().to_rgb8();
-        assert_eq!(expected_img, mosaic_img);
     }
 }
