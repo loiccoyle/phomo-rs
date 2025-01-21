@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.5.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.4.0...phomo-v0.5.0) (2025-01-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* add `max_tile_occurrrences` as a field of the `Mosaic` struct
+
+### Features
+
+* add a greedy tile assignment algorithm ([9a6f39d](https://github.com/loiccoyle/phomo-rs/commit/9a6f39dd54bcd4525e13bde72b3d263e0b3624f6))
+* **phomo:** add greedy blueprint building ([275253a](https://github.com/loiccoyle/phomo-rs/commit/275253afe51513a60ee22c5d7f0b71914e887da9))
+
+
+### Bug Fixes
+
+* rm unused function ([cbfecdb](https://github.com/loiccoyle/phomo-rs/commit/cbfecdbac95ba86122b9f72d882c436798566f61))
+
+
+### Performance Improvements
+
+* **phomo:** initialize data structures with appropriate capacity ([735581d](https://github.com/loiccoyle/phomo-rs/commit/735581d258f579b861905ad2543671b16e991095))
+
+
+### Code Refactoring
+
+* add `max_tile_occurrrences` as a field of the `Mosaic` struct ([1894b10](https://github.com/loiccoyle/phomo-rs/commit/1894b10441aff5e7e88abe448593027e9cd2f443))
+
 ## [0.4.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.3.2...phomo-v0.4.0) (2025-01-20)
 
 

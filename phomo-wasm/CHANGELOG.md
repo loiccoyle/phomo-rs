@@ -4,6 +4,29 @@
   * dependencies
     * phomo bumped from 0.3.1 to 0.3.2
 
+## [0.6.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.5.0...phomo-wasm-v0.6.0) (2025-01-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* add `max_tile_occurrrences` as a field of the `Mosaic` struct
+
+### Features
+
+* **phomo-wasm:** add greedy bindings ([5b7c114](https://github.com/loiccoyle/phomo-rs/commit/5b7c1148f174defb1e15b0a2fdccc3501d1eab3c))
+
+
+### Code Refactoring
+
+* add `max_tile_occurrrences` as a field of the `Mosaic` struct ([1894b10](https://github.com/loiccoyle/phomo-rs/commit/1894b10441aff5e7e88abe448593027e9cd2f443))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.4.0 to 0.5.0
+
 ## [0.5.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.4.1...phomo-wasm-v0.5.0) (2025-01-20)
 
 
