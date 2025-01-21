@@ -104,7 +104,7 @@ mod tests {
     }
 
     #[test]
-    fn test_repeat_tiles() {
+    fn test_tile() {
         let d_matrix = DistanceMatrix::new(2, 3, vec![1, 2, 3, 4, 5, 6]).unwrap();
         let d_matrix_repeat = d_matrix.tile(2);
         assert!(d_matrix_repeat.data == vec![1, 2, 3, 1, 2, 3, 4, 5, 6, 4, 5, 6]);
