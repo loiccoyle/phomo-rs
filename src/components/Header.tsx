@@ -45,7 +45,7 @@ const Header: React.FC = () => {
                 >
                   open-source
                 </a>
-                . All processing is done locally. Your photos never leave your
+                . All processing is done locally. Your images never leave your
                 device.
               </span>
             </span>
