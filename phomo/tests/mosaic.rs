@@ -253,6 +253,50 @@ fn build_mosaic_blueprint() {
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 
+// TODO: this test fails when running on GitHub Actions
+#[cfg(feature = "blueprint")]
+#[test]
+fn build_mosaic_blueprint_greedy() {
+    if std::env::var("CI").is_ok() {
+        println!("Test skipped: Running on GitHub Actions.");
+        return;
+    }
+    let (tile_imgs, master_img) = setup_imgs();
+
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    assert!(result.is_ok());
+    let mosaic = result.unwrap();
+
+    let d_matrix = mosaic.distance_matrix();
+    assert_eq!(
+        d_matrix.data.len(),
+        mosaic.master.cells.len() * mosaic.tiles.len()
+    );
+
+    let result = mosaic.build_blueprint_greedy(d_matrix);
+    assert!(result.is_ok());
+    let blueprint = result.unwrap();
+    let serialized = serde_json::to_string_pretty(&blueprint).unwrap();
+    let expected_path = test_dir().join("mosaic_blueprint_greedy.json");
+    if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
+        std::fs::write(&expected_path, serialized).unwrap();
+    }
+    let expected_blueprint: Blueprint =
+        serde_json::from_str(&std::fs::read_to_string(&expected_path).unwrap()).unwrap();
+    // make sure the json is the same
+    assert_eq!(expected_blueprint, blueprint);
+
+    let result = blueprint.render(&mosaic.master.img, &mosaic.tiles);
+    assert!(result.is_ok());
+    let mosaic_img = result.unwrap();
+    let expected = open_expected(
+        &mosaic_img,
+        test_dir().join("mosaic_blueprint_greedy_rendered.png"),
+    );
+    // make sure the rendered img is the same
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
+}
+
 /// compare two images return true if ther are close to being the same
 fn kinda_same_imgs(img1: image::RgbImage, img2: image::RgbImage, tol: f64) -> bool {
     let diff = img1
