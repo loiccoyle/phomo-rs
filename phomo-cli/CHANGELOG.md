@@ -4,6 +4,29 @@
   * dependencies
     * phomo bumped from 0.3.0 to 0.3.1
 
+## [0.4.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.3.0...phomo-cli-v0.4.0) (2025-01-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* add `max_tile_occurrrences` as a field of the `Mosaic` struct
+
+### Features
+
+* **phomo-cli:** expose the greedy assignment algorithm in the CLI ([9e449f7](https://github.com/loiccoyle/phomo-rs/commit/9e449f7b2db760a71c30e783b3459d3aca7802fd))
+
+
+### Code Refactoring
+
+* add `max_tile_occurrrences` as a field of the `Mosaic` struct ([1894b10](https://github.com/loiccoyle/phomo-rs/commit/1894b10441aff5e7e88abe448593027e9cd2f443))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.4.0 to 0.5.0
+
 ## [0.3.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.2.4...phomo-cli-v0.3.0) (2025-01-20)
 
 
