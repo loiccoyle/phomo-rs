@@ -228,11 +228,10 @@ impl Mosaic {
             grid_height
         );
 
-        let mut filled_master_cells = HashSet::new();
-        let mut placed_tiles = HashSet::new();
+        let mut filled_master_cells = HashSet::with_capacity(self.master.cells.len());
+        let mut placed_tiles = HashSet::with_capacity(self.tiles.len());
         let mut n_appearances = vec![0; self.tiles.len()];
-
-        let mut heap = BinaryHeap::new();
+        let mut heap = BinaryHeap::with_capacity(distance_matrix.rows * distance_matrix.columns);
 
         // Populate the heap with (distance, row_idx, col_idx)
         for row_idx in 0..distance_matrix.rows {
