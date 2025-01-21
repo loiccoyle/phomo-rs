@@ -35,7 +35,7 @@ fn create_mosaic() -> Mosaic {
             .unwrap();
     let master_img = image::open(master_file).unwrap().to_rgb8();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (8, 8));
+    let result = Mosaic::from_images(master_img, tile_imgs, (8, 8), 1);
     assert!(result.is_ok());
     result.unwrap()
 }

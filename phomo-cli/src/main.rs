@@ -98,18 +98,20 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     // Create the mosaic
-    let mosaic = Mosaic::from_images(master_img, tile_imgs, (grid_width, grid_height))
-        .map_err(|e| format!("Failed to create mosaic: {}", e))?;
+    let mosaic = Mosaic::from_images(
+        master_img,
+        tile_imgs,
+        (grid_width, grid_height),
+        args.n_appearances,
+    )
+    .map_err(|e| format!("Failed to create mosaic: {}", e))?;
 
     let metric = match args.metric {
         cli::Metric::NormL1 => phomo::metrics::norm_l1,
         cli::Metric::NormL2 => phomo::metrics::norm_l2,
     };
     // Compute the distance matrix
-    let mut d_matrix = mosaic.distance_matrix_with_metric(metric);
-    if args.n_appearances > 1 {
-        d_matrix = d_matrix.with_repeat_tiles(args.n_appearances as usize);
-    }
+    let d_matrix = mosaic.distance_matrix_with_metric(metric);
 
     // Build the mosaic image
     let mosaic_img = mosaic

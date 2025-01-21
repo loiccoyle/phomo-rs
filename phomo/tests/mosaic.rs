@@ -47,7 +47,7 @@ fn build_mosaic() {
             .unwrap();
     let master_img = image::open(master_file).unwrap().to_rgb8();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -64,6 +64,32 @@ fn build_mosaic() {
 }
 
 #[test]
+fn build_mosaic_repeats() {
+    let tile_dir = tile_dir();
+    let master_file = master_file();
+
+    let tile_imgs =
+        read_images_from_dir_resized(tile_dir, 16, 16, image::imageops::FilterType::Nearest)
+            .unwrap();
+    let master_img = image::open(master_file).unwrap().to_rgb8();
+
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 2);
+    assert!(result.is_ok());
+    let mosaic = result.unwrap();
+
+    let d_matrix = mosaic.distance_matrix();
+    assert_eq!(
+        d_matrix.data.len(),
+        mosaic.master.cells.len() * mosaic.tiles.len()
+    );
+
+    let mosaic_img = mosaic.build(d_matrix).unwrap();
+    assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
+    let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_repeats.png"));
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
+}
+
+#[test]
 fn build_mosaic_equalized() {
     let tile_dir = tile_dir();
     let master_file = master_file();
@@ -76,7 +102,7 @@ fn build_mosaic_equalized() {
     tile_imgs = tile_imgs.equalize();
     master_img = master_img.equalize();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -104,7 +130,7 @@ fn build_mosaic_match_tiles_to_master() {
 
     tile_imgs = tile_imgs.match_palette(&master_img);
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -137,7 +163,7 @@ fn build_mosaic_match_master_to_tiles() {
     let expected = open_expected(&master_img, test_dir().join("master_matched_to_faces.png"));
     assert!(kinda_same_imgs(master_img.clone(), expected, 2.));
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 

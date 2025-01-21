@@ -32,6 +32,9 @@ pub struct Mosaic {
     pub tiles: Vec<RgbImage>,
     /// The number of cells horizontally and vertically in the mosaic.
     pub grid_size: (u32, u32),
+    /// Tile can be repeated up to `max_tile_occurrences` times in the mosaic. Should be greater
+    /// than 0.
+    pub max_tile_occurrences: usize,
 }
 
 /// Represents a photo mosaic.
@@ -50,12 +53,13 @@ impl Mosaic {
         master_file: P,
         tile_dir: Q,
         grid_size: (u32, u32),
+        max_tile_occurrences: usize,
     ) -> Result<Self, Error> {
         let master_img = image::open(master_file)?.to_rgb8();
         info!("Loading tiles");
         let tiles = utils::read_images_from_dir(tile_dir)?;
 
-        Self::from_images(master_img, tiles, grid_size)
+        Self::from_images(master_img, tiles, grid_size, max_tile_occurrences)
     }
 
     /// Construct a [`Mosaic`] from [`RgbImage`] buffers of the master images and the tile
@@ -74,8 +78,21 @@ impl Mosaic {
         master_img: RgbImage,
         tiles: Vec<RgbImage>,
         grid_size: (u32, u32),
+        max_tile_occurrences: usize,
     ) -> Result<Self, Error> {
         let master = Master::from_image(master_img, grid_size)?;
+        Self::new(master, tiles, grid_size, max_tile_occurrences)
+    }
+
+    pub fn new(
+        master: Master,
+        tiles: Vec<RgbImage>,
+        grid_size: (u32, u32),
+        max_tile_occurrences: usize,
+    ) -> Result<Self, Error> {
+        if max_tile_occurrences == 0 {
+            return Err("max_tile_occurrences must be greater than 0".into());
+        }
 
         if tiles.iter().any(|img| img.dimensions() != master.cell_size) {
             return Err(format!(
@@ -85,12 +102,13 @@ impl Mosaic {
             .into());
         }
 
-        if tiles.len() < grid_size.0 as usize * grid_size.1 as usize {
+        if tiles.len() * max_tile_occurrences < grid_size.0 as usize * grid_size.1 as usize {
             return Err(format!(
-                "Not enough tiles: {} for grid size: {}x{}",
+                "Not enough tiles: {} for grid size: {}x{} and max tile occurrences: {}",
                 tiles.len(),
                 grid_size.0,
-                grid_size.1
+                grid_size.1,
+                max_tile_occurrences
             )
             .into());
         }
@@ -99,6 +117,7 @@ impl Mosaic {
             master,
             tiles,
             grid_size,
+            max_tile_occurrences,
         })
     }
 
@@ -153,7 +172,12 @@ impl Mosaic {
             );
         }
 
-        let assignments = distance_matrix.assignments();
+        let assignments = if self.max_tile_occurrences > 1 {
+            distance_matrix.tile(self.max_tile_occurrences)
+        } else {
+            distance_matrix
+        }
+        .assignments();
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
@@ -192,7 +216,12 @@ impl Mosaic {
             );
         }
 
-        let assignments = distance_matrix.assignments();
+        let assignments = if self.max_tile_occurrences > 1 {
+            distance_matrix.tile(self.max_tile_occurrences)
+        } else {
+            distance_matrix
+        }
+        .assignments();
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
 
@@ -246,7 +275,7 @@ mod tests {
     #[test]
     fn test_mosaic_creation_from_valid_data() {
         let grid_size = (4, 4);
-        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size);
+        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size, 1);
         // Check if the mosaic was created successfully
         assert!(mosaic.is_ok());
         let mosaic = mosaic.unwrap();
@@ -267,21 +296,21 @@ mod tests {
         // 5x5 grid which will not work with a 256x256 master image and 64x64 tiles
         let grid_size = (5, 5);
         // Attempt to create a mosaic and expect an error due to tile size mismatch
-        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size);
+        let mosaic = Mosaic::from_file_and_dir(test_master_img(), test_tile_dir(), grid_size, 1);
         assert!(mosaic.is_err());
     }
 
     #[test]
     fn test_invalid_master_file_path() {
         let grid_size = (4, 4);
-        let mosaic = Mosaic::from_file_and_dir("invalid/master.png", test_tile_dir(), grid_size);
+        let mosaic = Mosaic::from_file_and_dir("invalid/master.png", test_tile_dir(), grid_size, 1);
         assert!(mosaic.is_err());
     }
 
     #[test]
     fn test_invalid_tile_directory() {
         let grid_size = (4, 4);
-        let mosaic = Mosaic::from_file_and_dir(test_master_img(), "invalid/tile_dir", grid_size);
+        let mosaic = Mosaic::from_file_and_dir(test_master_img(), "invalid/tile_dir", grid_size, 1);
         assert!(mosaic.is_err());
     }
 
@@ -295,7 +324,7 @@ mod tests {
             64,
             image::imageops::FilterType::Nearest,
         )];
-        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4));
+        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4), 1);
         assert!(mosaic.is_err());
     }
 
@@ -303,77 +332,12 @@ mod tests {
     fn test_distance_matrix() {
         let master_img = image::open(test_master_img()).unwrap().to_rgb8();
         let tiles = utils::read_images_from_dir(test_tile_dir()).unwrap();
-        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4)).unwrap();
+        let mosaic = Mosaic::from_images(master_img, tiles, (4, 4), 1).unwrap();
         let distance_matrix = mosaic.distance_matrix();
         assert_eq!(
             distance_matrix.data.len(),
             mosaic.master.cells.len() * mosaic.tiles.len()
         );
-    }
-
-    #[test]
-    fn test_mosaic_build() {
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
-        assert!(result.is_ok());
-        let mosaic = result.unwrap();
-
-        assert_eq!(mosaic.master.cells.len(), 144);
-        let d_matrix = mosaic.distance_matrix();
-        let result = mosaic.build(d_matrix);
-        assert!(result.is_ok());
-        let mosaic_img = result.unwrap();
-        assert_eq!(mosaic_img.width(), 240);
-        assert_eq!(mosaic_img.height(), 240);
-
-        let expected_path = test_dir().join("mosaic.png");
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            mosaic_img.save(&expected_path).unwrap();
-        }
-        let expected_img = image::open(expected_path).unwrap().to_rgb8();
-        assert_eq!(expected_img, mosaic_img);
-    }
-
-    #[test]
-    fn test_mosaic_build_repeat() {
-        let master_img = image::imageops::resize(
-            &image::open(test_master_img()).unwrap().to_rgb8(),
-            240,
-            240,
-            image::imageops::FilterType::Nearest,
-        );
-
-        let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
-        assert!(result.is_ok());
-        let mosaic = result.unwrap();
-
-        assert_eq!(mosaic.master.cells.len(), 144);
-        let d_matrix = mosaic.distance_matrix();
-
-        let repeat_amount = 2;
-        let d_matrix_repeat = d_matrix.with_repeat_tiles(repeat_amount);
-
-        let result = mosaic.build(d_matrix_repeat);
-        assert!(result.is_ok());
-        let mosaic_img = result.unwrap();
-        assert_eq!(mosaic_img.width(), 240);
-        assert_eq!(mosaic_img.height(), 240);
-
-        let expected_path = test_dir().join("mosaic_repeats.png");
-        mosaic_img.save(&expected_path).unwrap();
-        if std::env::var("PHOMO_UPDATE_EXPECTED").is_ok() {
-            mosaic_img.save(&expected_path).unwrap();
-        }
-        let expected_img = image::open(expected_path).unwrap().to_rgb8();
-        assert_eq!(expected_img, mosaic_img);
     }
 
     // TODO: these tests fail when running on GitHub Actions
@@ -393,7 +357,7 @@ mod tests {
         );
 
         let tiles_imgs = utils::read_images_from_dir(test_faces_dir()).unwrap();
-        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12));
+        let result = Mosaic::from_images(master_img, tiles_imgs, (12, 12), 1);
         assert!(result.is_ok());
         let mosaic = result.unwrap();
 

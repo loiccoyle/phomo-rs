@@ -50,6 +50,7 @@ impl Mosaic {
         tile_imgs_data: js_sys::Array,
         grid_width: u32,
         grid_height: u32,
+        max_tile_occurrences: usize,
         tile_resize: Option<ResizeType>,
         master_resize: Option<Vec<u32>>,
     ) -> Result<Mosaic, JsValue> {
@@ -100,6 +101,7 @@ impl Mosaic {
             master_img.clone(),
             tile_imgs.clone(),
             (grid_width, grid_height),
+            max_tile_occurrences,
         )
         .map_err(|err| JsValue::from(err.to_string()))?;
 
@@ -143,11 +145,8 @@ impl Mosaic {
     }
 
     // Build the mosaic after applying palette matching or equalization
-    pub fn build(&self, metric_type: &str, tile_repeats: Option<usize>) -> Result<String, JsValue> {
-        let mut d_matrix = self.distance_matrix_with_metric(metric_type)?;
-        if let Some(n) = tile_repeats {
-            d_matrix = d_matrix.with_repeat_tiles(n);
-        }
+    pub fn build(&self, metric_type: &str) -> Result<String, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
 
         let mosaic_img = self
             .inner
@@ -173,15 +172,8 @@ impl Mosaic {
     }
 
     #[wasm_bindgen(js_name = buildBlueprint)]
-    pub fn build_blueprint(
-        &self,
-        metric_type: &str,
-        tile_repeats: Option<usize>,
-    ) -> Result<JsValue, JsValue> {
-        let mut d_matrix = self.distance_matrix_with_metric(metric_type)?;
-        if let Some(n) = tile_repeats {
-            d_matrix = d_matrix.with_repeat_tiles(n);
-        }
+    pub fn build_blueprint(&self, metric_type: &str) -> Result<JsValue, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
 
         let mosaic = self
             .inner
