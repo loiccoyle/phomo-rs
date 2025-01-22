@@ -23,7 +23,7 @@ pub struct Cell {
     pub y: u32,
 }
 
-/// A serializable struct which represents a [crate::mosaic::Mosaic] that has yet to be rendered.
+/// A serializable struct which represents a [Mosaic](crate::mosaic::Mosaic) that has yet to be rendered.
 impl Blueprint {
     /// Render the [Blueprint].
     pub fn render(&self, master_img: &RgbImage, tiles: &[RgbImage]) -> Result<RgbImage, Error> {
