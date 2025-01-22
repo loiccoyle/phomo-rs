@@ -237,10 +237,6 @@ fn build_mosaic_match_master_to_tiles() {
 #[cfg(feature = "blueprint")]
 #[test]
 fn build_mosaic_blueprint() {
-    if std::env::var("CI").is_ok() {
-        println!("Test skipped: Running on GitHub Actions.");
-        return;
-    }
     let (tile_imgs, master_img) = setup_imgs();
 
     let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
@@ -279,10 +275,6 @@ fn build_mosaic_blueprint() {
 #[cfg(feature = "blueprint")]
 #[test]
 fn build_mosaic_blueprint_greedy() {
-    if std::env::var("CI").is_ok() {
-        println!("Test skipped: Running on GitHub Actions.");
-        return;
-    }
     let (tile_imgs, master_img) = setup_imgs();
 
     let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
