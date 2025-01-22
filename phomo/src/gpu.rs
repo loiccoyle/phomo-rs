@@ -35,14 +35,14 @@ struct Dimensions {
     padding: u32, // for alignment
 }
 
-pub struct GpuContext {
+struct GpuContext {
     device: Device,
     queue: Queue,
     compute_pipeline: ComputePipeline,
 }
 
 impl GpuContext {
-    pub async fn new(metric_shader: String) -> Result<Self, Box<dyn std::error::Error>> {
+    async fn new(metric_shader: String) -> Result<Self, Box<dyn std::error::Error>> {
         let instance = Instance::default();
         let adapter = match instance
             .request_adapter(&RequestAdapterOptions {
