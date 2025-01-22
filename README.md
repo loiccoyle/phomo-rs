@@ -40,6 +40,13 @@ To use the `phomo` binary to build photo mosaics, install the `phomo-cli` crate:
 cargo install phomo-cli
 ```
 
+> [!TIP]
+> To install with GPU support, use the `gpu` feature:
+
+```sh
+cargo install phomo-cli --features=gpu
+```
+
 ### Arch linux (AUR)
 
 Using your favourite AUR helper, install the `phomo-git` package:
@@ -79,7 +86,8 @@ Options:
       --equalize                       Equalize the master and tile image color distributions
       --transfer-master-to-tiles       Transfer the color palette of the master image to the tile images
       --transfer-tiles-to-master       Transfer the color palette of the tile images to the master image
-      --greedy                         Use a greedy tile assignment algorithm. Should improve performance at the expense of accuracy
+  -G, --gpu                            Compute the distance matrix on the GPU
+      --greedy                         Use a greedy tile assignment algorithm
       --metric <METRIC>                The distance metric to use [default: norm-l1] [possible values: norm-l1, norm-l2]
   -v, --verbose...                     Increase logging verbosity
   -q, --quiet...                       Decrease logging verbosity

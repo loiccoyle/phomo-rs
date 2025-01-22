@@ -106,12 +106,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     )
     .map_err(|e| format!("Failed to create mosaic: {}", e))?;
 
-    let metric = match args.metric {
-        cli::Metric::NormL1 => phomo::metrics::norm_l1,
-        cli::Metric::NormL2 => phomo::metrics::norm_l2,
-    };
     // Compute the distance matrix
-    let d_matrix = mosaic.distance_matrix_with_metric(metric);
+    let d_matrix;
+    #[cfg(feature = "gpu")]
+    {
+        let metric = match args.metric {
+            cli::Metric::NormL1 => phomo::gpu::GpuMetricShader::NormL1,
+            cli::Metric::NormL2 => phomo::gpu::GpuMetricShader::NormL2,
+        };
+        d_matrix = mosaic.distance_matrix_gpu_with_metric_blocking(metric)?;
+    }
+    #[cfg(not(feature = "gpu"))]
+    {
+        let metric = match args.metric {
+            cli::Metric::NormL1 => phomo::metrics::norm_l1,
+            cli::Metric::NormL2 => phomo::metrics::norm_l2,
+        };
+        d_matrix = mosaic.distance_matrix_with_metric(metric);
+    }
 
     // Build the mosaic image
     let mosaic_img = if args.greedy {

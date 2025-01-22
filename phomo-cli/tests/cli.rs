@@ -104,6 +104,28 @@ fn build_mosaic_greedy() {
     assert!(check_expected(output_file.path(), expected_file));
 }
 
+#[cfg(feature = "gpu")]
+#[test]
+fn build_mosaic_gpu() {
+    let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
+    let expected_file = test_data_dir().join("mosaic_resized_tiles.png");
+
+    let mut cmd = assert_cmd::Command::cargo_bin("phomo").unwrap();
+    cmd.arg(master_img_file().to_str().unwrap());
+    cmd.arg(tile_dir().to_str().unwrap());
+    cmd.arg(output_file.path().to_str().unwrap());
+    cmd.arg("--resize-tiles");
+    cmd.arg("--gpu");
+
+    cmd.assert().success();
+    assert!(output_file.path().exists());
+
+    assert_eq!(
+        image::open(output_file).unwrap().to_rgb8(),
+        image::open(expected_file).unwrap().to_rgb8()
+    )
+}
+
 #[test]
 fn build_mosaic_equalized() {
     let output_file = assert_fs::NamedTempFile::new("output.png").unwrap();
