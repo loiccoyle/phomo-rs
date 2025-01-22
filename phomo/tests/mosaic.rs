@@ -90,6 +90,30 @@ fn build_mosaic_greedy() {
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_greedy.png"));
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
+#[cfg(feature = "gpu")]
+#[test]
+fn build_mosaic_gpu() {
+    let (tile_imgs, master_img) = setup_imgs();
+
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    assert!(result.is_ok());
+    let mosaic = result.unwrap();
+
+    let result = mosaic.distance_matrix_gpu_blocking();
+    assert!(result.is_ok());
+    let d_matrix = result.unwrap();
+    assert_eq!(
+        d_matrix.data.len(),
+        mosaic.master.cells.len() * mosaic.tiles.len()
+    );
+
+    let mosaic_img = mosaic.build(d_matrix).unwrap();
+    assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
+    let expected = image::open(test_dir().join("mosaic_16_16.png"))
+        .unwrap()
+        .to_rgb8();
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
+}
 
 #[test]
 fn build_mosaic_repeats() {
@@ -245,11 +269,9 @@ fn build_mosaic_blueprint() {
     let result = blueprint.render(&mosaic.master.img, &mosaic.tiles);
     assert!(result.is_ok());
     let mosaic_img = result.unwrap();
-    let expected = open_expected(
-        &mosaic_img,
-        test_dir().join("mosaic_blueprint_rendered.png"),
-    );
-    // make sure the rendered img is the same
+    let expected = image::open(test_dir().join("mosaic_16_16.png"))
+        .unwrap()
+        .to_rgb8();
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 
@@ -289,11 +311,9 @@ fn build_mosaic_blueprint_greedy() {
     let result = blueprint.render(&mosaic.master.img, &mosaic.tiles);
     assert!(result.is_ok());
     let mosaic_img = result.unwrap();
-    let expected = open_expected(
-        &mosaic_img,
-        test_dir().join("mosaic_blueprint_greedy_rendered.png"),
-    );
-    // make sure the rendered img is the same
+    let expected = image::open(test_dir().join("mosaic_16_16_greedy.png"))
+        .unwrap()
+        .to_rgb8();
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 

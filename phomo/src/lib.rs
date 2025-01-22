@@ -12,10 +12,17 @@ pub mod utils;
 #[cfg_attr(docsrs, doc(cfg(feature = "blueprint")))]
 #[cfg(feature = "blueprint")]
 mod blueprint;
+#[cfg_attr(docsrs, doc(cfg(feature = "gpu")))]
+#[cfg(feature = "gpu")]
+pub mod gpu;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "blueprint")))]
 #[cfg(feature = "blueprint")]
 pub use blueprint::Blueprint;
+#[cfg_attr(docsrs, doc(cfg(feature = "gpu")))]
+#[cfg(feature = "gpu")]
+pub use gpu::GpuMetricShader;
+
 pub use color_match::ColorMatch;
 pub use distance_matrix::DistanceMatrix;
 pub use master::Master;
