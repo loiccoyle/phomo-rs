@@ -68,6 +68,15 @@ impl Mosaic {
         .assignments();
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
+        info!(
+            "Building mosaic blueprint, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
+            cell_width * grid_width,
+            cell_height * grid_height,
+            cell_width,
+            cell_height,
+            grid_width,
+            grid_height
+        );
 
         let cells = assignments
             .into_iter()
@@ -108,6 +117,15 @@ impl Mosaic {
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
+        info!(
+            "Building mosaic blueprint greedily, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
+            cell_width * grid_width,
+            cell_height * grid_height,
+            cell_width,
+            cell_height,
+            grid_width,
+            grid_height
+        );
 
         let mut filled_master_cells = HashSet::with_capacity(self.master.cells.len());
         let mut placed_tiles = HashSet::with_capacity(self.tiles.len());
