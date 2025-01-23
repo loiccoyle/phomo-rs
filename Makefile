@@ -6,7 +6,7 @@ readme:
 	  print ""; \
 	  print "```console"; \
 	  print "$$ phomo -h"; \
-	  system("cargo run -- -h"); \
+	  system("cargo run --features=gpu -- -h"); \
 	  print "```"; \
 	  print ""; \
 	} \

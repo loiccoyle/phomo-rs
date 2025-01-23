@@ -91,7 +91,16 @@ pub(crate) struct Arguments {
     #[arg(long)]
     pub(crate) transfer_tiles_to_master: bool,
 
-    /// Use a greedy tile assignment algorithm. Should improve performance at the expense of accuracy.
+    #[cfg(feature = "gpu")]
+    /// Compute the distance matrix on the GPU.
+    ///
+    /// Should improve performance when constructing large mosaics.
+    #[arg(short = 'G', long)]
+    pub(crate) gpu: bool,
+
+    /// Use a greedy tile assignment algorithm.
+    ///
+    /// Should improve performance at the expense of accuracy.
     #[arg(long)]
     pub(crate) greedy: bool,
     /// The distance metric to use.

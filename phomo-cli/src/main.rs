@@ -5,7 +5,7 @@ use clap::Parser;
 use log::info;
 use phomo::{
     read_images_from_dir, read_images_from_dir_cropped, read_images_from_dir_resized, ColorMatch,
-    Mosaic,
+    DistanceMatrix, Mosaic,
 };
 
 mod cli;
@@ -106,12 +106,32 @@ fn main() -> Result<(), Box<dyn Error>> {
     )
     .map_err(|e| format!("Failed to create mosaic: {}", e))?;
 
-    let metric = match args.metric {
-        cli::Metric::NormL1 => phomo::metrics::norm_l1,
-        cli::Metric::NormL2 => phomo::metrics::norm_l2,
+    // Helper function to compute using CPU
+    fn compute_cpu_matrix(metric: &cli::Metric, mosaic: &Mosaic) -> DistanceMatrix<i64> {
+        let metric = match metric {
+            cli::Metric::NormL1 => phomo::metrics::norm_l1,
+            cli::Metric::NormL2 => phomo::metrics::norm_l2,
+        };
+        mosaic.distance_matrix_with_metric(metric)
+    }
+
+    let d_matrix = {
+        #[cfg(feature = "gpu")]
+        {
+            if args.gpu {
+                let metric = match args.metric {
+                    cli::Metric::NormL1 => phomo::gpu::GpuMetricShader::NormL1,
+                    cli::Metric::NormL2 => phomo::gpu::GpuMetricShader::NormL2,
+                };
+                mosaic.distance_matrix_gpu_with_metric_blocking(metric)?
+            } else {
+                compute_cpu_matrix(&args.metric, &mosaic)
+            }
+        }
+
+        #[cfg(not(feature = "gpu"))]
+        compute_cpu_matrix(&args.metric, &mosaic)
     };
-    // Compute the distance matrix
-    let d_matrix = mosaic.distance_matrix_with_metric(metric);
 
     // Build the mosaic image
     let mosaic_img = if args.greedy {
