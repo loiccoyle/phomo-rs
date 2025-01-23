@@ -1,38 +1,43 @@
-#[cfg(not(target_family = "wasm"))]
-use log::info;
-#[cfg(not(target_family = "wasm"))]
-use std::time;
+use std::fmt;
 
-extern crate pathfinding;
-use pathfinding::matrix::Matrix;
-use pathfinding::matrix::MatrixFormatError;
+use crate::lsap;
 
-#[derive(Debug, Clone, Eq, Hash, PartialEq)]
-pub struct DistanceMatrix<C> {
-    pub rows: usize,
-    pub columns: usize,
-    pub data: Vec<C>,
+#[derive(Debug)]
+pub enum DistanceMatrixError {
+    WrongLength,
+    EmptyRow,
+    EmptyCol,
 }
 
-impl<C: std::clone::Clone> From<Matrix<C>> for DistanceMatrix<C> {
-    fn from(value: Matrix<C>) -> Self {
-        DistanceMatrix {
-            rows: value.rows,
-            columns: value.columns,
-            data: value.values().cloned().collect(),
+impl fmt::Display for DistanceMatrixError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            DistanceMatrixError::WrongLength => write!(
+                f,
+                "The length of the data vector does not match the specified dimensions"
+            ),
+            DistanceMatrixError::EmptyCol => {
+                write!(f, "The number of columns must be greater than zero")
+            }
+            DistanceMatrixError::EmptyRow => {
+                write!(f, "The number of rows must be greater than zero")
+            }
         }
     }
 }
 
-impl<C> From<DistanceMatrix<C>> for Matrix<C> {
-    fn from(val: DistanceMatrix<C>) -> Self {
-        Matrix::from_vec(val.rows, val.columns, val.data).unwrap()
-    }
+impl std::error::Error for DistanceMatrixError {}
+
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
+pub struct DistanceMatrix {
+    pub rows: usize,
+    pub columns: usize,
+    pub data: Vec<i64>,
 }
 
-impl<C: std::marker::Copy> DistanceMatrix<C> {
+impl DistanceMatrix {
     /// Create a new [DistanceMatrix] which is tiled `n` times horizontally.
-    pub(crate) fn tile(&self, n: usize) -> DistanceMatrix<C> {
+    pub(crate) fn tile(&self, n: usize) -> DistanceMatrix {
         DistanceMatrix {
             rows: self.rows,
             columns: self.columns * n,
@@ -46,13 +51,16 @@ impl<C: std::marker::Copy> DistanceMatrix<C> {
 }
 
 /// Helper struct to handle the distance matrix and allow for repeated tiles.
-impl<C> DistanceMatrix<C> {
-    pub fn new(rows: usize, columns: usize, data: Vec<C>) -> Result<Self, MatrixFormatError> {
+impl DistanceMatrix {
+    pub fn new(rows: usize, columns: usize, data: Vec<i64>) -> Result<Self, DistanceMatrixError> {
         if rows * columns != data.len() {
-            return Err(MatrixFormatError::WrongLength);
+            return Err(DistanceMatrixError::WrongLength);
         }
-        if rows != 0 && columns == 0 {
-            return Err(MatrixFormatError::EmptyRow);
+        if rows == 0 {
+            return Err(DistanceMatrixError::EmptyRow);
+        }
+        if columns == 0 {
+            return Err(DistanceMatrixError::EmptyCol);
         }
         Ok(Self {
             rows,
@@ -62,28 +70,10 @@ impl<C> DistanceMatrix<C> {
     }
 }
 
-impl<
-        C: std::clone::Clone
-            + std::marker::Copy
-            + pathfinding::num_traits::Bounded
-            + pathfinding::num_traits::Signed
-            + std::cmp::Ord
-            + std::iter::Sum,
-    > DistanceMatrix<C>
-{
-    /// Solve the assignment problem using the Kuhn-Munkres algorithm.
+impl DistanceMatrix {
+    /// Solve the linear sum assignment problem using the Kuhn-Munkres algorithm.
     pub fn assignments(&self) -> Vec<usize> {
-        let weights: Matrix<C> = self.clone().into();
-        // the indice in assignments is the tile index
-        // The value at the index is the index of the cell where is should be assigned
-        #[cfg(not(target_family = "wasm"))]
-        info!("Solving the assignment problem...");
-        #[cfg(not(target_family = "wasm"))]
-        let start_time = time::Instant::now();
-        let (_, assignments) = pathfinding::kuhn_munkres::kuhn_munkres_min(&weights);
-        #[cfg(not(target_family = "wasm"))]
-        info!("Completed in {:?}", start_time.elapsed());
-        assignments
+        lsap::solve(self).unwrap()
     }
 }
 

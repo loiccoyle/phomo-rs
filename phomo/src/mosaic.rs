@@ -5,7 +5,6 @@ use std::path::Path;
 use std::time;
 
 extern crate image;
-extern crate pathfinding;
 use image::{GenericImage, RgbImage};
 use log::info;
 #[cfg(feature = "parallel")]
@@ -123,7 +122,7 @@ impl Mosaic {
     /// To use a different distance metric, use the [`distance_matrix_with_metric`](Mosaic::distance_matrix_with_metric) method.
     ///
     /// The row index is the cell index and the column index is the tile index.
-    pub fn distance_matrix(&self) -> DistanceMatrix<i64> {
+    pub fn distance_matrix(&self) -> DistanceMatrix {
         self.distance_matrix_with_metric(norm_l1)
     }
 
@@ -131,7 +130,7 @@ impl Mosaic {
     /// `metric` function, see [`phomo::metrics`](crate::metrics) for implemented distance metrics.
     ///
     /// The row index is the cell index and the column index is the tile index.
-    pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> DistanceMatrix<i64> {
+    pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> DistanceMatrix {
         #[cfg(not(target_family = "wasm"))]
         info!("Starting distance matrix computation...");
         #[cfg(not(target_family = "wasm"))]
@@ -156,10 +155,9 @@ impl Mosaic {
         }
     }
 
-    /// Compute the tile to master cell assignments using the
-    /// [pathfinding::kuhn_munkres](pathfinding::kuhn_munkres::kuhn_munkres_min) algorithm and
-    /// build the photo mosaic image.
-    pub fn build(&self, distance_matrix: DistanceMatrix<i64>) -> Result<RgbImage, Error> {
+    /// Compute the tile to master cell assignments using the Kuhn-Munkres (Hungarian)
+    /// algorithm, and build the photo mosaic image.
+    pub fn build(&self, distance_matrix: DistanceMatrix) -> Result<RgbImage, Error> {
         if distance_matrix.rows != self.master.cells.len()
             || distance_matrix.columns < self.tiles.len()
         {
@@ -200,7 +198,7 @@ impl Mosaic {
     /// Build the mosaic image using a greedy tile assignment algorithm. This leads to less
     /// accurate mosaics, but should be significantly faster, especially when the distance matrix
     /// is large.
-    pub fn build_greedy(&self, distance_matrix: DistanceMatrix<i64>) -> Result<RgbImage, Error> {
+    pub fn build_greedy(&self, distance_matrix: DistanceMatrix) -> Result<RgbImage, Error> {
         if distance_matrix.rows != self.master.cells.len()
             || distance_matrix.columns < self.tiles.len()
         {

@@ -3,6 +3,7 @@
 mod color_match;
 mod distance_matrix;
 mod error;
+mod lsap;
 mod macros;
 mod master;
 pub mod metrics;

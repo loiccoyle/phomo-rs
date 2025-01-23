@@ -131,10 +131,7 @@ impl Mosaic {
         Ok(())
     }
 
-    fn distance_matrix_with_metric(
-        &self,
-        metric_type: &str,
-    ) -> Result<DistanceMatrix<i64>, JsValue> {
+    fn distance_matrix_with_metric(&self, metric_type: &str) -> Result<DistanceMatrix, JsValue> {
         let metric = match metric_type {
             "NormL1" => metrics::norm_l1,
             "NormL2" => metrics::norm_l2,

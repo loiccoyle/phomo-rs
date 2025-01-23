@@ -51,10 +51,7 @@ impl Blueprint {
 impl Mosaic {
     /// Compute the tile to master cell assignments, and construct a [`Blueprint`] of the mosaic
     /// image.
-    pub fn build_blueprint(
-        &self,
-        distance_matrix: DistanceMatrix<i64>,
-    ) -> Result<Blueprint, Error> {
+    pub fn build_blueprint(&self, distance_matrix: DistanceMatrix) -> Result<Blueprint, Error> {
         if distance_matrix.rows != self.master.cells.len()
             || distance_matrix.columns < self.tiles.len()
         {
@@ -99,7 +96,7 @@ impl Mosaic {
     /// image.
     pub fn build_blueprint_greedy(
         &self,
-        distance_matrix: DistanceMatrix<i64>,
+        distance_matrix: DistanceMatrix,
     ) -> Result<Blueprint, Error> {
         if distance_matrix.rows != self.master.cells.len()
             || distance_matrix.columns < self.tiles.len()
