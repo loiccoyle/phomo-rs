@@ -70,7 +70,8 @@ fn bench_assignments(c: &mut Criterion) {
     let distance_matrix = mosaic.distance_matrix();
     c.bench_function("assignments", |b| {
         b.iter(|| {
-            black_box(distance_matrix.assignments());
+            let result = black_box(distance_matrix.assignments());
+            assert!(result.is_ok());
         });
     });
 }
