@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::lsap;
+use crate::lsap::{self, LsapError};
 
 #[derive(Debug)]
 pub enum DistanceMatrixError {
@@ -72,8 +72,8 @@ impl DistanceMatrix {
 
 impl DistanceMatrix {
     /// Solve the linear sum assignment problem using the Kuhn-Munkres algorithm.
-    pub fn assignments(&self) -> Vec<usize> {
-        lsap::solve(self).unwrap()
+    pub fn assignments(&self) -> Result<Vec<usize>, LsapError> {
+        lsap::solve(self)
     }
 }
 

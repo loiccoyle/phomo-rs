@@ -171,7 +171,7 @@ impl Mosaic {
         } else {
             distance_matrix
         }
-        .assignments();
+        .assignments()?;
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
