@@ -1,20 +1,6 @@
+use crate::error::LsapError;
 use crate::macros::maybe_progress_bar;
 use crate::DistanceMatrix;
-
-#[derive(Debug)]
-pub enum LsapError {
-    Infeasible,
-}
-
-impl std::fmt::Display for LsapError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            LsapError::Infeasible => write!(f, "Infeasible"),
-        }
-    }
-}
-
-impl std::error::Error for LsapError {}
 
 const UNASSIGNED: usize = usize::MAX;
 

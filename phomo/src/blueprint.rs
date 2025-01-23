@@ -5,7 +5,8 @@ use image::{GenericImage, RgbImage};
 use log::info;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, DistanceMatrix, Mosaic};
+use crate::error::MosaicError;
+use crate::{DistanceMatrix, Mosaic};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub struct Blueprint {
@@ -26,7 +27,15 @@ pub struct Cell {
 /// A serializable struct which represents a [crate::mosaic::Mosaic] that has yet to be rendered.
 impl Blueprint {
     /// Render the [Blueprint].
-    pub fn render(&self, master_img: &RgbImage, tiles: &[RgbImage]) -> Result<RgbImage, Error> {
+    ///
+    /// Errors:
+    /// - [MosaicError::InvalidTileIndex]: An invalid tile index was encountered when building the
+    ///     image.
+    pub fn render(
+        &self,
+        master_img: &RgbImage,
+        tiles: &[RgbImage],
+    ) -> Result<RgbImage, MosaicError> {
         let mut mosaic_img = RgbImage::new(master_img.width(), master_img.height());
         info!(
             "Building mosaic, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
@@ -39,9 +48,9 @@ impl Blueprint {
         );
 
         for cell in self.cells.iter() {
-            let tile = tiles.get(cell.tile_index).ok_or_else(|| {
-                format!("Tile index {} out of range", cell.tile_index).to_string()
-            })?;
+            let tile = tiles
+                .get(cell.tile_index)
+                .ok_or_else(|| MosaicError::InvalidTileIndex(cell.tile_index))?;
             mosaic_img.copy_from(tile, cell.x, cell.y)?;
         }
         Ok(mosaic_img)
@@ -51,14 +60,16 @@ impl Blueprint {
 impl Mosaic {
     /// Compute the tile to master cell assignments, and construct a [`Blueprint`] of the mosaic
     /// image.
-    pub fn build_blueprint(&self, distance_matrix: DistanceMatrix) -> Result<Blueprint, Error> {
-        if distance_matrix.rows != self.master.cells.len()
-            || distance_matrix.columns < self.tiles.len()
-        {
-            return Err(
-                "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
-            );
-        }
+    ///
+    /// # Errors
+    /// - [MosaicError::DistanceMatrixSizeMismatch]: The size of the distance matrix does not match
+    ///     the number of master cells and the number of tiles.
+    /// - [MosaicError::LsapError]: The distance matrix is not solvable.
+    pub fn build_blueprint(
+        &self,
+        distance_matrix: DistanceMatrix,
+    ) -> Result<Blueprint, MosaicError> {
+        self.check_distance_matrix(&distance_matrix)?;
 
         let assignments = if self.max_tile_occurrences > 1 {
             distance_matrix.tile(self.max_tile_occurrences)
@@ -103,17 +114,15 @@ impl Mosaic {
 
     /// Compute the tile to master cell assignments using a greedy algorithm, and construct a [`Blueprint`] of the mosaic
     /// image.
+    ///
+    /// # Errors
+    /// - [MosaicError::DistanceMatrixSizeMismatch]: The size of the distance matrix does not match
+    ///     the number of master cells and the number of tiles.
     pub fn build_blueprint_greedy(
         &self,
         distance_matrix: DistanceMatrix,
-    ) -> Result<Blueprint, Error> {
-        if distance_matrix.rows != self.master.cells.len()
-            || distance_matrix.columns < self.tiles.len()
-        {
-            return Err(
-            "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
-        );
-        }
+    ) -> Result<Blueprint, MosaicError> {
+        self.check_distance_matrix(&distance_matrix)?;
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;

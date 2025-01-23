@@ -1,6 +1,7 @@
 use std::fmt;
 
-use crate::lsap::{self, LsapError};
+use crate::error::LsapError;
+use crate::lsap;
 
 #[derive(Debug)]
 pub enum DistanceMatrixError {

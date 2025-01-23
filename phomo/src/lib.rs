@@ -2,21 +2,22 @@
 #![doc =include_str!("../README.md")]
 mod color_match;
 mod distance_matrix;
-mod error;
 mod lsap;
 mod macros;
 mod master;
-pub mod metrics;
 mod mosaic;
+
+pub mod error;
+pub mod metrics;
 pub mod utils;
 
 #[cfg_attr(docsrs, doc(cfg(feature = "blueprint")))]
 #[cfg(feature = "blueprint")]
 mod blueprint;
-
 #[cfg_attr(docsrs, doc(cfg(feature = "blueprint")))]
 #[cfg(feature = "blueprint")]
 pub use blueprint::Blueprint;
+
 pub use color_match::ColorMatch;
 pub use distance_matrix::DistanceMatrix;
 pub use master::Master;

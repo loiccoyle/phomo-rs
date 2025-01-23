@@ -11,7 +11,7 @@ use log::info;
 use rayon::prelude::*;
 
 use crate::distance_matrix::DistanceMatrix;
-use crate::error::Error;
+use crate::error::MosaicError;
 use crate::macros;
 use crate::master::Master;
 use crate::metrics::{norm_l1, MetricFn};
@@ -40,16 +40,18 @@ impl Mosaic {
     /// - `master_file`: The path to the master image file.
     /// - `tile_dir`: The path to the directory containing the tile images.
     /// - `grid_size`: The grid size of the mosaic, the number of cells horizontally and vertically.
+    /// - `max_tile_occurrences`: The maximum number of times a tile can be repeated in the mosaic.
+    ///     Should be greater than 0.
     ///
     /// # Errors
-    /// - An error occurred while reading the master image.
-    /// - See [`Mosaic::from_images`].
+    /// - [MosaicError::ImageError]: An error occurred while reading the master image.
+    /// - [MosaicError::IoError]: An error occurred while reading the tile images.
     pub fn from_file_and_dir<P: AsRef<Path>, Q: AsRef<Path>>(
         master_file: P,
         tile_dir: Q,
         grid_size: (u32, u32),
         max_tile_occurrences: usize,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, MosaicError> {
         let master_img = image::open(master_file)?.to_rgb8();
         info!("Loading tiles");
         let tiles = utils::read_images_from_dir(tile_dir)?;
@@ -64,48 +66,65 @@ impl Mosaic {
     /// - `master_img`: The master image buffer.
     /// - `tiles`: The tile image buffers.
     /// - `grid_size`: The grid size of the mosaic, the number of cells horizontally and vertically.
+    /// - `max_tile_occurrences`: The maximum number of times a tile can be repeated in the mosaic.
+    ///     Should be greater than 0.
     ///
     /// # Errors
-    /// - An error occurred while reading the master image or the tile images.
-    /// - The tile images were not the same size as the grid cells.
-    /// - Not enough tile images were provided for the `grid_size`.
+    /// - [MosaicError::MasterError]: an error occurred while reading the master image or the tile images.
+    /// - [MosaicError::Custom]: max_tile_occurrences must be greater than 0.
+    /// - [MosaicError::TileSizeMismatch]: The tile images were not all the same size as the grid cells.
+    /// - [MosaicError::InsufficientTiles]: Not enough tile images were provided for the `grid_size`.
     pub fn from_images(
         master_img: RgbImage,
         tiles: Vec<RgbImage>,
         grid_size: (u32, u32),
         max_tile_occurrences: usize,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, MosaicError> {
         let master = Master::from_image(master_img, grid_size)?;
         Self::new(master, tiles, grid_size, max_tile_occurrences)
     }
 
+    /// Create a new [`Mosaic`] from the provided [`Master`] and tiles.
+    ///
+    /// # Arguments
+    /// - `master`: The master.
+    /// - `tiles`: The tile image buffers.
+    /// - `grid_size`: The grid size of the mosaic, the number of cells horizontally and vertically.
+    /// - `max_tile_occurrences`: The maximum number of times a tile can be repeated in the mosaic.
+    ///     Should be greater than 0.
+    ///
+    /// # Errors
+    /// - [MosaicError::Custom]: `max_tile_occurrences` must be greater than 0.
+    /// - [MosaicError::TileSizeMismatch]: The tile images were not all the same size as the grid cells.
+    /// - [MosaicError::InsufficientTiles]: Not enough tile images were provided for the `grid_size`.
     pub fn new(
         master: Master,
         tiles: Vec<RgbImage>,
         grid_size: (u32, u32),
         max_tile_occurrences: usize,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, MosaicError> {
         if max_tile_occurrences == 0 {
-            return Err("max_tile_occurrences must be greater than 0".into());
+            return Err(MosaicError::Custom(
+                "max_tile_occurrences must be greater than 0".to_string(),
+            ));
         }
 
-        if tiles.iter().any(|img| img.dimensions() != master.cell_size) {
-            return Err(format!(
-                "All tiles must be the same size as the grid cells: {}x{}",
-                master.cell_size.0, master.cell_size.1
-            )
-            .into());
+        if let Some(mismatched_tile) = tiles
+            .iter()
+            .find(|img| img.dimensions() != master.cell_size)
+        {
+            return Err(MosaicError::TileSizeMismatch {
+                expected: master.cell_size,
+                found: mismatched_tile.dimensions(),
+            });
         }
 
         if tiles.len() * max_tile_occurrences < grid_size.0 as usize * grid_size.1 as usize {
-            return Err(format!(
-                "Not enough tiles: {} for grid size: {}x{} and max tile occurrences: {}",
-                tiles.len(),
-                grid_size.0,
-                grid_size.1,
-                max_tile_occurrences
-            )
-            .into());
+            return Err(MosaicError::InsufficientTiles {
+                provided: tiles.len(),
+                required: grid_size.0 as usize * grid_size.1 as usize,
+                max_occurrences: max_tile_occurrences,
+            });
         }
 
         Ok(Self {
@@ -155,16 +174,33 @@ impl Mosaic {
         }
     }
 
-    /// Compute the tile to master cell assignments using the Kuhn-Munkres (Hungarian)
-    /// algorithm, and build the photo mosaic image.
-    pub fn build(&self, distance_matrix: DistanceMatrix) -> Result<RgbImage, Error> {
+    pub(crate) fn check_distance_matrix(
+        &self,
+        distance_matrix: &DistanceMatrix,
+    ) -> Result<(), MosaicError> {
         if distance_matrix.rows != self.master.cells.len()
             || distance_matrix.columns < self.tiles.len()
         {
-            return Err(
-                "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
-            );
+            return Err(MosaicError::DistanceMatrixSizeMismatch {
+                expected: (self.master.cells.len(), self.tiles.len()),
+                found: (distance_matrix.rows, distance_matrix.columns),
+            });
         }
+        Ok(())
+    }
+
+    /// Compute the tile to master cell assignments using the Kuhn-Munkres (Hungarian)
+    /// algorithm, and build the photo mosaic image.
+    ///
+    /// # Errors
+    /// - [MosaicError::DistanceMatrixSizeMismatch]: The size of the distance matrix does not match
+    ///     the number of master cells and the number of tiles.
+    /// - [MosaicError::LsapError]: The distance matrix is not solvable.
+    /// - [MosaicError::InvalidTileIndex]: An invalid tile index was encountered when building the
+    ///     image.
+    /// - [MosaicError::ImageError]: An error occurred while copying the tile to the mosaic image.
+    pub fn build(&self, distance_matrix: DistanceMatrix) -> Result<RgbImage, MosaicError> {
+        self.check_distance_matrix(&distance_matrix)?;
 
         let assignments = if self.max_tile_occurrences > 1 {
             distance_matrix.tile(self.max_tile_occurrences)
@@ -189,7 +225,10 @@ impl Mosaic {
         for (cell_idx, tile_idx) in assignments.into_iter().enumerate() {
             let x = (cell_idx as u32 % grid_width) * cell_width;
             let y = (cell_idx as u32 / grid_width) * cell_height;
-            let tile = self.tiles.get(tile_idx % self.tiles.len()).unwrap();
+            let tile = self
+                .tiles
+                .get(tile_idx % self.tiles.len())
+                .ok_or_else(|| MosaicError::InvalidTileIndex(tile_idx))?;
             mosaic_img.copy_from(tile, x, y)?;
         }
         Ok(mosaic_img)
@@ -198,14 +237,14 @@ impl Mosaic {
     /// Build the mosaic image using a greedy tile assignment algorithm. This leads to less
     /// accurate mosaics, but should be significantly faster, especially when the distance matrix
     /// is large.
-    pub fn build_greedy(&self, distance_matrix: DistanceMatrix) -> Result<RgbImage, Error> {
-        if distance_matrix.rows != self.master.cells.len()
-            || distance_matrix.columns < self.tiles.len()
-        {
-            return Err(
-            "The distance matrix rows must match the number of master cells, and the number of columns must be greater than or equal to the number of tiles.".into(),
-        );
-        }
+    ///
+    /// # Errors
+    /// - [MosaicError::DistanceMatrixSizeMismatch]: The size of the distance matrix does not match
+    ///     the number of master cells and the number of tiles.
+    /// - [MosaicError::InvalidTileIndex]: An invalid tile index was encountered.
+    /// - [MosaicError::ImageError]: An error occurred while copying the tile to the mosaic image.
+    pub fn build_greedy(&self, distance_matrix: DistanceMatrix) -> Result<RgbImage, MosaicError> {
+        self.check_distance_matrix(&distance_matrix)?;
 
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
@@ -247,7 +286,10 @@ impl Mosaic {
             let x = (cell_idx as u32 % grid_width) * cell_width;
             let y = (cell_idx as u32 / grid_width) * cell_height;
 
-            let tile = self.tiles.get(tile_idx).ok_or("Invalid tile index")?;
+            let tile = self
+                .tiles
+                .get(tile_idx)
+                .ok_or_else(|| MosaicError::InvalidTileIndex(tile_idx))?;
             mosaic_img.copy_from(tile, x, y)?;
 
             filled_master_cells.insert(cell_idx);
