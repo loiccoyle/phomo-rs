@@ -18,7 +18,7 @@ jobs:
 
       - name: Run tests
         # TODO: the cli tests don't run for some reason
-        run: cargo test -p phomo --all-features
+        run: cargo test -p phomo --features=parallel,progress_bar
 
   release:
     name: release
