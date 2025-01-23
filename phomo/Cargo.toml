@@ -32,3 +32,7 @@ criterion = "0.5.1"
 [[bench]]
 name = "main"
 harness = false
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
