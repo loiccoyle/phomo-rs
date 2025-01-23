@@ -1,4 +1,7 @@
 #[cfg(feature = "progress_bar")]
+extern crate indicatif;
+
+#[cfg(feature = "progress_bar")]
 pub(crate) fn progress_style() -> indicatif::ProgressStyle {
     indicatif::ProgressStyle::with_template("{msg}: {wide_bar} {elapsed_precise} {pos}/{len}")
         .unwrap()
@@ -21,7 +24,7 @@ macro_rules! maybe_progress_bar {
     ($iter:expr, $msg:expr, par) => {{
         #[cfg(feature = "progress_bar")]
         {
-            ParallelProgressIterator::progress($iter)
+            indicatif::ParallelProgressIterator::progress($iter)
                 .with_message($msg)
                 .with_style(crate::macros::progress_style())
         }
@@ -33,7 +36,7 @@ macro_rules! maybe_progress_bar {
     ($iter:expr, $msg:expr) => {{
         #[cfg(feature = "progress_bar")]
         {
-            ProgressIterator::progress($iter)
+            indicatif::ProgressIterator::progress($iter)
                 .with_message($msg)
                 .with_style(crate::macros::progress_style())
         }

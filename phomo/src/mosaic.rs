@@ -7,10 +7,6 @@ use std::time;
 extern crate image;
 extern crate pathfinding;
 use image::{GenericImage, RgbImage};
-#[cfg(all(feature = "progress_bar", feature = "parallel"))]
-use indicatif::ParallelProgressIterator;
-#[cfg(all(feature = "progress_bar", not(feature = "parallel")))]
-use indicatif::ProgressIterator;
 use log::info;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
