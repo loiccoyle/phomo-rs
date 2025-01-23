@@ -1,6 +1,4 @@
 #![doc =include_str!("../README.md")]
-#[cfg(feature = "blueprint")]
-mod blueprint;
 mod color_match;
 mod distance_matrix;
 mod error;
@@ -9,6 +7,9 @@ mod master;
 pub mod metrics;
 mod mosaic;
 pub mod utils;
+
+#[cfg(feature = "blueprint")]
+mod blueprint;
 
 #[cfg(feature = "blueprint")]
 pub use blueprint::Blueprint;
