@@ -72,7 +72,7 @@ impl<
     > DistanceMatrix<C>
 {
     /// Solve the assignment problem using the Kuhn-Munkres algorithm.
-    pub(crate) fn assignments(&self) -> Vec<usize> {
+    pub fn assignments(&self) -> Vec<usize> {
         let weights: Matrix<C> = self.clone().into();
         // the indice in assignments is the tile index
         // The value at the index is the index of the cell where is should be assigned
