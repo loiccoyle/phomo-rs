@@ -6,7 +6,7 @@ use util::{BufferInitDescriptor, DeviceExt};
 use wgpu::*;
 
 // use crate::error::Error;
-use crate::{DistanceMatrix, Mosaic};
+use crate::{macros::maybe_progress_bar, DistanceMatrix, Mosaic};
 
 pub enum GpuMetricShader {
     NormL1,
@@ -139,84 +139,128 @@ impl Mosaic {
             usage: BufferUsages::UNIFORM,
         });
 
-        let result_size = (self.master.cells.len() * self.tiles.len()) as u64;
-        let result_buffer = ctx.device.create_buffer(&BufferDescriptor {
-            label: Some("Result Buffer"),
-            size: result_size * std::mem::size_of::<f32>() as u64,
-            usage: BufferUsages::STORAGE | BufferUsages::COPY_SRC,
-            mapped_at_creation: false,
-        });
+        let total_results = self.master.cells.len() * self.tiles.len();
+        let max_buffer_size = ctx.device.limits().max_storage_buffer_binding_size as usize;
+        let max_results_per_chunk = max_buffer_size / std::mem::size_of::<f32>();
+        let num_chunks = total_results.div_ceil(max_results_per_chunk);
+        println!("num_chunks: {}", num_chunks);
 
-        let bind_group_layout = ctx.compute_pipeline.get_bind_group_layout(0);
-        let bind_group = ctx.device.create_bind_group(&BindGroupDescriptor {
-            label: Some("Distance Matrix Bind Group"),
-            layout: &bind_group_layout,
-            entries: &[
-                BindGroupEntry {
-                    binding: 0,
-                    resource: cell_buffer.as_entire_binding(),
-                },
-                BindGroupEntry {
-                    binding: 1,
-                    resource: tile_buffer.as_entire_binding(),
-                },
-                BindGroupEntry {
-                    binding: 2,
-                    resource: result_buffer.as_entire_binding(),
-                },
-                BindGroupEntry {
-                    binding: 3,
-                    resource: dimensions_buffer.as_entire_binding(),
-                },
-            ],
-        });
+        let mut results = Vec::with_capacity(total_results);
 
-        let mut encoder = ctx
-            .device
-            .create_command_encoder(&CommandEncoderDescriptor {
-                label: Some("Distance Matrix Encoder"),
-            });
+        let workgroup_size = 256;
+        let max_workgroups = 65535;
+        let max_items_per_dispatch = max_workgroups * workgroup_size;
 
-        {
-            let mut compute_pass = encoder.begin_compute_pass(&ComputePassDescriptor {
-                label: Some("Distance Matrix Compute Pass"),
-                timestamp_writes: Default::default(),
-            });
-            compute_pass.set_pipeline(&ctx.compute_pipeline);
-            compute_pass.set_bind_group(0, &bind_group, &[]);
+        for chunk_idx in maybe_progress_bar!(0..num_chunks, "Computing distance matrix (GPU)") {
+            let start_idx = chunk_idx * max_results_per_chunk;
+            let end_idx = usize::min(start_idx + max_results_per_chunk, total_results);
+            let chunk_size = end_idx - start_idx;
 
-            let workgroup_size = 256;
-            let num_workgroups = ((self.master.cells.len() * self.tiles.len()) as f32
-                / workgroup_size as f32)
-                .ceil() as u32;
-            compute_pass.dispatch_workgroups(num_workgroups, 1, 1);
+            let num_dispatches = (chunk_size as f32 / max_items_per_dispatch as f32).ceil() as u32;
+
+            for dispatch_idx in 0..num_dispatches {
+                let dispatch_start = dispatch_idx as usize * max_items_per_dispatch as usize;
+                let dispatch_end =
+                    usize::min(dispatch_start + max_items_per_dispatch as usize, chunk_size);
+                let dispatch_size = dispatch_end - dispatch_start;
+                let offset = start_idx + dispatch_start;
+
+                // Create the offset buffer
+                let offset_buffer = ctx.device.create_buffer_init(&BufferInitDescriptor {
+                    label: Some("Offset Buffer"),
+                    contents: bytemuck::bytes_of(&(offset as u32)),
+                    usage: BufferUsages::UNIFORM,
+                });
+
+                let result_buffer = ctx.device.create_buffer(&BufferDescriptor {
+                    label: Some("Result Buffer"),
+                    size: (dispatch_size * std::mem::size_of::<f32>()) as u64,
+                    usage: BufferUsages::STORAGE | BufferUsages::COPY_SRC,
+                    mapped_at_creation: false,
+                });
+
+                let bind_group_layout = ctx.compute_pipeline.get_bind_group_layout(0);
+                let bind_group = ctx.device.create_bind_group(&BindGroupDescriptor {
+                    label: Some("Distance Matrix Bind Group"),
+                    layout: &bind_group_layout,
+                    entries: &[
+                        BindGroupEntry {
+                            binding: 0,
+                            resource: cell_buffer.as_entire_binding(),
+                        },
+                        BindGroupEntry {
+                            binding: 1,
+                            resource: tile_buffer.as_entire_binding(),
+                        },
+                        BindGroupEntry {
+                            binding: 2,
+                            resource: result_buffer.as_entire_binding(),
+                        },
+                        BindGroupEntry {
+                            binding: 3,
+                            resource: dimensions_buffer.as_entire_binding(),
+                        },
+                        BindGroupEntry {
+                            binding: 4, // Bind the offset buffer
+                            resource: offset_buffer.as_entire_binding(),
+                        },
+                    ],
+                });
+
+                let mut encoder = ctx
+                    .device
+                    .create_command_encoder(&CommandEncoderDescriptor {
+                        label: Some("Distance Matrix Encoder"),
+                    });
+
+                {
+                    let mut compute_pass = encoder.begin_compute_pass(&ComputePassDescriptor {
+                        label: Some("Distance Matrix Compute Pass"),
+                        timestamp_writes: Default::default(),
+                    });
+                    compute_pass.set_pipeline(&ctx.compute_pipeline);
+                    compute_pass.set_bind_group(0, &bind_group, &[]);
+
+                    let num_workgroups =
+                        (dispatch_size as f32 / workgroup_size as f32).ceil() as u32;
+                    compute_pass.dispatch_workgroups(num_workgroups, 1, 1);
+                }
+
+                let staging_buffer = ctx.device.create_buffer(&BufferDescriptor {
+                    label: Some("Staging Buffer"),
+                    size: (dispatch_size * std::mem::size_of::<f32>()) as u64,
+                    usage: BufferUsages::MAP_READ | BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+
+                encoder.copy_buffer_to_buffer(
+                    &result_buffer,
+                    0,
+                    &staging_buffer,
+                    0,
+                    staging_buffer.size(),
+                );
+                ctx.queue.submit(Some(encoder.finish()));
+
+                let slice = staging_buffer.slice(..);
+                slice.map_async(MapMode::Read, move |_| {});
+                ctx.device.poll(Maintain::Wait);
+
+                let data = slice.get_mapped_range();
+                let chunk_result: Vec<i64> = bytemuck::cast_slice(&data)
+                    .iter()
+                    .map(|&x: &f32| x as i64)
+                    .collect();
+                results.extend(chunk_result);
+                drop(data);
+                staging_buffer.unmap();
+            }
         }
-
-        let staging_buffer = ctx.device.create_buffer(&BufferDescriptor {
-            label: Some("Staging Buffer"),
-            size: result_size * std::mem::size_of::<f32>() as u64,
-            usage: BufferUsages::MAP_READ | BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        encoder.copy_buffer_to_buffer(&result_buffer, 0, &staging_buffer, 0, staging_buffer.size());
-        ctx.queue.submit(Some(encoder.finish()));
-
-        let slice = staging_buffer.slice(..);
-        slice.map_async(MapMode::Read, move |_| {});
-        ctx.device.poll(Maintain::Wait);
-
-        let data = slice.get_mapped_range();
-        let result: Vec<i64> = bytemuck::cast_slice(&data)
-            .iter()
-            .map(|&x: &f32| x as i64)
-            .collect();
-        drop(data);
-        staging_buffer.unmap();
 
         Ok(DistanceMatrix {
             rows: self.master.cells.len(),
             columns: self.tiles.len(),
-            data: result,
+            data: results,
         })
     }
 

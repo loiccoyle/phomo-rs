@@ -213,7 +213,7 @@ impl Mosaic {
         let (cell_width, cell_height) = self.master.cell_size;
         let mut mosaic_img = RgbImage::new(self.master.img.width(), self.master.img.height());
         info!(
-            "Building mosaic, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
+            "Building mosaic greedily, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
             mosaic_img.width(),
             mosaic_img.height(),
             cell_width,
@@ -241,7 +241,6 @@ impl Mosaic {
                 // stop early if all the master cells have been filled
                 break;
             }
-
             if filled_master_cells.contains(&cell_idx) || placed_tiles.contains(&tile_idx) {
                 continue;
             }
