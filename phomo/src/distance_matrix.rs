@@ -1,33 +1,6 @@
-use std::fmt;
-
-use crate::error::LsapError;
-use crate::lsap;
-
-#[derive(Debug)]
-pub enum DistanceMatrixError {
-    WrongLength,
-    EmptyRow,
-    EmptyCol,
-}
-
-impl fmt::Display for DistanceMatrixError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            DistanceMatrixError::WrongLength => write!(
-                f,
-                "The length of the data vector does not match the specified dimensions"
-            ),
-            DistanceMatrixError::EmptyCol => {
-                write!(f, "The number of columns must be greater than zero")
-            }
-            DistanceMatrixError::EmptyRow => {
-                write!(f, "The number of rows must be greater than zero")
-            }
-        }
-    }
-}
-
-impl std::error::Error for DistanceMatrixError {}
+use crate::error::DistanceMatrixError;
+use crate::error::PhomoError;
+use crate::solvers::Solve;
 
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub struct DistanceMatrix {
@@ -53,15 +26,15 @@ impl DistanceMatrix {
 
 /// Helper struct to handle the distance matrix and allow for repeated tiles.
 impl DistanceMatrix {
-    pub fn new(rows: usize, columns: usize, data: Vec<i64>) -> Result<Self, DistanceMatrixError> {
+    pub fn new(rows: usize, columns: usize, data: Vec<i64>) -> Result<Self, PhomoError> {
         if rows * columns != data.len() {
-            return Err(DistanceMatrixError::WrongLength);
+            return Err(DistanceMatrixError::WrongLength.into());
         }
         if rows == 0 {
-            return Err(DistanceMatrixError::EmptyRow);
+            return Err(DistanceMatrixError::EmptyRow.into());
         }
         if columns == 0 {
-            return Err(DistanceMatrixError::EmptyCol);
+            return Err(DistanceMatrixError::EmptyCol.into());
         }
         Ok(Self {
             rows,
@@ -72,9 +45,16 @@ impl DistanceMatrix {
 }
 
 impl DistanceMatrix {
-    /// Solve the linear sum assignment problem using the Kuhn-Munkres algorithm.
-    pub fn assignments(&self) -> Result<Vec<usize>, LsapError> {
-        lsap::solve(self)
+    /// Solve the linear sum assignment problem using the provided `solver`.
+    ///
+    /// # Arguments
+    /// - `solver`: The solver to use to solve the assignment problem. See [`phomo::solvers`](crate::solvers)
+    ///     for structs which implement this trait.
+    ///
+    /// # Errors
+    /// - [`PhomoError::SolverError`]: An error occurred while solving the assignment problem.
+    pub fn assignments<S: Solve>(&self, solver: &mut S) -> Result<Vec<usize>, PhomoError> {
+        solver.solve(self)
     }
 }
 

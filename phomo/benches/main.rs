@@ -1,6 +1,10 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use phomo::read_images_from_dir_resized;
+use phomo::Greedy;
+use phomo::Hungarian;
 use phomo::Mosaic;
+use phomo::Solve;
+use phomo::SolverConfig;
 use phomo::{norm_l1, norm_l2};
 use std::path::PathBuf;
 use std::time::Duration;
@@ -35,7 +39,7 @@ fn create_mosaic() -> Mosaic {
             .unwrap();
     let master_img = image::open(master_file).unwrap().to_rgb8();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (8, 8), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (8, 8));
     assert!(result.is_ok());
     result.unwrap()
 }
@@ -65,15 +69,27 @@ fn bench_distance_matrix(c: &mut Criterion) {
     });
 }
 
-fn bench_assignments(c: &mut Criterion) {
+fn bench_solvers(c: &mut Criterion) {
     let mosaic = create_mosaic();
     let distance_matrix = mosaic.distance_matrix();
-    c.bench_function("assignments", |b| {
+
+    let mut group = c.benchmark_group("solvers");
+    group.bench_function("hungarian", |b| {
         b.iter(|| {
-            let result = black_box(distance_matrix.assignments());
-            assert!(result.is_ok());
+            black_box(
+                Hungarian::new(
+                    distance_matrix.rows,
+                    distance_matrix.columns,
+                    SolverConfig::default(),
+                )
+                .solve(&distance_matrix),
+            )
         });
     });
+    group.bench_function("greedy", |b| {
+        b.iter(|| black_box(Greedy::new(SolverConfig::default()).solve(&distance_matrix)));
+    });
+    group.finish();
 }
 
 fn bench_build_mosaic(c: &mut Criterion) {
@@ -81,18 +97,19 @@ fn bench_build_mosaic(c: &mut Criterion) {
     let distance_matrix = mosaic.distance_matrix();
     c.bench_function("build_mosaic", |b| {
         b.iter(|| {
-            let result = black_box(mosaic.build(distance_matrix.clone()));
+            let result = black_box(mosaic.build(distance_matrix.clone(), SolverConfig::default()));
             assert!(result.is_ok());
         });
     });
 }
 
-fn bench_build_mosaic_greedy(c: &mut Criterion) {
+fn bench_render(c: &mut Criterion) {
     let mosaic = create_mosaic();
     let distance_matrix = mosaic.distance_matrix();
-    c.bench_function("build_mosaic_greedy", |b| {
+    let assignments = distance_matrix.assignments(&mut Greedy::default()).unwrap();
+    c.bench_function("render", |b| {
         b.iter(|| {
-            let result = black_box(mosaic.build_greedy(distance_matrix.clone()));
+            let result = black_box(mosaic.render(assignments.clone()));
             assert!(result.is_ok());
         });
     });
@@ -101,6 +118,6 @@ fn bench_build_mosaic_greedy(c: &mut Criterion) {
 criterion_group! {
     name = benches;
     config = Criterion::default().sample_size(100).measurement_time(Duration::from_secs(10));
-    targets = bench_distance_matrix, bench_assignments, bench_build_mosaic, bench_metrics, bench_build_mosaic_greedy
+    targets = bench_distance_matrix, bench_solvers, bench_build_mosaic, bench_metrics, bench_render
 }
 criterion_main!(benches);

@@ -1,7 +1,9 @@
 use base64::{engine::general_purpose, Engine as _};
 use image::RgbImage;
-use phomo::DistanceMatrix;
-use phomo::{metrics, utils, Blueprint, ColorMatch, Master as MasterRs, Mosaic as MosaicRs};
+use phomo::{
+    metrics, utils, Blueprint, ColorMatch, Greedy, Master as MasterRs, Mosaic as MosaicRs,
+};
+use phomo::{DistanceMatrix, SolverConfig};
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 extern crate wasm_logger;
@@ -40,6 +42,7 @@ pub fn overlay_grid(
 #[wasm_bindgen]
 pub struct Mosaic {
     inner: MosaicRs,
+    solver_config: SolverConfig,
 }
 
 #[wasm_bindgen]
@@ -101,11 +104,15 @@ impl Mosaic {
             master_img.clone(),
             tile_imgs.clone(),
             (grid_width, grid_height),
-            max_tile_occurrences,
         )
         .map_err(|err| JsValue::from(err.to_string()))?;
 
-        Ok(Mosaic { inner: mosaic })
+        Ok(Mosaic {
+            inner: mosaic,
+            solver_config: SolverConfig {
+                max_tile_occurrences,
+            },
+        })
     }
 
     // Method to equalize the master and tile images
@@ -147,7 +154,7 @@ impl Mosaic {
 
         let mosaic_img = self
             .inner
-            .build(d_matrix)
+            .build(d_matrix, self.solver_config.clone())
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         to_base64(mosaic_img)
@@ -159,7 +166,7 @@ impl Mosaic {
 
         let mosaic_img = self
             .inner
-            .build_greedy(d_matrix)
+            .build_with_solver(d_matrix, Greedy::new(self.solver_config.clone()))
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         to_base64(mosaic_img)
@@ -186,7 +193,7 @@ impl Mosaic {
 
         let mosaic = self
             .inner
-            .build_blueprint(d_matrix)
+            .build_blueprint(d_matrix, self.solver_config.clone())
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         Ok(serde_wasm_bindgen::to_value(&mosaic)?)
@@ -198,7 +205,7 @@ impl Mosaic {
 
         let mosaic = self
             .inner
-            .build_blueprint_greedy(d_matrix)
+            .build_blueprint_with_solver(d_matrix, Greedy::new(self.solver_config.clone()))
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         Ok(serde_wasm_bindgen::to_value(&mosaic)?)

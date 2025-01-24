@@ -1,12 +1,16 @@
-use crate::error::LsapError;
+use crate::error::PhomoError;
 use crate::macros::maybe_progress_bar;
+use crate::solvers::error::HungarianError;
+use crate::solvers::error::SolverError;
+use crate::solvers::Solve;
+use crate::solvers::SolverConfig;
 use crate::DistanceMatrix;
 
 const UNASSIGNED: usize = usize::MAX;
 
-/// Represents the solver for the Linear Sum Assignment Problem (LSAP).
-struct LsapSolver<'a> {
-    distance_matrix: &'a DistanceMatrix,
+#[derive(Debug)]
+pub struct Hungarian {
+    config: SolverConfig,
     dual_row_values: Vec<i64>,
     dual_column_values: Vec<i64>,
     shortest_path_costs: Vec<i64>,
@@ -18,14 +22,12 @@ struct LsapSolver<'a> {
     remaining_columns: Vec<usize>,
 }
 
-impl<'a> LsapSolver<'a> {
+impl Hungarian {
     /// Creates a new instance of the solver with the given distance matrix.
-    fn new(distance_matrix: &'a DistanceMatrix) -> Self {
-        let num_rows = distance_matrix.rows;
-        let num_columns = distance_matrix.columns;
-
+    pub fn new(num_rows: usize, num_columns: usize, config: SolverConfig) -> Self {
+        let num_columns = num_columns * config.max_tile_occurrences;
         Self {
-            distance_matrix,
+            config,
             dual_row_values: vec![0; num_rows],
             dual_column_values: vec![0; num_columns],
             shortest_path_costs: vec![i64::MAX; num_columns],
@@ -37,25 +39,15 @@ impl<'a> LsapSolver<'a> {
             remaining_columns: (0..num_columns).collect(),
         }
     }
-
-    /// Solves the LSAP and returns the optimal assignment of columns to rows.
-    fn solve(&mut self) -> Result<Vec<usize>, LsapError> {
-        for current_row in
-            maybe_progress_bar!(0..self.distance_matrix.rows, "Computing assignments")
-        {
-            let (sink_column, min_value) = self.find_augmenting_path(current_row)?;
-            self.update_dual_variables(current_row, min_value);
-            self.augment_solution(current_row, sink_column);
-        }
-
-        Ok(self.column_assigned_to_row.clone())
-    }
-
     /// Finds an augmenting path starting from the given row.
     /// Returns the sink column and the minimum value found.
-    fn find_augmenting_path(&mut self, mut current_row: usize) -> Result<(usize, i64), LsapError> {
-        let nc = self.distance_matrix.columns;
-        let cost = &self.distance_matrix.data;
+    fn find_augmenting_path(
+        &mut self,
+        mut current_row: usize,
+        distance_matrix: &DistanceMatrix,
+    ) -> Result<(usize, i64), SolverError> {
+        let nc = distance_matrix.columns;
+        let cost = &distance_matrix.data;
         let mut min_val = 0;
 
         let mut num_remaining = nc;
@@ -104,7 +96,7 @@ impl<'a> LsapSolver<'a> {
                 });
 
             if lowest == i64::MAX {
-                return Err(LsapError::Infeasible);
+                return Err(HungarianError::Infeasible.into());
             }
             min_val = lowest;
 
@@ -160,9 +152,32 @@ impl<'a> LsapSolver<'a> {
     }
 }
 
-/// Solves the Linear Sum Assignment Problem (LSAP) for the given distance matrix.
-/// Returns the optimal assignment of columns to rows.
-pub fn solve(distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, LsapError> {
-    let mut solver = LsapSolver::new(distance_matrix);
-    solver.solve()
+impl Solve for Hungarian {
+    fn configure(&mut self, config: SolverConfig) {
+        self.config = config;
+    }
+
+    /// Solves the LSAP and returns the optimal assignment of columns to rows.
+    fn solve(&mut self, distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, PhomoError> {
+        let d_matrix = if self.config.max_tile_occurrences > 1 {
+            &distance_matrix.tile(self.config.max_tile_occurrences)
+        } else {
+            distance_matrix
+        };
+        if d_matrix.columns < d_matrix.rows {
+            return Err(SolverError::TooFewColumns {
+                rows: d_matrix.rows,
+                columns: d_matrix.columns,
+            }
+            .into());
+        }
+
+        for current_row in maybe_progress_bar!(0..d_matrix.rows, "Computing assignments") {
+            let (sink_column, min_value) = self.find_augmenting_path(current_row, d_matrix)?;
+            self.update_dual_variables(current_row, min_value);
+            self.augment_solution(current_row, sink_column);
+        }
+
+        Ok(self.column_assigned_to_row.clone())
+    }
 }

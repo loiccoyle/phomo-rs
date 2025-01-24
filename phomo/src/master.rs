@@ -4,7 +4,7 @@ extern crate image;
 use image::{GenericImage, GenericImageView, Rgb, RgbImage};
 use log::{debug, info};
 
-use crate::error::MasterError;
+use crate::error::{MasterError, PhomoError};
 use crate::utils;
 
 #[derive(Debug, Clone)]
@@ -28,7 +28,10 @@ impl Master {
     /// # Arguments
     /// - `img`: The [`RgbImage`] buffer to construct the [`Master`] from.
     /// - `grid_size`: The grid size of the [`Master`], the number of cells horizontally and vertically.
-    pub fn from_image(img: RgbImage, grid_size: (u32, u32)) -> Result<Self, MasterError> {
+    ///
+    /// # Errors
+    /// - [`PhomoError::MasterError`]: An error occurred while constructing the [`Master`].
+    pub fn from_image(img: RgbImage, grid_size: (u32, u32)) -> Result<Self, PhomoError> {
         let (img_width, img_height) = img.dimensions();
         // the number of cells in each dimension of the grid
         let (grid_width, grid_height) = grid_size;
@@ -61,7 +64,10 @@ impl Master {
     /// # Arguments
     /// - `file`: The path to the image file to construct the [`Master`] from.
     /// - `grid_size`: The grid size of the [`Master`], the number of cells horizontally and vertically.
-    pub fn from_file<P: AsRef<Path>>(file: P, grid_size: (u32, u32)) -> Result<Self, MasterError> {
+    ///
+    /// # Errors
+    /// - [`PhomoError::MasterError`]: An error occurred while constructing the [`Master`].
+    pub fn from_file<P: AsRef<Path>>(file: P, grid_size: (u32, u32)) -> Result<Self, PhomoError> {
         let img = image::open(file)?.to_rgb8();
         Self::from_image(img, grid_size)
     }
@@ -69,7 +75,7 @@ impl Master {
     fn construct_regions(
         img: &RgbImage,
         grid_size: (u32, u32),
-    ) -> Result<Vec<RgbImage>, MasterError> {
+    ) -> Result<Vec<RgbImage>, PhomoError> {
         let (grid_width, grid_height) = grid_size;
         let (cell_width, cell_height) = (img.width() / grid_width, img.height() / grid_height);
         if img.width() % grid_width != 0 || img.height() % grid_height != 0 {
@@ -77,7 +83,8 @@ impl Master {
                 grid_size,
                 master_dimensions: (img.width(), img.height()),
                 cell_size: (cell_width, cell_height),
-            });
+            }
+            .into());
         }
 
         let cells = (0..grid_height)
@@ -92,7 +99,10 @@ impl Master {
     }
 
     /// Overlay the grid onto the master image.
-    pub fn overlay_grid(&self) -> Result<RgbImage, MasterError> {
+    ///
+    /// # Errors
+    /// - [`PhomoError::ImageError`]: An error occurred while creating the grid overlay.
+    pub fn overlay_grid(&self) -> Result<RgbImage, PhomoError> {
         let (grid_width, grid_height) = self.grid_size;
         let mut grid_img = RgbImage::from_pixel(
             self.img.width() + grid_width - 1,

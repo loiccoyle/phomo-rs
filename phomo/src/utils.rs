@@ -4,6 +4,8 @@ extern crate image;
 use image::{GenericImageView, Pixel, RgbImage, SubImage};
 use log::warn;
 
+use crate::error::PhomoError;
+
 /// Helper function to crop am image to a width and height centered on the image.
 ///
 /// # Arguments
@@ -78,7 +80,7 @@ where
 /// # Errors
 /// - An error occurred while reading the directory.
 /// - Failed to open the image.
-pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, std::io::Error> {
+pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, PhomoError> {
     Ok(tile_dir
         .as_ref()
         .read_dir()?
@@ -109,7 +111,7 @@ pub fn read_images_from_dir_cropped<P: AsRef<Path>>(
     tile_dir: P,
     width: u32,
     height: u32,
-) -> Result<Vec<RgbImage>, std::io::Error> {
+) -> Result<Vec<RgbImage>, PhomoError> {
     Ok(read_images_from_dir(tile_dir)?
         .iter()
         .map(|img| crop_cover(img, width, height, image::imageops::FilterType::Nearest))
@@ -128,7 +130,7 @@ pub fn read_images_from_dir_resized<P: AsRef<Path>>(
     width: u32,
     height: u32,
     filter: image::imageops::FilterType,
-) -> Result<Vec<RgbImage>, std::io::Error> {
+) -> Result<Vec<RgbImage>, PhomoError> {
     Ok(read_images_from_dir(tile_dir)?
         .iter()
         .map(|img| image::imageops::resize(img, width, height, filter))

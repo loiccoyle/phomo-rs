@@ -1,11 +1,10 @@
-use std::cmp::Reverse;
-use std::collections::{BinaryHeap, HashSet};
-
 use image::{GenericImage, RgbImage};
 use log::info;
 use serde::{Deserialize, Serialize};
 
-use crate::error::MosaicError;
+use crate::error::{MosaicError, PhomoError};
+use crate::solvers::hungarian::Hungarian;
+use crate::solvers::{Solve, SolverConfig};
 use crate::{DistanceMatrix, Mosaic};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
@@ -29,13 +28,13 @@ impl Blueprint {
     /// Render the [Blueprint].
     ///
     /// Errors:
-    /// - [MosaicError::InvalidTileIndex]: An invalid tile index was encountered when building the
-    ///     image.
+    /// - [`PhomoError::MosaicError`]: An error occurred while rendering the mosaic.
+    /// - [`PhomoError::ImageError`]: An error occurred while copying the tiles to the mosaic image.
     pub fn render(
         &self,
         master_img: &RgbImage,
         tiles: &[RgbImage],
-    ) -> Result<RgbImage, MosaicError> {
+    ) -> Result<RgbImage, PhomoError> {
         let mut mosaic_img = RgbImage::new(master_img.width(), master_img.height());
         info!(
             "Building mosaic, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
@@ -50,7 +49,7 @@ impl Blueprint {
         for cell in self.cells.iter() {
             let tile = tiles
                 .get(cell.tile_index)
-                .ok_or_else(|| MosaicError::InvalidTileIndex(cell.tile_index))?;
+                .ok_or(MosaicError::InvalidTileIndex(cell.tile_index))?;
             mosaic_img.copy_from(tile, cell.x, cell.y)?;
         }
         Ok(mosaic_img)
@@ -62,21 +61,36 @@ impl Mosaic {
     /// image.
     ///
     /// # Errors
-    /// - [MosaicError::DistanceMatrixSizeMismatch]: The size of the distance matrix does not match
-    ///     the number of master cells and the number of tiles.
-    /// - [MosaicError::LsapError]: The distance matrix is not solvable.
+    /// - [`PhomoError::MosaicError`]: An error occurred while building the mosaic blueprint.
+    /// - [`PhomoError::SolverError`]: An error occurred while solving the tile to cell assignments.
     pub fn build_blueprint(
         &self,
         distance_matrix: DistanceMatrix,
-    ) -> Result<Blueprint, MosaicError> {
+        config: SolverConfig,
+    ) -> Result<Blueprint, PhomoError> {
+        let solver = Hungarian::new(distance_matrix.rows, distance_matrix.columns, config);
+        self.build_blueprint_with_solver(distance_matrix, solver)
+    }
+
+    /// Compute the tile to master cell assignments using the provided solver algorithm, and
+    /// construct a [`Blueprint`] of the mosaic image.
+    ///
+    /// # Arguments:
+    /// - `distance_matrix`: The distance matrix between the master image and the tiles.
+    /// - `solver`: The solver algorithm to use for the assignment problem. See [`phomo::solvers`](crate::solvers) for structs
+    ///     which implement this trait.
+    ///
+    /// # Errors
+    /// - [`PhomoError::MosaicError`]: An error occurred while building the mosaic.
+    /// - [`PhomoError::SolverError`]: An error occurred while solving the tile to cell assignments.
+    pub fn build_blueprint_with_solver<S: Solve>(
+        &self,
+        distance_matrix: DistanceMatrix,
+        mut solver: S,
+    ) -> Result<Blueprint, PhomoError> {
         self.check_distance_matrix(&distance_matrix)?;
 
-        let assignments = if self.max_tile_occurrences > 1 {
-            distance_matrix.tile(self.max_tile_occurrences)
-        } else {
-            distance_matrix
-        }
-        .assignments()?;
+        let assignments = distance_matrix.assignments(&mut solver)?;
         let (grid_width, grid_height) = self.grid_size;
         let (cell_width, cell_height) = self.master.cell_size;
         info!(
@@ -102,81 +116,6 @@ impl Mosaic {
                 }
             })
             .collect::<Vec<_>>();
-
-        Ok(Blueprint {
-            cells,
-            cell_width,
-            cell_height,
-            grid_width,
-            grid_height,
-        })
-    }
-
-    /// Compute the tile to master cell assignments using a greedy algorithm, and construct a [`Blueprint`] of the mosaic
-    /// image.
-    ///
-    /// # Errors
-    /// - [MosaicError::DistanceMatrixSizeMismatch]: The size of the distance matrix does not match
-    ///     the number of master cells and the number of tiles.
-    pub fn build_blueprint_greedy(
-        &self,
-        distance_matrix: DistanceMatrix,
-    ) -> Result<Blueprint, MosaicError> {
-        self.check_distance_matrix(&distance_matrix)?;
-
-        let (grid_width, grid_height) = self.grid_size;
-        let (cell_width, cell_height) = self.master.cell_size;
-        info!(
-            "Building mosaic blueprint greedily, size: {}x{}, cell size: {}x{}, grid size: {}x{}",
-            cell_width * grid_width,
-            cell_height * grid_height,
-            cell_width,
-            cell_height,
-            grid_width,
-            grid_height
-        );
-
-        let mut filled_master_cells = HashSet::with_capacity(self.master.cells.len());
-        let mut placed_tiles = HashSet::with_capacity(self.tiles.len());
-        let mut n_appearances = vec![0; self.tiles.len()];
-        let mut heap = BinaryHeap::with_capacity(distance_matrix.rows * distance_matrix.columns);
-
-        // Populate the heap with (distance, row_idx, col_idx)
-        for row_idx in 0..distance_matrix.rows {
-            for col_idx in 0..distance_matrix.columns {
-                let distance = distance_matrix.data[row_idx * distance_matrix.columns + col_idx];
-                heap.push(Reverse((distance, row_idx, col_idx)));
-            }
-        }
-
-        let mut cells = Vec::with_capacity(self.master.cells.len());
-
-        // Process elements in ascending order of distance
-        while let Some(Reverse((_, cell_idx, tile_idx))) = heap.pop() {
-            if filled_master_cells.len() == self.master.cells.len() {
-                // stop early if all the master cells have been filled
-                break;
-            }
-
-            if filled_master_cells.contains(&cell_idx) || placed_tiles.contains(&tile_idx) {
-                continue;
-            }
-
-            let x = (cell_idx as u32 % grid_width) * cell_width;
-            let y = (cell_idx as u32 / grid_width) * cell_height;
-            cells.push(Cell {
-                tile_index: tile_idx,
-                x,
-                y,
-            });
-
-            filled_master_cells.insert(cell_idx);
-            n_appearances[tile_idx] += 1;
-
-            if n_appearances[tile_idx] == self.max_tile_occurrences {
-                placed_tiles.insert(tile_idx);
-            }
-        }
 
         Ok(Blueprint {
             cells,

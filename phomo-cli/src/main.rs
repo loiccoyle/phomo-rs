@@ -5,7 +5,7 @@ use clap::Parser;
 use log::info;
 use phomo::{
     read_images_from_dir, read_images_from_dir_cropped, read_images_from_dir_resized, ColorMatch,
-    Mosaic,
+    Greedy, Hungarian, Mosaic, SolverConfig,
 };
 
 mod cli;
@@ -98,13 +98,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     // Create the mosaic
-    let mosaic = Mosaic::from_images(
-        master_img,
-        tile_imgs,
-        (grid_width, grid_height),
-        args.n_appearances,
-    )
-    .map_err(|e| format!("Failed to create mosaic: {}", e))?;
+    let mosaic = Mosaic::from_images(master_img, tile_imgs, (grid_width, grid_height))
+        .map_err(|e| format!("Failed to create mosaic: {}", e))?;
 
     let metric = match args.metric {
         cli::Metric::NormL1 => phomo::metrics::norm_l1,
@@ -113,11 +108,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Compute the distance matrix
     let d_matrix = mosaic.distance_matrix_with_metric(metric);
 
+    let solver_config = SolverConfig {
+        max_tile_occurrences: args.n_appearances,
+    };
     // Build the mosaic image
     let mosaic_img = if args.greedy {
-        mosaic.build_greedy(d_matrix)
+        let solver = Greedy::new(solver_config);
+        mosaic.build_with_solver(d_matrix, solver)
     } else {
-        mosaic.build(d_matrix)
+        let solver = Hungarian::new(d_matrix.rows, d_matrix.columns, solver_config);
+        mosaic.build_with_solver(d_matrix, solver)
     }
     .map_err(|e| format!("Failed to build mosaic image: {}", e))?;
 

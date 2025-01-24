@@ -9,7 +9,9 @@ use phomo::read_images_from_dir_resized;
 #[cfg(feature = "blueprint")]
 use phomo::Blueprint;
 use phomo::ColorMatch;
+use phomo::Greedy;
 use phomo::Mosaic;
+use phomo::SolverConfig;
 
 fn test_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -55,7 +57,7 @@ fn setup_imgs() -> (Vec<RgbImage>, RgbImage) {
 fn build_mosaic() {
     let (tile_imgs, master_img) = setup_imgs();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -65,7 +67,14 @@ fn build_mosaic() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let mosaic_img = mosaic.build(d_matrix).unwrap();
+    let mosaic_img = mosaic
+        .build(
+            d_matrix,
+            SolverConfig {
+                max_tile_occurrences: 1,
+            },
+        )
+        .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16.png"));
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
@@ -75,7 +84,7 @@ fn build_mosaic() {
 fn build_mosaic_greedy() {
     let (tile_imgs, master_img) = setup_imgs();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -85,7 +94,14 @@ fn build_mosaic_greedy() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let mosaic_img = mosaic.build_greedy(d_matrix).unwrap();
+    let mosaic_img = mosaic
+        .build_with_solver(
+            d_matrix,
+            Greedy::new(SolverConfig {
+                max_tile_occurrences: 1,
+            }),
+        )
+        .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_greedy.png"));
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
@@ -95,7 +111,7 @@ fn build_mosaic_greedy() {
 fn build_mosaic_repeats() {
     let (tile_imgs, master_img) = setup_imgs();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 2);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -105,7 +121,14 @@ fn build_mosaic_repeats() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let mosaic_img = mosaic.build(d_matrix).unwrap();
+    let mosaic_img = mosaic
+        .build(
+            d_matrix,
+            SolverConfig {
+                max_tile_occurrences: 2,
+            },
+        )
+        .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_repeats.png"));
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
@@ -115,7 +138,7 @@ fn build_mosaic_repeats() {
 fn build_mosaic_greedy_repeats() {
     let (tile_imgs, master_img) = setup_imgs();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 2);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -125,7 +148,14 @@ fn build_mosaic_greedy_repeats() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let mosaic_img = mosaic.build_greedy(d_matrix).unwrap();
+    let mosaic_img = mosaic
+        .build_with_solver(
+            d_matrix,
+            Greedy::new(SolverConfig {
+                max_tile_occurrences: 2,
+            }),
+        )
+        .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(
         &mosaic_img,
@@ -141,7 +171,7 @@ fn build_mosaic_equalized() {
     tile_imgs = tile_imgs.equalize();
     master_img = master_img.equalize();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -151,7 +181,14 @@ fn build_mosaic_equalized() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let mosaic_img = mosaic.build(d_matrix).unwrap();
+    let mosaic_img = mosaic
+        .build(
+            d_matrix,
+            SolverConfig {
+                max_tile_occurrences: 1,
+            },
+        )
+        .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_equalized.png"));
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
@@ -163,7 +200,7 @@ fn build_mosaic_match_tiles_to_master() {
 
     tile_imgs = tile_imgs.match_palette(&master_img);
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -173,7 +210,14 @@ fn build_mosaic_match_tiles_to_master() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let mosaic_img = mosaic.build(d_matrix).unwrap();
+    let mosaic_img = mosaic
+        .build(
+            d_matrix,
+            SolverConfig {
+                max_tile_occurrences: 1,
+            },
+        )
+        .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(
         &mosaic_img,
@@ -190,7 +234,7 @@ fn build_mosaic_match_master_to_tiles() {
     let expected = open_expected(&master_img, test_dir().join("master_matched_to_faces.png"));
     assert!(kinda_same_imgs(master_img.clone(), expected, 2.));
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -200,7 +244,14 @@ fn build_mosaic_match_master_to_tiles() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let mosaic_img = mosaic.build(d_matrix).unwrap();
+    let mosaic_img = mosaic
+        .build(
+            d_matrix,
+            SolverConfig {
+                max_tile_occurrences: 1,
+            },
+        )
+        .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(
         &mosaic_img,
@@ -215,7 +266,7 @@ fn build_mosaic_match_master_to_tiles() {
 fn build_mosaic_blueprint() {
     let (tile_imgs, master_img) = setup_imgs();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -225,7 +276,12 @@ fn build_mosaic_blueprint() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let result = mosaic.build_blueprint(d_matrix);
+    let result = mosaic.build_blueprint(
+        d_matrix,
+        SolverConfig {
+            max_tile_occurrences: 1,
+        },
+    );
     assert!(result.is_ok());
     let blueprint = result.unwrap();
     let serialized = serde_json::to_string_pretty(&blueprint).unwrap();
@@ -255,7 +311,7 @@ fn build_mosaic_blueprint() {
 fn build_mosaic_blueprint_greedy() {
     let (tile_imgs, master_img) = setup_imgs();
 
-    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16), 1);
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
     assert!(result.is_ok());
     let mosaic = result.unwrap();
 
@@ -265,7 +321,12 @@ fn build_mosaic_blueprint_greedy() {
         mosaic.master.cells.len() * mosaic.tiles.len()
     );
 
-    let result = mosaic.build_blueprint_greedy(d_matrix);
+    let result = mosaic.build_blueprint_with_solver(
+        d_matrix,
+        Greedy::new(SolverConfig {
+            max_tile_occurrences: 1,
+        }),
+    );
     assert!(result.is_ok());
     let blueprint = result.unwrap();
     let serialized = serde_json::to_string_pretty(&blueprint).unwrap();
