@@ -4,6 +4,13 @@
   * dependencies
     * phomo bumped from 0.3.1 to 0.3.2
 
+## [0.8.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.7.0...phomo-wasm-v0.8.0) (2025-01-25)
+
+
+### Features
+
+* add `build_blueprint_auction` function ([bccb781](https://github.com/loiccoyle/phomo-rs/commit/bccb781f56c3e7d8ef3af00868696655064d1ced))
+
 ## [0.7.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.6.0...phomo-wasm-v0.7.0) (2025-01-25)
 
 
