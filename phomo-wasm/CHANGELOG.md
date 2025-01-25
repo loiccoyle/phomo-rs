@@ -4,6 +4,29 @@
   * dependencies
     * phomo bumped from 0.3.1 to 0.3.2
 
+## [0.7.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.6.0...phomo-wasm-v0.7.0) (2025-01-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* unify errors with `PhomoError` and modular solvers
+
+### Features
+
+* add `build_auction` to use the Auction based solver ([0a956b7](https://github.com/loiccoyle/phomo-rs/commit/0a956b760063ccc09995a4b383f49d076d525a25))
+
+
+### Code Refactoring
+
+* unify errors with `PhomoError` and modular solvers ([40686a9](https://github.com/loiccoyle/phomo-rs/commit/40686a95026170e5cb481aedca6c29e53cb4504d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.5.0 to 0.6.0
+
 ## [0.6.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.5.0...phomo-wasm-v0.6.0) (2025-01-21)
 
 
