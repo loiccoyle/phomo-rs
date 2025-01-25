@@ -222,6 +222,17 @@ impl Mosaic {
 
         Ok(serde_wasm_bindgen::to_value(&mosaic)?)
     }
+    #[wasm_bindgen(js_name = buildBlueprintAuction)]
+    pub fn build_blueprint_auction(&self, metric_type: &str) -> Result<JsValue, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+
+        let mosaic = self
+            .inner
+            .build_blueprint_with_solver(d_matrix, Auction::new(1, self.solver_config.clone()))
+            .map_err(|err| JsValue::from(err.to_string()))?;
+
+        Ok(serde_wasm_bindgen::to_value(&mosaic)?)
+    }
 
     #[wasm_bindgen(js_name = renderBlueprint)]
     pub fn render_blueprint(&self, blueprint: JsValue) -> Result<String, JsValue> {
