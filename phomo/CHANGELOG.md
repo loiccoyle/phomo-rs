@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.6.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.5.0...phomo-v0.6.0) (2025-01-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* unify errors with `PhomoError` and modular solvers
+
+### Features
+
+* add an Auction algorithm based solver ([e572a6c](https://github.com/loiccoyle/phomo-rs/commit/e572a6cab293e2f99a12b28679e19644f919d2af))
+
+
+### Bug Fixes
+
+* add logging when building blueprints ([c3a2132](https://github.com/loiccoyle/phomo-rs/commit/c3a2132048fafd6b26c2eb6ca536a26fb891eb2c))
+* better lsap error handling ([9e00007](https://github.com/loiccoyle/phomo-rs/commit/9e00007a9ef19e46baf8e0a9ce968633e1b00bca))
+* cleaner feature import handling ([0bc8df2](https://github.com/loiccoyle/phomo-rs/commit/0bc8df2edfc58f51e45c25ed781f94a23f68c6b7))
+* consistent solver init ([c80dd27](https://github.com/loiccoyle/phomo-rs/commit/c80dd27f0dbea06aa7558770f075bab329eadf6e))
+* redo error handling with proper Error types ([5e7a1f6](https://github.com/loiccoyle/phomo-rs/commit/5e7a1f641b0a52e812c8f7523bd5e042e20a48ee))
+
+
+### Performance Improvements
+
+* improve the Greedy solver performance ([53f1b73](https://github.com/loiccoyle/phomo-rs/commit/53f1b73d4b1da76253e1c12a9c79312f05ebf125))
+
+
+### Code Refactoring
+
+* unify errors with `PhomoError` and modular solvers ([40686a9](https://github.com/loiccoyle/phomo-rs/commit/40686a95026170e5cb481aedca6c29e53cb4504d))
+
 ## [0.5.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.4.0...phomo-v0.5.0) (2025-01-21)
 
 

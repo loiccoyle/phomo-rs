@@ -4,6 +4,36 @@
   * dependencies
     * phomo bumped from 0.3.0 to 0.3.1
 
+## [0.5.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.4.0...phomo-cli-v0.5.0) (2025-01-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* rm `--greedy`, use `--solver` with an enum to select assignment solver
+* unify errors with `PhomoError` and modular solvers
+
+### Features
+
+* rm `--greedy`, use `--solver` with an enum to select assignment solver ([9a6547b](https://github.com/loiccoyle/phomo-rs/commit/9a6547b9cf6d8578d55ca590285f7d000cd9590d))
+
+
+### Bug Fixes
+
+* consistent solver init ([c80dd27](https://github.com/loiccoyle/phomo-rs/commit/c80dd27f0dbea06aa7558770f075bab329eadf6e))
+* redo error handling with proper Error types ([5e7a1f6](https://github.com/loiccoyle/phomo-rs/commit/5e7a1f641b0a52e812c8f7523bd5e042e20a48ee))
+
+
+### Code Refactoring
+
+* unify errors with `PhomoError` and modular solvers ([40686a9](https://github.com/loiccoyle/phomo-rs/commit/40686a95026170e5cb481aedca6c29e53cb4504d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.5.0 to 0.6.0
+
 ## [0.4.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.3.0...phomo-cli-v0.4.0) (2025-01-21)
 
 
