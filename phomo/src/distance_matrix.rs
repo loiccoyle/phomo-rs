@@ -42,6 +42,10 @@ impl DistanceMatrix {
             data,
         })
     }
+
+    pub fn get(&self, row: usize, col: usize) -> i64 {
+        self.data[row * self.columns + col]
+    }
 }
 
 impl DistanceMatrix {

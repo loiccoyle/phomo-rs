@@ -6,6 +6,7 @@ extern crate image;
 use image::RgbImage;
 
 use phomo::read_images_from_dir_resized;
+use phomo::solvers::auction::Auction;
 #[cfg(feature = "blueprint")]
 use phomo::Blueprint;
 use phomo::ColorMatch;
@@ -104,6 +105,69 @@ fn build_mosaic_greedy() {
         .unwrap();
     assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
     let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_greedy.png"));
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
+}
+
+#[test]
+fn build_mosaic_auction() {
+    let (tile_imgs, master_img) = setup_imgs();
+
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
+    assert!(result.is_ok());
+    let mosaic = result.unwrap();
+
+    let d_matrix = mosaic.distance_matrix();
+    assert_eq!(
+        d_matrix.data.len(),
+        mosaic.master.cells.len() * mosaic.tiles.len()
+    );
+
+    let mosaic_img = mosaic
+        .build_with_solver(
+            d_matrix,
+            Auction::new(
+                1,
+                SolverConfig {
+                    max_tile_occurrences: 1,
+                },
+            ),
+        )
+        .unwrap();
+    assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
+    let expected = open_expected(&mosaic_img, test_dir().join("mosaic_16_16_auction.png"));
+    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
+}
+
+#[test]
+fn build_mosaic_auction_repeats() {
+    let (tile_imgs, master_img) = setup_imgs();
+
+    let result = Mosaic::from_images(master_img, tile_imgs, (16, 16));
+    assert!(result.is_ok());
+    let mosaic = result.unwrap();
+
+    let d_matrix = mosaic.distance_matrix();
+    assert_eq!(
+        d_matrix.data.len(),
+        mosaic.master.cells.len() * mosaic.tiles.len()
+    );
+
+    let mosaic_img = mosaic
+        .build_with_solver(
+            d_matrix,
+            Auction::new(
+                1,
+                SolverConfig {
+                    max_tile_occurrences: 2,
+                },
+            ),
+        )
+        .unwrap();
+    assert_eq!(mosaic_img.dimensions(), mosaic.master.img.dimensions());
+    let expected = open_expected(
+        &mosaic_img,
+        test_dir().join("mosaic_16_16_auction_repeats.png"),
+    );
     assert!(kinda_same_imgs(mosaic_img, expected, 2.));
 }
 

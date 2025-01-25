@@ -157,7 +157,6 @@ impl Solve for Hungarian {
         self.config = config;
     }
 
-    /// Solves the LSAP and returns the optimal assignment of columns to rows.
     fn solve(&mut self, distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, PhomoError> {
         let d_matrix = if self.config.max_tile_occurrences > 1 {
             &distance_matrix.tile(self.config.max_tile_occurrences)

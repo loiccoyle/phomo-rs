@@ -1,5 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use phomo::read_images_from_dir_resized;
+use phomo::solvers::auction::Auction;
 use phomo::Greedy;
 use phomo::Hungarian;
 use phomo::Mosaic;
@@ -87,7 +88,10 @@ fn bench_solvers(c: &mut Criterion) {
         });
     });
     group.bench_function("greedy", |b| {
-        b.iter(|| black_box(Greedy::new(SolverConfig::default()).solve(&distance_matrix)));
+        b.iter(|| black_box(Greedy::default().solve(&distance_matrix)));
+    });
+    group.bench_function("auction", |b| {
+        b.iter(|| black_box(Auction::default()).solve(&distance_matrix));
     });
     group.finish();
 }

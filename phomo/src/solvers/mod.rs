@@ -2,6 +2,7 @@
 /// solve the assignment problem.
 use crate::{error::PhomoError, DistanceMatrix};
 
+pub mod auction;
 pub mod error;
 pub mod greedy;
 pub mod hungarian;
@@ -19,7 +20,19 @@ impl Default for SolverConfig {
     }
 }
 
+/// The Solve trait is implemented by structs which solve the assignment problem.
 pub trait Solve {
+    /// Configures the solver with the given configuration.
+    ///
+    /// # Arguments
+    /// - `config`: The configuration for the solver.
     fn configure(&mut self, config: SolverConfig);
+    /// Solves the assignment problem using the solver.
+    ///
+    /// # Arguments
+    /// - `distance_matrix`: The distance matrix.
+    ///
+    /// # Errors
+    /// - [`PhomoError::SolverError``]: An error occurred while solving the assignment problem.
     fn solve(&mut self, distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, PhomoError>;
 }
