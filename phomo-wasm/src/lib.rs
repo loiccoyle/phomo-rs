@@ -1,7 +1,7 @@
 use base64::{engine::general_purpose, Engine as _};
 use image::RgbImage;
 use phomo::{
-    metrics, utils, Blueprint, ColorMatch, Greedy, Master as MasterRs, Mosaic as MosaicRs,
+    metrics, utils, Auction, Blueprint, ColorMatch, Greedy, Master as MasterRs, Mosaic as MosaicRs,
 };
 use phomo::{DistanceMatrix, SolverConfig};
 use std::io::Cursor;
@@ -167,6 +167,18 @@ impl Mosaic {
         let mosaic_img = self
             .inner
             .build_with_solver(d_matrix, Greedy::new(self.solver_config.clone()))
+            .map_err(|err| JsValue::from(err.to_string()))?;
+
+        to_base64(mosaic_img)
+    }
+
+    #[wasm_bindgen(js_name = buildAuction)]
+    pub fn build_auction(&self, metric_type: &str) -> Result<String, JsValue> {
+        let d_matrix = self.distance_matrix_with_metric(metric_type)?;
+
+        let mosaic_img = self
+            .inner
+            .build_with_solver(d_matrix, Auction::new(1, self.solver_config.clone()))
             .map_err(|err| JsValue::from(err.to_string()))?;
 
         to_base64(mosaic_img)
