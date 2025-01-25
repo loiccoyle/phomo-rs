@@ -207,7 +207,7 @@ impl Mosaic {
         distance_matrix: DistanceMatrix,
         config: SolverConfig,
     ) -> Result<RgbImage, PhomoError> {
-        let solver = Hungarian::new(distance_matrix.rows, distance_matrix.columns, config);
+        let solver = Hungarian::new(config);
         self.build_with_solver(distance_matrix, solver)
     }
 

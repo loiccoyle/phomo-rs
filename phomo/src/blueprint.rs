@@ -68,7 +68,7 @@ impl Mosaic {
         distance_matrix: DistanceMatrix,
         config: SolverConfig,
     ) -> Result<Blueprint, PhomoError> {
-        let solver = Hungarian::new(distance_matrix.rows, distance_matrix.columns, config);
+        let solver = Hungarian::new(config);
         self.build_blueprint_with_solver(distance_matrix, solver)
     }
 

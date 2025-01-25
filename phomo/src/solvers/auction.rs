@@ -109,10 +109,6 @@ fn find_best_and_second_best(
 }
 
 impl Solve for Auction {
-    fn configure(&mut self, config: SolverConfig) {
-        self.config = config;
-    }
-
     fn solve(&mut self, distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, PhomoError> {
         // Check if the number of columns is less than the number of rows
         if distance_matrix.columns < distance_matrix.rows {

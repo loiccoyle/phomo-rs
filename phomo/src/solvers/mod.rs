@@ -7,6 +7,7 @@ pub mod error;
 pub mod greedy;
 pub mod hungarian;
 
+/// Common configuration for the solvers.
 #[derive(Debug, Clone)]
 pub struct SolverConfig {
     pub max_tile_occurrences: usize,
@@ -22,11 +23,6 @@ impl Default for SolverConfig {
 
 /// The Solve trait is implemented by structs which solve the assignment problem.
 pub trait Solve {
-    /// Configures the solver with the given configuration.
-    ///
-    /// # Arguments
-    /// - `config`: The configuration for the solver.
-    fn configure(&mut self, config: SolverConfig);
     /// Solves the assignment problem using the solver.
     ///
     /// # Arguments

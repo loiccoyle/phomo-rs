@@ -76,16 +76,7 @@ fn bench_solvers(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("solvers");
     group.bench_function("hungarian", |b| {
-        b.iter(|| {
-            black_box(
-                Hungarian::new(
-                    distance_matrix.rows,
-                    distance_matrix.columns,
-                    SolverConfig::default(),
-                )
-                .solve(&distance_matrix),
-            )
-        });
+        b.iter(|| black_box(Hungarian::default().solve(&distance_matrix)));
     });
     group.bench_function("greedy", |b| {
         b.iter(|| black_box(Greedy::default().solve(&distance_matrix)));

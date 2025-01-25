@@ -22,10 +22,6 @@ impl Greedy {
 }
 
 impl Solve for Greedy {
-    fn configure(&mut self, config: SolverConfig) {
-        self.config = config;
-    }
-
     fn solve(&mut self, distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, PhomoError> {
         if distance_matrix.columns < distance_matrix.rows * self.config.max_tile_occurrences {
             return Err(SolverError::TooFewColumns {

@@ -114,10 +114,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Build the mosaic image
     let mosaic_img = match args.solver {
         cli::Solver::Greedy => mosaic.build_with_solver(d_matrix, Greedy::new(solver_config)),
-        cli::Solver::Hungarian => {
-            let solver = Hungarian::new(d_matrix.rows, d_matrix.columns, solver_config);
-            mosaic.build_with_solver(d_matrix, solver)
-        }
+        cli::Solver::Hungarian => mosaic.build_with_solver(d_matrix, Hungarian::new(solver_config)),
         cli::Solver::Auction => mosaic.build_with_solver(d_matrix, Auction::new(1, solver_config)),
     }
     .map_err(|e| format!("Failed to build mosaic image: {}", e))?;
