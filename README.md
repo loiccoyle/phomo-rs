@@ -79,7 +79,7 @@ Options:
       --equalize                       Equalize the master and tile image color distributions
       --transfer-master-to-tiles       Transfer the color palette of the master image to the tile images
       --transfer-tiles-to-master       Transfer the color palette of the tile images to the master image
-      --greedy                         Use a greedy tile assignment algorithm. Should improve performance at the expense of accuracy
+      --solver <SOLVER>                The solver to use to compute the tile to cell assignments [default: hungarian] [possible values: greedy, auction, hungarian]
       --metric <METRIC>                The distance metric to use [default: norm-l1] [possible values: norm-l1, norm-l2]
   -v, --verbose...                     Increase logging verbosity
   -q, --quiet...                       Decrease logging verbosity

@@ -19,6 +19,23 @@ impl Display for Metric {
     }
 }
 
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub(crate) enum Solver {
+    Greedy,
+    Auction,
+    Hungarian,
+}
+
+impl Display for Solver {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Solver::Greedy => write!(f, "greedy"),
+            Solver::Auction => write!(f, "auction"),
+            Solver::Hungarian => write!(f, "hungarian"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TwoNumbers(pub u32, pub u32);
 
@@ -91,9 +108,9 @@ pub(crate) struct Arguments {
     #[arg(long)]
     pub(crate) transfer_tiles_to_master: bool,
 
-    /// Use a greedy tile assignment algorithm. Should improve performance at the expense of accuracy.
-    #[arg(long)]
-    pub(crate) greedy: bool,
+    /// The solver to use to compute the tile to cell assignments.
+    #[arg(long, default_value_t = Solver::Hungarian)]
+    pub(crate) solver: Solver,
     /// The distance metric to use.
     #[arg(long, default_value_t = Metric::NormL1)]
     pub(crate) metric: Metric,

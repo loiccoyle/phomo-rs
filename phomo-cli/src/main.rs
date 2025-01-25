@@ -4,8 +4,8 @@ extern crate env_logger;
 use clap::Parser;
 use log::info;
 use phomo::{
-    read_images_from_dir, read_images_from_dir_cropped, read_images_from_dir_resized, ColorMatch,
-    Greedy, Hungarian, Mosaic, SolverConfig,
+    read_images_from_dir, read_images_from_dir_cropped, read_images_from_dir_resized, Auction,
+    ColorMatch, Greedy, Hungarian, Mosaic, SolverConfig,
 };
 
 mod cli;
@@ -112,12 +112,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         max_tile_occurrences: args.n_appearances,
     };
     // Build the mosaic image
-    let mosaic_img = if args.greedy {
-        let solver = Greedy::new(solver_config);
-        mosaic.build_with_solver(d_matrix, solver)
-    } else {
-        let solver = Hungarian::new(d_matrix.rows, d_matrix.columns, solver_config);
-        mosaic.build_with_solver(d_matrix, solver)
+    let mosaic_img = match args.solver {
+        cli::Solver::Greedy => mosaic.build_with_solver(d_matrix, Greedy::new(solver_config)),
+        cli::Solver::Hungarian => {
+            let solver = Hungarian::new(d_matrix.rows, d_matrix.columns, solver_config);
+            mosaic.build_with_solver(d_matrix, solver)
+        }
+        cli::Solver::Auction => mosaic.build_with_solver(d_matrix, Auction::new(1, solver_config)),
     }
     .map_err(|e| format!("Failed to build mosaic image: {}", e))?;
 
