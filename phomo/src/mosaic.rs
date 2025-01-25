@@ -107,7 +107,7 @@ impl Mosaic {
         })
     }
 
-    /// Compute the (flat) distance matrix between the tiles and the master cells, using the
+    /// Compute the [`DistanceMatrix`] between the tiles and the master cells, using the
     /// [`norm_l1`] metric.
     ///
     /// To use a different distance metric, use the [`distance_matrix_with_metric`](Mosaic::distance_matrix_with_metric) method.
@@ -117,8 +117,8 @@ impl Mosaic {
         self.distance_matrix_with_metric(norm_l1)
     }
 
-    /// Compute the (flat) distance matrix between the tiles and the master cells using the provided
-    /// `metric` function, see [`phomo::metrics`](crate::metrics) for implemented distance metrics.
+    /// Compute the [`DistanceMatrix`] between the tiles and the master cells using the provided
+    /// `metric` function. See [`phomo::metrics`](crate::metrics) for implemented distance metrics.
     ///
     /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> DistanceMatrix {
@@ -196,7 +196,7 @@ impl Mosaic {
         Ok(mosaic_img)
     }
 
-    /// Compute the tile to master cell assignments using the [Hungarian] solver
+    /// Compute the tile to master cell assignments using the [`Hungarian`] solver
     /// algorithm, and build the photo mosaic image.
     ///
     /// # Errors
@@ -212,7 +212,11 @@ impl Mosaic {
     }
 
     /// Compute the tile to master cell assignments using the provided solver algorithm, and build
-    /// the photo mosaic image.
+    /// the photo mosaic image. See [`phomo::solvers`](crate::solvers) for implemented solvers.
+    ///
+    /// # Arguments
+    /// - `distance_matrix`: The distance matrix between the master image and the tiles.
+    /// - `solver`: The solver algorithm to use for the assignment problem.
     ///
     /// # Errors
     /// - [`PhomoError::MosaicError`]: An error occurred while building the mosaic.

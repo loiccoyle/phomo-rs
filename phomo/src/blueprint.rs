@@ -73,12 +73,12 @@ impl Mosaic {
     }
 
     /// Compute the tile to master cell assignments using the provided solver algorithm, and
-    /// construct a [`Blueprint`] of the mosaic image.
+    /// construct a [`Blueprint`] of the mosaic image. See [`phomo::solvers`](crate::solvers) for
+    /// implemented solvers.
     ///
     /// # Arguments:
     /// - `distance_matrix`: The distance matrix between the master image and the tiles.
-    /// - `solver`: The solver algorithm to use for the assignment problem. See [`phomo::solvers`](crate::solvers) for structs
-    ///     which implement this trait.
+    /// - `solver`: The solver algorithm to use for the assignment problem.
     ///
     /// # Errors
     /// - [`PhomoError::MosaicError`]: An error occurred while building the mosaic.
