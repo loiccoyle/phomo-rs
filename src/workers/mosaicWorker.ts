@@ -1,7 +1,6 @@
-import { Mosaic } from "phomo-wasm";
+import { Mosaic, MetricType } from "phomo-wasm";
 import { fetchImageAsBytes } from "../utils/imageUtils";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
-import { TileAssignment } from "../types/tileAssignment";
 
 const fetchImagesAsBytes = async (urls: string[]): Promise<Uint8Array[]> => {
   return Promise.all(urls.map((url) => fetchImageAsBytes(url)));
@@ -16,7 +15,7 @@ self.onmessage = async (event) => {
     gridHeight,
     tileSizingMethod,
     tileRepeats,
-    tileAssignmentMethod,
+    solver,
     colorMatchingMethod,
     mosaicImageSize,
   } = event.data;
@@ -46,18 +45,10 @@ self.onmessage = async (event) => {
         break;
     }
 
-    let blueprint;
-    switch (tileAssignmentMethod) {
-      case TileAssignment.Optimal:
-        blueprint = mosaic.buildBlueprint("NormL1");
-        break;
-      case TileAssignment.Greedy:
-        blueprint = mosaic.buildBlueprintGreedy("NormL1");
-        break;
-      case TileAssignment.Auction:
-        blueprint = mosaic.buildBlueprintAuction("NormL1");
-        break;
-    }
+    const blueprint = mosaic.buildBlueprintWithSolver(
+      MetricType.NormL1,
+      solver,
+    );
 
     const mosaicBase64 = mosaic.renderBlueprint(blueprint);
 

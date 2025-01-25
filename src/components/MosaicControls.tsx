@@ -18,10 +18,9 @@ import {
   HandCoins,
 } from "lucide-react";
 import TileManagementModal from "./TileManagementModal";
-import { ResizeType } from "phomo-wasm";
+import { ResizeType, Solver } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { UserImage } from "../types/userImage";
-import { TileAssignment } from "../types/tileAssignment";
 
 interface MosaicControlsProps {
   gridWidth: number;
@@ -32,7 +31,7 @@ interface MosaicControlsProps {
   gridOverlay: string | null;
   colorMatchingMethod: string;
   tileSizingMethod: ResizeType;
-  tileAssignmentMethod: TileAssignment;
+  solver: Solver;
   onMasterImageSelect: (file: File) => void;
   onTileImagesSelect: (files: FileList) => void;
   onTileRepeatsChange: (n: number) => void;
@@ -44,7 +43,7 @@ interface MosaicControlsProps {
   onClearTileImages: () => void;
   onColorMatchingMethodChange: (method: ColorMatchingMethod) => void;
   onTileSizingMethodChange: (method: ResizeType) => void;
-  onTileAssignmentMethodChange: (method: TileAssignment) => void;
+  onSolverChange: (method: Solver) => void;
   onMosaicSizeChange: (size: [number, number] | null) => void;
 }
 
@@ -57,7 +56,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   gridOverlay,
   colorMatchingMethod,
   tileSizingMethod,
-  tileAssignmentMethod,
+  solver,
   onMasterImageSelect,
   onTileImagesSelect,
   onTileRepeatsChange,
@@ -70,7 +69,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   onColorMatchingMethodChange,
   onTileSizingMethodChange,
   onMosaicSizeChange,
-  onTileAssignmentMethodChange,
+  onSolverChange,
 }) => {
   const [showGrid, setShowGrid] = useState(false);
   const [matchMasterAspectRatio, setMatchMasterAspectRatio] = useState(false);
@@ -123,21 +122,21 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
 
   const tileAssignmentOptions = [
     {
-      value: TileAssignment.Optimal,
+      value: Solver.Hungarian,
       label: "Optimal",
       description:
         "Assign tiles to grid cells optimally, slower but more accurate",
       icon: DraftingCompass,
     },
     {
-      value: TileAssignment.Greedy,
+      value: Solver.Greedy,
       label: "Greedy",
       description:
         "Assign tiles to grid cells greedily, faster but less accurate",
       icon: Pizza,
     },
     {
-      value: TileAssignment.Auction,
+      value: Solver.Auction,
       label: "Auction",
       description:
         "Assign tiles to grid cells using an auction algorithm, faster but less accurate",
@@ -586,11 +585,11 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
             <div
               key={option.value}
               className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                tileAssignmentMethod === option.value
+                solver === option.value
                   ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
                   : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
-              onClick={() => onTileAssignmentMethodChange(option.value)}
+              onClick={() => onSolverChange(option.value)}
             >
               <div className="flex items-center mb-2">
                 <option.icon className="w-5 h-5 mr-2 text-blue-500" />
