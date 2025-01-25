@@ -4,6 +4,13 @@
   * dependencies
     * phomo bumped from 0.3.1 to 0.3.2
 
+## [0.8.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.8.0...phomo-wasm-v0.8.1) (2025-01-25)
+
+
+### Bug Fixes
+
+* cleanup interface & add docs ([e28e460](https://github.com/loiccoyle/phomo-rs/commit/e28e460d1110d813a5e7c6432fc9c18c96225a0c))
+
 ## [0.8.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.7.0...phomo-wasm-v0.8.0) (2025-01-25)
 
 
