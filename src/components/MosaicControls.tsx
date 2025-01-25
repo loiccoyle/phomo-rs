@@ -15,6 +15,7 @@ import {
   ChevronUp,
   DraftingCompass,
   Pizza,
+  HandCoins,
 } from "lucide-react";
 import TileManagementModal from "./TileManagementModal";
 import { ResizeType } from "phomo-wasm";
@@ -134,6 +135,13 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
       description:
         "Assign tiles to grid cells greedily, faster but less accurate",
       icon: Pizza,
+    },
+    {
+      value: TileAssignment.Auction,
+      label: "Auction",
+      description:
+        "Assign tiles to grid cells using an auction algorithm, faster but less accurate",
+      icon: HandCoins,
     },
   ];
 
@@ -573,7 +581,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Tile Assignment
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {tileAssignmentOptions.map((option) => (
             <div
               key={option.value}

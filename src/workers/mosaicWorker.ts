@@ -54,6 +54,9 @@ self.onmessage = async (event) => {
       case TileAssignment.Greedy:
         blueprint = mosaic.buildBlueprintGreedy("NormL1");
         break;
+      case TileAssignment.Auction:
+        blueprint = mosaic.buildBlueprintAuction("NormL1");
+        break;
     }
 
     const mosaicBase64 = mosaic.renderBlueprint(blueprint);
