@@ -1,3 +1,7 @@
+use log::info;
+#[cfg(not(target_family = "wasm"))]
+use std::time;
+
 use crate::error::DistanceMatrixError;
 use crate::error::PhomoError;
 use crate::solvers::Solve;
@@ -58,7 +62,17 @@ impl DistanceMatrix {
     /// # Errors
     /// - [`PhomoError::SolverError`]: An error occurred while solving the assignment problem.
     pub fn assignments<S: Solve>(&self, solver: &mut S) -> Result<Vec<usize>, PhomoError> {
-        solver.solve(self)
+        #[cfg(not(target_family = "wasm"))]
+        info!("Computing assignmnent...");
+        #[cfg(not(target_family = "wasm"))]
+        let start_time = time::Instant::now();
+
+        let out = solver.solve(self);
+
+        #[cfg(not(target_family = "wasm"))]
+        info!("Completed in {:?}", start_time.elapsed());
+
+        out
     }
 }
 

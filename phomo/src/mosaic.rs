@@ -123,7 +123,7 @@ impl Mosaic {
     /// The row index is the cell index and the column index is the tile index.
     pub fn distance_matrix_with_metric(&self, metric: MetricFn) -> DistanceMatrix {
         #[cfg(not(target_family = "wasm"))]
-        info!("Starting distance matrix computation...");
+        info!("Computing distance matrix...");
         #[cfg(not(target_family = "wasm"))]
         let start_time = time::Instant::now();
 
