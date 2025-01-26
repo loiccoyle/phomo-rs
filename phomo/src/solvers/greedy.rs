@@ -23,7 +23,7 @@ impl Greedy {
 
 impl Solve for Greedy {
     fn solve(&mut self, distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, PhomoError> {
-        if distance_matrix.columns < distance_matrix.rows * self.config.max_tile_occurrences {
+        if distance_matrix.columns * self.config.max_tile_occurrences < distance_matrix.rows {
             return Err(SolverError::TooFewColumns {
                 rows: distance_matrix.rows,
                 columns: distance_matrix.columns,

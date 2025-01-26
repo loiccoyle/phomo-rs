@@ -79,7 +79,7 @@ fn find_best_and_second_best(
 impl Solve for Auction {
     fn solve(&mut self, distance_matrix: &DistanceMatrix) -> Result<Vec<usize>, PhomoError> {
         // Check if the number of columns is less than the number of rows
-        if distance_matrix.columns < distance_matrix.rows {
+        if distance_matrix.columns * self.config.max_tile_occurrences < distance_matrix.rows {
             return Err(SolverError::TooFewColumns {
                 rows: distance_matrix.rows,
                 columns: distance_matrix.columns,
