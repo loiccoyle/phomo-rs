@@ -1,3 +1,4 @@
+#[cfg(not(target_family = "wasm"))]
 use log::info;
 #[cfg(not(target_family = "wasm"))]
 use std::time;
