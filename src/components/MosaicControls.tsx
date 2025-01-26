@@ -454,6 +454,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
             onClick={() =>
               masterImage && setMatchMasterAspectRatio((prev) => !prev)
             }
+            disabled={masterImage === null}
           />
           <div className="p-4 flex gap-2 flex-col w-full">
             <RangeInput
