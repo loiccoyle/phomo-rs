@@ -21,9 +21,9 @@ impl Default for SolverConfig {
     }
 }
 
-/// The Solve trait is implemented by structs which solve the assignment problem.
+/// The [`Solve`] trait is implemented by structs which solve the tile to cell assignment problem.
 pub trait Solve {
-    /// Solves the assignment problem using the solver.
+    /// Solve the assignment problem using the solver.
     ///
     /// # Arguments
     /// - `distance_matrix`: The distance matrix.
