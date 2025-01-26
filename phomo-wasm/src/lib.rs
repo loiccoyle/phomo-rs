@@ -20,6 +20,9 @@ pub fn init_panic_hook() {
 pub enum MetricType {
     NormL1,
     NormL2,
+    LuminanceL1,
+    LuminanceL2,
+    AvgColor,
 }
 
 /// Tile resizing types
@@ -173,6 +176,9 @@ impl Mosaic {
         let metric = match metric_type {
             MetricType::NormL1 => metrics::norm_l1,
             MetricType::NormL2 => metrics::norm_l2,
+            MetricType::LuminanceL1 => metrics::luminance_l1,
+            MetricType::LuminanceL2 => metrics::luminance_l2,
+            MetricType::AvgColor => metrics::avg_color,
         };
 
         Ok(self.inner.distance_matrix_with_metric(metric))

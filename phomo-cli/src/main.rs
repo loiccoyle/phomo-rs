@@ -104,6 +104,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let metric = match args.metric {
         cli::Metric::NormL1 => phomo::metrics::norm_l1,
         cli::Metric::NormL2 => phomo::metrics::norm_l2,
+        cli::Metric::AvgColor => phomo::metrics::avg_color,
+        cli::Metric::LuminanceL1 => phomo::metrics::luminance_l1,
+        cli::Metric::LuminanceL2 => phomo::metrics::luminance_l2,
     };
     // Compute the distance matrix
     let d_matrix = mosaic.distance_matrix_with_metric(metric);

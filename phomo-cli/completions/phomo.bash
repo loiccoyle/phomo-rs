@@ -46,7 +46,7 @@ _phomo() {
                     return 0
                     ;;
                 --metric)
-                    COMPREPLY=($(compgen -W "norm-l1 norm-l2" -- "${cur}"))
+                    COMPREPLY=($(compgen -W "norm-l1 norm-l2 avg-color luminance-l1 luminance-l2" -- "${cur}"))
                     return 0
                     ;;
                 *)

@@ -20,7 +20,7 @@ _phomo() {
 '-n+[The number of times a tile can appear in the mosaic]:N_APPEARANCES:_default' \
 '--n-appearances=[The number of times a tile can appear in the mosaic]:N_APPEARANCES:_default' \
 '--solver=[The solver to use to compute the tile to cell assignments]:SOLVER:(greedy auction hungarian)' \
-'--metric=[The distance metric to use]:METRIC:(norm-l1 norm-l2)' \
+'--metric=[The distance metric to use]:METRIC:(norm-l1 norm-l2 avg-color luminance-l1 luminance-l2)' \
 '--crop-tiles[Crop tiles to grid cell size]' \
 '--resize-tiles[Resize tiles to grid cell size]' \
 '--equalize[Equalize the master and tile image color distributions]' \

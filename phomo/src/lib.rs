@@ -21,7 +21,7 @@ pub use blueprint::Blueprint;
 pub use color_match::ColorMatch;
 pub use distance_matrix::DistanceMatrix;
 pub use master::Master;
-pub use metrics::{norm_l1, norm_l2};
+pub use metrics::{avg_color, luminance_l1, luminance_l2, norm_l1, norm_l2};
 pub use mosaic::Mosaic;
 pub use solvers::{auction::Auction, greedy::Greedy, hungarian::Hungarian, Solve, SolverConfig};
 pub use utils::{read_images_from_dir, read_images_from_dir_cropped, read_images_from_dir_resized};

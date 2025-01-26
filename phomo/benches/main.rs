@@ -1,4 +1,7 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use phomo::avg_color;
+use phomo::luminance_l1;
+use phomo::luminance_l2;
 use phomo::read_images_from_dir_resized;
 use phomo::solvers::auction::Auction;
 use phomo::Greedy;
@@ -59,6 +62,15 @@ fn bench_metrics(c: &mut Criterion) {
     });
     group.bench_function("norm_l2", |b| {
         b.iter(|| black_box(norm_l2(&img1, &img2)));
+    });
+    group.bench_function("luminance_l1", |b| {
+        b.iter(|| black_box(luminance_l1(&img1, &img2)));
+    });
+    group.bench_function("luminance_l2", |b| {
+        b.iter(|| black_box(luminance_l2(&img1, &img2)));
+    });
+    group.bench_function("avg_color", |b| {
+        b.iter(|| black_box(avg_color(&img1, &img2)));
     });
     group.finish();
 }

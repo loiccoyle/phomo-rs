@@ -80,7 +80,7 @@ Options:
       --transfer-master-to-tiles       Transfer the color palette of the master image to the tile images
       --transfer-tiles-to-master       Transfer the color palette of the tile images to the master image
       --solver <SOLVER>                The solver to use to compute the tile to cell assignments [default: hungarian] [possible values: greedy, auction, hungarian]
-      --metric <METRIC>                The distance metric to use [default: norm-l1] [possible values: norm-l1, norm-l2]
+      --metric <METRIC>                The distance metric to use [default: norm-l1] [possible values: norm-l1, norm-l2, avg-color, luminance-l1, luminance-l2]
   -v, --verbose...                     Increase logging verbosity
   -q, --quiet...                       Decrease logging verbosity
   -h, --help                           Print help (see more with '--help')

@@ -8,6 +8,9 @@ use clap_verbosity_flag::Verbosity;
 pub(crate) enum Metric {
     NormL1,
     NormL2,
+    AvgColor,
+    LuminanceL1,
+    LuminanceL2,
 }
 
 impl Display for Metric {
@@ -15,6 +18,9 @@ impl Display for Metric {
         match self {
             Metric::NormL1 => write!(f, "norm-l1"),
             Metric::NormL2 => write!(f, "norm-l2"),
+            Metric::AvgColor => write!(f, "avg-color"),
+            Metric::LuminanceL1 => write!(f, "luminance-l1"),
+            Metric::LuminanceL2 => write!(f, "luminance-l2"),
         }
     }
 }
