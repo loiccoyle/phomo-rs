@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.7.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.6.0...phomo-v0.7.0) (2025-01-26)
+
+
+### Features
+
+* add some more metrics ([00ff219](https://github.com/loiccoyle/phomo-rs/commit/00ff219adb1c318b1df21768ed53c6bf4f058fc6))
+
+
+### Bug Fixes
+
+* minor cleanup ([581b625](https://github.com/loiccoyle/phomo-rs/commit/581b62592d6c3883d4f6e72913aca5ad7d97fab8))
+
+
+### Performance Improvements
+
+* **auction:** get best & second best in one pass ([16634b8](https://github.com/loiccoyle/phomo-rs/commit/16634b80a4a33e56c4b33f6d89cadea5443be144))
+
 ## [0.6.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.5.0...phomo-v0.6.0) (2025-01-25)
 
 
