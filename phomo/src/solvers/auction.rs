@@ -33,40 +33,6 @@ impl Auction {
     }
 }
 
-/// Finds the two maximum values in an iterator of i64 values.
-///
-/// # Arguments
-/// - `iter`: An iterator of i64 values.
-fn find_two_max_values<I>(iter: I) -> Option<(i64, i64)>
-where
-    I: IntoIterator<Item = i64>,
-{
-    let mut iter = iter.into_iter();
-
-    // Get the first two values to initialize the two max values
-    let first = iter.next()?;
-    let second = iter.next()?;
-
-    // Initialize the two max values
-    let (mut max1, mut max2) = if first > second {
-        (first, second)
-    } else {
-        (second, first)
-    };
-
-    // Iterate through the rest of the values
-    for value in iter {
-        if value > max1 {
-            max2 = max1;
-            max1 = value;
-        } else if value > max2 {
-            max2 = value;
-        }
-    }
-
-    Some((max1, max2))
-}
-
 /// Finds the best and second-best tasks for a given agent.
 ///
 /// # Arguments
@@ -85,26 +51,29 @@ fn find_best_and_second_best(
     task_assigned: &[usize],
     max_tile_occurrences: usize,
 ) -> Option<(usize, i64, i64)> {
-    let mut values = Vec::new();
+    let mut best_task = usize::MAX;
+    let mut best_value = i64::MIN;
+    let mut second_best_value = i64::MIN;
 
     for (task, &assigned_count) in task_assigned.iter().enumerate() {
         if assigned_count < max_tile_occurrences {
             let value = -distance_matrix.get(agent, task) - prices[task];
-            values.push((task, value));
+
+            if value > best_value {
+                second_best_value = best_value;
+                best_value = value;
+                best_task = task;
+            } else if value > second_best_value {
+                second_best_value = value;
+            }
         }
     }
 
-    if values.len() < 2 {
+    if best_task == usize::MAX || second_best_value == i64::MIN {
         return None; // Not enough tasks to compare
     }
 
-    // Find the two maximum values
-    let (max1, max2) = find_two_max_values(values.iter().map(|&(_, value)| value))?;
-
-    // Find the tasks corresponding to the two maximum values
-    let best_task = values.iter().find(|&&(_, value)| value == max1)?.0;
-
-    Some((best_task, max1, max2))
+    Some((best_task, best_value, second_best_value))
 }
 
 impl Solve for Auction {
