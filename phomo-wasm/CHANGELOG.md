@@ -4,6 +4,20 @@
   * dependencies
     * phomo bumped from 0.3.1 to 0.3.2
 
+## [0.9.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.8.1...phomo-wasm-v0.9.0) (2025-01-26)
+
+
+### Features
+
+* add some more metrics ([00ff219](https://github.com/loiccoyle/phomo-rs/commit/00ff219adb1c318b1df21768ed53c6bf4f058fc6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.6.0 to 0.7.0
+
 ## [0.8.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.8.0...phomo-wasm-v0.8.1) (2025-01-25)
 
 
