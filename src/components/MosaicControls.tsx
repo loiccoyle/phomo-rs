@@ -16,9 +16,12 @@ import {
   DraftingCompass,
   Pizza,
   HandCoins,
+  Ruler,
+  Pipette,
+  Sun,
 } from "lucide-react";
 import TileManagementModal from "./TileManagementModal";
-import { ResizeType, Solver } from "phomo-wasm";
+import { MetricType, ResizeType, Solver } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { UserImage } from "../types/userImage";
 
@@ -31,6 +34,7 @@ interface MosaicControlsProps {
   gridOverlay: string | null;
   colorMatchingMethod: string;
   tileSizingMethod: ResizeType;
+  metric: MetricType;
   solver: Solver;
   onMasterImageSelect: (file: File) => void;
   onTileImagesSelect: (files: FileList) => void;
@@ -43,6 +47,7 @@ interface MosaicControlsProps {
   onClearTileImages: () => void;
   onColorMatchingMethodChange: (method: ColorMatchingMethod) => void;
   onTileSizingMethodChange: (method: ResizeType) => void;
+  onMetricChange: (metric: MetricType) => void;
   onSolverChange: (method: Solver) => void;
   onMosaicSizeChange: (size: [number, number] | null) => void;
 }
@@ -56,6 +61,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   gridOverlay,
   colorMatchingMethod,
   tileSizingMethod,
+  metric,
   solver,
   onMasterImageSelect,
   onTileImagesSelect,
@@ -69,6 +75,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   onColorMatchingMethodChange,
   onTileSizingMethodChange,
   onMosaicSizeChange,
+  onMetricChange,
   onSolverChange,
 }) => {
   const [showGrid, setShowGrid] = useState(false);
@@ -141,6 +148,39 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
       description:
         "Assign tiles to grid cells using an auction algorithm, faster but less accurate",
       icon: HandCoins,
+    },
+  ];
+
+  const metricOptions = [
+    {
+      value: MetricType.NormL1,
+      label: "L1 Norm",
+      description: "L1 norm of the pixels",
+      icon: Ruler,
+    },
+    {
+      value: MetricType.NormL2,
+      label: "L2 Norm",
+      description: "L2 norm of the pixels",
+      icon: Ruler,
+    },
+    {
+      value: MetricType.LuminanceL1,
+      label: "L1 Luminance",
+      description: "L1 norm of the pixel luminance",
+      icon: Sun,
+    },
+    {
+      value: MetricType.LuminanceL2,
+      label: "L2 Luminance",
+      description: "L2 norm of the pixel luminance",
+      icon: Sun,
+    },
+    {
+      value: MetricType.AvgColor,
+      label: "Average Color",
+      description: "Average color of the images",
+      icon: Pipette,
     },
   ];
 
@@ -590,6 +630,34 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                   : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
               onClick={() => onSolverChange(option.value)}
+            >
+              <div className="flex items-center mb-2">
+                <option.icon className="w-5 h-5 mr-2 text-blue-500" />
+                <h3 className="font-medium text-gray-800 dark:text-gray-200">
+                  {option.label}
+                </h3>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {option.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-6">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Metric
+        </label>
+        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
+          {metricOptions.map((option) => (
+            <div
+              key={option.value}
+              className={`px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                metric === option.value
+                  ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
+                  : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
+              onClick={() => onMetricChange(option.value)}
             >
               <div className="flex items-center mb-2">
                 <option.icon className="w-5 h-5 mr-2 text-blue-500" />

@@ -1,4 +1,4 @@
-import { Mosaic, MetricType } from "phomo-wasm";
+import { Mosaic } from "phomo-wasm";
 import { fetchImageAsBytes } from "../utils/imageUtils";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 
@@ -16,6 +16,7 @@ self.onmessage = async (event) => {
     tileSizingMethod,
     tileRepeats,
     solver,
+    metric,
     colorMatchingMethod,
     mosaicImageSize,
   } = event.data;
@@ -45,10 +46,7 @@ self.onmessage = async (event) => {
         break;
     }
 
-    const blueprint = mosaic.buildBlueprintWithSolver(
-      MetricType.NormL1,
-      solver,
-    );
+    const blueprint = mosaic.buildBlueprintWithSolver(metric, solver);
 
     const mosaicBase64 = mosaic.renderBlueprint(blueprint);
 

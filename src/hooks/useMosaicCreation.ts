@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { ResizeType, Solver } from "phomo-wasm";
+import { MetricType, ResizeType, Solver } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { Blueprint } from "../types/blueprint";
 import { UserImage } from "../types/userImage";
@@ -32,6 +32,7 @@ export const useMosaicCreation = (
   const [mosaicBlueprint, setMosaicBlueprint] = useState<Blueprint | null>(
     null,
   );
+  const [metric, setMetric] = useState(MetricType.NormL1);
   const [solver, setSolver] = useState(Solver.Hungarian);
 
   // Create worker only once
@@ -79,6 +80,7 @@ export const useMosaicCreation = (
       tileSizingMethod,
       tileRepeats,
       solver,
+      metric,
       colorMatchingMethod,
       mosaicImageSize,
     });
@@ -89,6 +91,8 @@ export const useMosaicCreation = (
     setColorMatchingMethod,
     tileSizingMethod,
     setTileSizingMethod,
+    metric,
+    setMetric,
     solver,
     setSolver,
     buildingMosaic,
