@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.7.0...phomo-v0.7.1) (2025-01-26)
+
+
+### Bug Fixes
+
+* bad column check ([b0599f6](https://github.com/loiccoyle/phomo-rs/commit/b0599f6d644e6b7216bfa7de89cf02a66149cece))
+
 ## [0.7.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.6.0...phomo-v0.7.0) (2025-01-26)
 
 
