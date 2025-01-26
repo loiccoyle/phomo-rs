@@ -10,7 +10,6 @@ import {
   File,
   Folder,
   Ratio,
-  Grid,
   ChevronDown,
   ChevronUp,
   DraftingCompass,
@@ -21,6 +20,8 @@ import {
   Sun,
 } from "lucide-react";
 import TileManagementModal from "./TileManagementModal";
+import RangeInput from "./RangeInput";
+import OptionCard from "./OptionCard";
 import { MetricType, ResizeType, Solver } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { UserImage } from "../types/userImage";
@@ -441,105 +442,35 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
         </div>
       </div>
       <div className="mt-6">
-        <div className="flex justify-between">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Grid Size
-          </label>
-          <div className="flex items-center space-x-2">
-            <Grid className="text-gray-500 dark:text-gray-400" />
-            <span className="font-medium text-gray-500 dark:text-gray-400">
-              {gridWidth && gridHeight ? `${gridWidth}x${gridHeight}` : ""}
-            </span>
-          </div>
-        </div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Grid Size
+        </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div
-            className={`p-4 rounded-lg transition-colors ${
-              masterImage
-                ? matchMasterAspectRatio
-                  ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500 cursor-pointer"
-                  : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 cursor-pointer"
-                : "opacity-50 cursor-default"
-            }`}
-            onClick={
-              masterImage
-                ? () => setMatchMasterAspectRatio((prev) => !prev)
-                : undefined
+          <OptionCard
+            icon={Ratio}
+            label="Aspect ratio"
+            description="Match master image aspect ratio"
+            isSelected={matchMasterAspectRatio}
+            onClick={() =>
+              masterImage && setMatchMasterAspectRatio((prev) => !prev)
             }
-          >
-            <div className="flex items-center mb-2">
-              <Ratio className="w-5 h-5 mr-2 text-blue-500" />
-              <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                Aspect ratio
-              </h3>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Match master image aspect ratio
-            </p>
-          </div>
+          />
           <div className="p-4 flex gap-2 flex-col w-full">
-            <div className="flex items-center space-x-4 h-6">
-              <label
-                htmlFor="gridWidth"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/6"
-              >
-                <span className="">Width</span>
-              </label>
-              <input
-                id="gridWidth"
-                type="range"
-                min="2"
-                value={gridWidth}
-                onChange={(e) =>
-                  handleGridWidthChange(parseInt(e.target.value))
-                }
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75"
-                style={{
-                  accentColor: "#3b82f6",
-                }}
-              />
-              <input
-                id="gridWidth"
-                type="number"
-                min="2"
-                value={gridWidth}
-                onChange={(e) => {
-                  handleGridWidthChange(Math.max(parseInt(e.target.value), 2));
-                }}
-                className="w-12 text-center rounded-md text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
-              />
-            </div>
-            <div className="flex items-center space-x-4 h-6">
-              <label
-                htmlFor="gridHeight"
-                className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/6"
-              >
-                <span className="">Height</span>
-              </label>
-              <input
-                id="gridHeight"
-                type="range"
-                min="2"
-                value={gridHeight}
-                onChange={(e) => onGridHeightChange(parseInt(e.target.value))}
-                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 ${matchMasterAspectRatio ? "opacity-50" : ""}`}
-                style={{
-                  accentColor: "#3b82f6",
-                }}
-                disabled={matchMasterAspectRatio}
-              />
-              <input
-                id="gridHeight"
-                type="number"
-                min="2"
-                value={gridHeight}
-                onChange={(e) => {
-                  onGridHeightChange(Math.max(parseInt(e.target.value), 2));
-                }}
-                className={`w-12 text-center rounded-md text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300 ${matchMasterAspectRatio ? "opacity-50" : ""}`}
-                disabled={matchMasterAspectRatio}
-              />
-            </div>
+            <RangeInput
+              label="Width"
+              value={gridWidth}
+              min={2}
+              max={100}
+              onChange={handleGridWidthChange}
+            />
+            <RangeInput
+              label="Height"
+              value={gridHeight}
+              min={2}
+              max={100}
+              onChange={onGridHeightChange}
+              disabled={matchMasterAspectRatio}
+            />
           </div>
         </div>
         <div className="flex justify-center align-middle items-center flex-col gap-2">
@@ -560,118 +491,95 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
           )}
         </div>
       </div>
+
+      {/* Palette Matching Section */}
       <div className="mt-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Palette Matching
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
           {colorMatchingOptions.map((option) => (
-            <div
+            <OptionCard
               key={option.value}
-              className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                colorMatchingMethod === option.value
-                  ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
-                  : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              icon={Palette}
+              label={option.label}
+              description={option.description}
+              isSelected={colorMatchingMethod === option.value}
               onClick={() => onColorMatchingMethodChange(option.value)}
-            >
-              <div className="flex items-center mb-2">
-                <Palette className="w-5 h-5 mr-2 text-blue-500" />
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  {option.label}
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {option.description}
-              </p>
-            </div>
+            />
           ))}
         </div>
       </div>
+
+      {/* Tile Sizing Section */}
       <div className="mt-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Tile Sizing
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
           {tileSizingOptions.map((option) => (
-            <div
+            <OptionCard
               key={option.value}
-              className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                tileSizingMethod === option.value
-                  ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
-                  : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              icon={option.icon}
+              label={option.label}
+              description={option.description}
+              isSelected={tileSizingMethod === option.value}
               onClick={() => onTileSizingMethodChange(option.value)}
-            >
-              <div className="flex items-center mb-2">
-                <option.icon className="w-5 h-5 mr-2 text-blue-500" />
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  {option.label}
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {option.description}
-              </p>
-            </div>
+            />
           ))}
         </div>
       </div>
+
+      {/* Tile Assignment Section */}
       <div className="mt-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Tile Assignment
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {tileAssignmentOptions.map((option) => (
-            <div
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {tileAssignmentOptions.map((option, index) => (
+            <OptionCard
               key={option.value}
-              className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                solver === option.value
-                  ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
-                  : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              icon={option.icon}
+              label={option.label}
+              description={option.description}
+              isSelected={solver === option.value}
               onClick={() => onSolverChange(option.value)}
-            >
-              <div className="flex items-center mb-2">
-                <option.icon className="w-5 h-5 mr-2 text-blue-500" />
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  {option.label}
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {option.description}
-              </p>
-            </div>
+              colSpan={
+                index === tileAssignmentOptions.length - 1 &&
+                tileAssignmentOptions.length % 2 !== 0
+                  ? "sm:col-span-1 col-span-2"
+                  : undefined
+              }
+            />
           ))}
         </div>
       </div>
+
+      {/* Metric Section */}
       <div className="mt-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Metric
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
-          {metricOptions.map((option) => (
-            <div
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          {metricOptions.map((option, index) => (
+            <OptionCard
               key={option.value}
-              className={`px-4 py-2 rounded-lg cursor-pointer transition-colors ${
-                metric === option.value
-                  ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
-                  : "bg-gray-100 dark:bg-gray-700 border-2 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
+              icon={option.icon}
+              label={option.label}
+              description={option.description}
+              isSelected={metric === option.value}
               onClick={() => onMetricChange(option.value)}
-            >
-              <div className="flex items-center mb-2">
-                <option.icon className="w-5 h-5 mr-2 text-blue-500" />
-                <h3 className="font-medium text-gray-800 dark:text-gray-200">
-                  {option.label}
-                </h3>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {option.description}
-              </p>
-            </div>
+              colSpan={
+                index === metricOptions.length - 1 &&
+                metricOptions.length % 2 !== 0
+                  ? "lg:col-span-1 col-span-2"
+                  : undefined
+              }
+            />
           ))}
         </div>
       </div>
+
       <div className="mt-8 flex justify-center">
         <button
           onClick={onCreateMosaic}

@@ -61,8 +61,11 @@ export const useMosaicCreation = (
   }, [worker]);
 
   const handleCreateMosaic = async () => {
-    if (tileImages.length < gridWidth * gridHeight) {
-      alert(`Please select at least ${gridHeight * gridWidth} tile images.`);
+    const requiredTileImages = Math.ceil(
+      (gridWidth * gridHeight) / tileRepeats,
+    );
+    if (tileImages.length < requiredTileImages) {
+      alert(`Please select at least ${requiredTileImages} tile images.`);
       return;
     }
 
