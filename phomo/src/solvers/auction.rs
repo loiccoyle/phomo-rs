@@ -103,7 +103,6 @@ fn find_best_and_second_best(
 
     // Find the tasks corresponding to the two maximum values
     let best_task = values.iter().find(|&&(_, value)| value == max1)?.0;
-    // let second_best_task = values.iter().find(|&&(_, value)| value == max2)?.0;
 
     Some((best_task, max1, max2))
 }
@@ -151,11 +150,6 @@ impl Solve for Auction {
                     return Err(SolverError::from(AuctionError::UnassignedAgents).into());
                 }
             }
-        }
-
-        // Check if all agents are assigned a task
-        if assignment.iter().any(|&a| a.is_none()) {
-            return Err(SolverError::from(AuctionError::UnassignedAgents).into());
         }
 
         Ok(assignment.into_iter().map(|a| a.unwrap()).collect())
