@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useCallback, useState, useRef } from "react";
 import {
   Upload,
   Play,
@@ -87,21 +87,87 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   const [masterImageSize, setMasterImageSize] = useState<
     [number, number] | null
   >(null);
+  const directoryInputRef = useRef<HTMLInputElement | null>(null);
   const requiredTileImages = Math.ceil((gridWidth * gridHeight) / tileRepeats);
   const isTileImagesEnough = tileImages.length >= requiredTileImages;
 
   useEffect(() => {
+    let isMounted = true;
     async function updateGridOverlay(url: string) {
       const masterImageBytes = await fetchImageAsBytes(url);
-      setGridOverlay(
-        `data:image/png;base64,${overlayGrid(masterImageBytes, gridWidth, gridHeight)}`,
-      );
+      if (isMounted) {
+        setGridOverlay(
+          `data:image/png;base64,${overlayGrid(masterImageBytes, gridWidth, gridHeight)}`,
+        );
+      }
     }
 
     if (masterImage === null || !showGrid) return;
 
     updateGridOverlay(masterImage.url);
+
+    return () => {
+      isMounted = false;
+    };
   }, [showGrid, masterImage, gridWidth, gridHeight]);
+
+  const handleGridWidthChange = useCallback(
+    (width: number) => {
+      onGridWidthChange(width);
+      if (matchMasterAspectRatio && masterImage && masterImageSize) {
+        const masterAspectRatio = masterImageSize[0] / masterImageSize[1];
+        onGridHeightChange(Math.round(width / masterAspectRatio));
+      }
+    },
+    [
+      masterImage,
+      matchMasterAspectRatio,
+      masterImageSize,
+      onGridHeightChange,
+      onGridWidthChange,
+    ],
+  );
+
+  useEffect(() => {
+    if (masterImageSize) {
+      onMosaicSizeChange([
+        masterImageSize[0] * upscale,
+        masterImageSize[1] * upscale,
+      ]);
+    }
+  }, [masterImageSize, upscale, onMosaicSizeChange]);
+
+  useEffect(() => {
+    if (matchMasterAspectRatio) {
+      handleGridWidthChange(gridWidth);
+    }
+  }, [matchMasterAspectRatio, gridWidth, handleGridWidthChange]);
+
+  useEffect(() => {
+    if (directoryInputRef.current) {
+      directoryInputRef.current.setAttribute("webkitdirectory", "true");
+      directoryInputRef.current.setAttribute("mozdirectory", "true");
+      directoryInputRef.current.setAttribute("msdirectory", "true");
+      directoryInputRef.current.setAttribute("odirectory", "true");
+      directoryInputRef.current.setAttribute("directory", "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!masterImage) {
+      setMatchMasterAspectRatio(false);
+    }
+  }, [masterImage]);
+
+  useEffect(() => {
+    if (masterImage) {
+      const img = new Image();
+      img.src = masterImage.url;
+      img.onload = () => {
+        setMasterImageSize([img.width, img.height]);
+      };
+    }
+  }, [masterImage]);
 
   const colorMatchingOptions = [
     {
@@ -199,49 +265,6 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
     },
   ];
 
-  useEffect(() => {
-    if (masterImage) {
-      const img = new Image();
-      img.src = masterImage.url;
-      img.onload = () => {
-        setMasterImageSize([img.width, img.height]);
-      };
-    }
-  }, [masterImage]);
-
-  const handleGridWidthChange = useMemo(
-    () => (width: number) => {
-      onGridWidthChange(width);
-      if (matchMasterAspectRatio && masterImage) {
-        const masterAspectRatio = masterImageSize![0] / masterImageSize![1];
-        onGridHeightChange(Math.round(width / masterAspectRatio));
-      }
-    },
-    [masterImage, matchMasterAspectRatio, masterImageSize],
-  );
-
-  useEffect(() => {
-    if (masterImageSize) {
-      onMosaicSizeChange([
-        masterImageSize[0] * upscale,
-        masterImageSize[1] * upscale,
-      ]);
-    }
-  }, [masterImageSize, upscale]);
-
-  useEffect(() => {
-    if (matchMasterAspectRatio) {
-      // when the match aspect ratio is enabled, refresh the grid width to also set the grid height
-      handleGridWidthChange(gridWidth);
-    }
-  }, [matchMasterAspectRatio]);
-
-  useEffect(() => {
-    if (!masterImage) {
-      setMatchMasterAspectRatio(false);
-    }
-  }, [masterImage]);
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -296,7 +319,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 htmlFor="upscale"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3"
               >
-                <span className="">Upscale x{upscale}</span>
+                Upscale x{upscale}
               </label>
               <input
                 id="upscale"
@@ -322,10 +345,9 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
             <div className="relative h-full">
               <button
                 onClick={onClearTileImages}
-                className={
-                  "absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors " +
-                  (tileImages.length === 0 ? "hidden" : "")
-                }
+                className={`absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors ${
+                  tileImages.length === 0 ? "hidden" : ""
+                }`}
               >
                 <X size={16} />
               </button>
@@ -341,13 +363,12 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                     <input
                       type="file"
                       className="hidden"
-                      accept="image/*"
+                      accept="image/png, image/jpeg"
                       multiple
                       id="file-input"
                       onChange={(e) => {
                         const files = e.target.files;
                         if (files) {
-                          // Filter files to include only valid images (PNG, JPG)
                           const imageFiles = Array.from(files).filter((file) =>
                             ["image/png", "image/jpeg"].includes(file.type),
                           );
@@ -367,21 +388,11 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                       type="file"
                       className="hidden"
                       multiple
-                      ref={(input) => {
-                        if (input) {
-                          // Set webkitdirectory manually for directory selection
-                          input.setAttribute("webkitdirectory", "true");
-                          input.setAttribute("mozdirectory", "true");
-                          input.setAttribute("msdirectory", "true");
-                          input.setAttribute("odirectory", "true");
-                          input.setAttribute("directory", "true");
-                        }
-                      }}
+                      ref={directoryInputRef}
                       id="directory-input"
                       onChange={(e) => {
                         const files = e.target.files;
                         if (files) {
-                          // Filter files to include only valid images (PNG, JPG)
                           const imageFiles = Array.from(files).filter((file) =>
                             ["image/png", "image/jpeg"].includes(file.type),
                           );
@@ -398,19 +409,22 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                   </div>
                 </div>
                 <p
-                  className={`text-sm ${isTileImagesEnough ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                  className={`text-sm ${
+                    isTileImagesEnough
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-red-600 dark:text-red-400"
+                  }`}
                 >
                   {tileImages.length} / {requiredTileImages} images selected
                 </p>
                 <button
                   disabled={!tileImages.length}
                   onClick={() => setIsTileModalOpen(true)}
-                  className={
-                    "flex items-center justify-center px-4 py-1 rounded-lg" +
-                    (tileImages.length === 0
-                      ? " bg-gray-200 dark:bg-gray-600 text-gray-400"
-                      : " bg-blue-500 text-white hover:bg-blue-600 transition-colors")
-                  }
+                  className={`flex items-center justify-center px-4 py-1 rounded-lg ${
+                    tileImages.length === 0
+                      ? "bg-gray-200 dark:bg-gray-600 text-gray-400"
+                      : "bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+                  }`}
                 >
                   <ImageIcon className="w-5 h-5 mr-2" />
                   Manage
@@ -422,7 +436,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 htmlFor="tileRepeats"
                 className="text-sm font-medium text-gray-700 dark:text-gray-300 w-1/3"
               >
-                <span className="">Tile Repeats</span>
+                Tile Repeats
               </label>
               <div className="flex items-center space-x-4 h-6 w-full">
                 <input
@@ -442,10 +456,11 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
                 <input
                   id="tileRepeats"
                   type="number"
-                  min="2"
+                  min="1"
                   value={tileRepeats}
                   onChange={(e) => {
-                    onTileRepeatsChange(Math.max(parseInt(e.target.value), 1));
+                    const value = parseInt(e.target.value);
+                    onTileRepeatsChange(isNaN(value) ? 1 : Math.max(value, 1));
                   }}
                   className="w-12 text-center rounded-md text-gray-700 bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
                   disabled={matchMasterAspectRatio}
@@ -490,7 +505,11 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
         </div>
         <div className="flex justify-center align-middle items-center flex-col gap-2">
           <div
-            className={`flex align-middle bg-gray-100 rounded-2xl dark:bg-gray-700 p-1  ${masterImage ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" : "opacity-50"}`}
+            className={`flex align-middle bg-gray-100 rounded-2xl dark:bg-gray-700 p-1  ${
+              masterImage
+                ? "cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+                : "opacity-50"
+            }`}
             onClick={() => masterImage && setShowGrid((prev) => !prev)}
           >
             {showGrid ? (
@@ -501,7 +520,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
           </div>
           {showGrid && masterImage && gridOverlay && (
             <div className="rounded-md p-2 flex flex-center flex-col justify-center align-middle items-center w-full">
-              <img src={gridOverlay} className="max-full rounded-lg" />
+              <img src={gridOverlay} className="max-w-full rounded-lg" />
             </div>
           )}
         </div>
@@ -598,12 +617,11 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
       <div className="mt-8 flex justify-center">
         <button
           onClick={onCreateMosaic}
-          className={
-            "flex items-center justify-center px-6 py-3 rounded-lg transition-colors text-lg font-semibold " +
-            (isTileImagesEnough
+          className={`flex items-center justify-center px-6 py-3 rounded-lg transition-colors text-lg font-semibold ${
+            isTileImagesEnough
               ? "bg-green-500 hover:bg-green-600 text-white"
-              : "bg-gray-300 dark:bg-gray-700 text-gray-400")
-          }
+              : "bg-gray-300 dark:bg-gray-700 text-gray-400"
+          }`}
           disabled={!isTileImagesEnough || !masterImage}
         >
           <Play className="w-6 h-6 mr-2" />
