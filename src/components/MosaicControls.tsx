@@ -25,6 +25,8 @@ import OptionCard from "./OptionCard";
 import { MetricType, ResizeType, Solver } from "phomo-wasm";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import { UserImage } from "../types/userImage";
+import { fetchImageAsBytes } from "../utils/imageUtils";
+import { overlayGrid } from "phomo-wasm";
 
 interface MosaicControlsProps {
   gridWidth: number;
@@ -32,7 +34,6 @@ interface MosaicControlsProps {
   tileImages: UserImage[];
   tileRepeats: number;
   masterImage: UserImage | null;
-  gridOverlay: string | null;
   colorMatchingMethod: string;
   tileSizingMethod: ResizeType;
   metric: MetricType;
@@ -59,7 +60,6 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   tileImages,
   tileRepeats,
   masterImage,
-  gridOverlay,
   colorMatchingMethod,
   tileSizingMethod,
   metric,
@@ -80,6 +80,7 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   onSolverChange,
 }) => {
   const [showGrid, setShowGrid] = useState(false);
+  const [gridOverlay, setGridOverlay] = useState<string | null>(null);
   const [matchMasterAspectRatio, setMatchMasterAspectRatio] = useState(false);
   const [isTileModalOpen, setIsTileModalOpen] = useState(false);
   const [upscale, setUpscale] = useState(1);
@@ -88,6 +89,19 @@ const MosaicControls: React.FC<MosaicControlsProps> = ({
   >(null);
   const requiredTileImages = Math.ceil((gridWidth * gridHeight) / tileRepeats);
   const isTileImagesEnough = tileImages.length >= requiredTileImages;
+
+  useEffect(() => {
+    async function updateGridOverlay(url: string) {
+      const masterImageBytes = await fetchImageAsBytes(url);
+      setGridOverlay(
+        `data:image/png;base64,${overlayGrid(masterImageBytes, gridWidth, gridHeight)}`,
+      );
+    }
+
+    if (masterImage === null || !showGrid) return;
+
+    updateGridOverlay(masterImage.url);
+  }, [showGrid, masterImage, gridWidth, gridHeight]);
 
   const colorMatchingOptions = [
     {

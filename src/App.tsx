@@ -12,7 +12,6 @@ const App: React.FC = () => {
   const {
     masterImage,
     mosaicImageSize,
-    gridOverlay,
     tileImages,
     tileRepeats,
     gridWidth,
@@ -62,7 +61,6 @@ const App: React.FC = () => {
             tileImages={tileImages}
             tileRepeats={tileRepeats}
             masterImage={masterImage}
-            gridOverlay={gridOverlay}
             colorMatchingMethod={colorMatchingMethod}
             tileSizingMethod={tileSizingMethod}
             metric={metric}

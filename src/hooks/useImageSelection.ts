@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { overlayGrid } from "phomo-wasm";
-import { fetchImageAsBytes } from "../utils/imageUtils";
+import { useState } from "react";
 import { UserImage } from "../types/userImage";
 
 export const useImageSelection = () => {
@@ -8,7 +6,6 @@ export const useImageSelection = () => {
   const [mosaicImageSize, setMosaicImageSize] = useState<
     [number, number] | null
   >(null);
-  const [gridOverlay, setGridOverlay] = useState<string | null>(null);
   const [tileImages, setTileImages] = useState<UserImage[]>([]);
   const [gridWidth, setGridWidth] = useState(20);
   const [gridHeight, setGridHeight] = useState(20);
@@ -39,21 +36,9 @@ export const useImageSelection = () => {
     setTileImages((prevImages) => prevImages.filter((_, i) => i !== index));
   };
 
-  useEffect(() => {
-    async function updateGridOverlay() {
-      if (masterImage === null) return;
-      const masterImageBytes = await fetchImageAsBytes(masterImage.url);
-      setGridOverlay(
-        `data:image/png;base64,${overlayGrid(masterImageBytes, gridWidth, gridHeight)}`,
-      );
-    }
-    updateGridOverlay();
-  }, [masterImage, gridWidth, gridHeight]);
-
   return {
     masterImage,
     mosaicImageSize,
-    gridOverlay,
     tileImages,
     tileRepeats,
     gridWidth,
