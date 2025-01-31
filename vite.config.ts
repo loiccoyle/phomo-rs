@@ -7,5 +7,14 @@ import topLevelAwait from "vite-plugin-top-level-await";
 export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait()],
   worker: { plugins: () => [wasm(), topLevelAwait()], format: "es" },
-  build: { outDir: "docs" },
+  build: {
+    target: "esnext", // Force modern ES features
+    outDir: "docs",
+  },
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
+  },
 });

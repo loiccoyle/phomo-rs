@@ -1,6 +1,11 @@
 import { Mosaic } from "phomo-wasm";
 import { fetchImageAsBytes } from "../utils/imageUtils";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
+import init, { initThreadPool } from "phomo-wasm";
+
+const wasmUrl = new URL("phomo-wasm/phomo_wasm_bg.wasm", import.meta.url);
+await init(wasmUrl.href);
+await initThreadPool(navigator.hardwareConcurrency || 1);
 
 const fetchImagesAsBytes = async (urls: string[]): Promise<Uint8Array[]> => {
   return Promise.all(urls.map((url) => fetchImageAsBytes(url)));
@@ -20,6 +25,7 @@ self.onmessage = async (event) => {
     colorMatchingMethod,
     mosaicImageSize,
   } = event.data;
+
   console.log(event.data);
   try {
     const masterImageBytes = await fetchImageAsBytes(masterImageUrl);
