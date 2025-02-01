@@ -151,6 +151,31 @@ mod tests {
         test_dir().join("tiles/")
     }
 
+    fn test_master() -> PathBuf {
+        PathBuf::from("tests/data/master/master.png")
+    }
+
+    #[test]
+    fn test_crop_cover() {
+        let master = image::open(test_master()).unwrap().to_rgb8();
+        let master_dim = master.dimensions();
+        let cropped = crop_cover(
+            &master,
+            master_dim.0 / 2,
+            master_dim.1 / 2,
+            image::imageops::FilterType::Nearest,
+        );
+        assert_eq!(cropped.dimensions(), (master_dim.0 / 2, master_dim.1 / 2));
+
+        let cropped = crop_cover(
+            &master,
+            master_dim.0 * 2,
+            master_dim.1 * 2,
+            image::imageops::FilterType::Nearest,
+        );
+        assert_eq!(cropped.dimensions(), (master_dim.0 * 2, master_dim.1 * 2));
+    }
+
     #[test]
     fn test_crop_imm_centered() {
         // create white image with a black pixel centered on the image
