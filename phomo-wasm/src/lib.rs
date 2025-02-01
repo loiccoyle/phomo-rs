@@ -5,6 +5,7 @@ use phomo::{
     Mosaic as MosaicRs,
 };
 use phomo::{DistanceMatrix, SolverConfig};
+use rayon::prelude::*;
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 extern crate wasm_logger;
@@ -107,12 +108,17 @@ impl Mosaic {
         let master = MasterRs::from_image(master_img, (grid_width, grid_height))
             .map_err(|err| JsValue::from(err.to_string()))?;
         let (cell_width, cell_height) = master.cell_size;
+        // convert js data to rust data
+        let tile_data: Vec<Vec<u8>> = tile_imgs_data
+            .iter()
+            .map(|data| js_sys::Uint8Array::new(&data).to_vec())
+            .collect();
 
         // Load tile images
-        let tile_imgs = (0..tile_imgs_data.length())
-            .map(|i| {
-                let data = js_sys::Uint8Array::new(&tile_imgs_data.get(i)).to_vec();
-                let img = image::load_from_memory(&data)
+        let tile_imgs = tile_data
+            .par_iter()
+            .map(|data| {
+                let img = image::load_from_memory(data)
                     .map_err(|err| JsValue::from(err.to_string()))
                     .unwrap()
                     .to_rgb8();

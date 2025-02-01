@@ -1113,6 +1113,7 @@ dependencies = [
  "image",
  "js-sys",
  "phomo",
+ "rayon",
  "serde-wasm-bindgen",
  "wasm-bindgen",
  "wasm-bindgen-rayon",
