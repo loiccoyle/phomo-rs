@@ -12,6 +12,10 @@
   * dependencies
     * phomo bumped from 0.7.1 to 0.7.2
 
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.7.2 to 0.7.3
+
 ## [0.6.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-cli-v0.5.0...phomo-cli-v0.6.0) (2025-01-26)
 
 
