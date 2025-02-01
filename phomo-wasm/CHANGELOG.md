@@ -8,6 +8,21 @@
   * dependencies
     * phomo bumped from 0.7.0 to 0.7.1
 
+## [0.10.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.10.0...phomo-wasm-v0.10.1) (2025-02-01)
+
+
+### Bug Fixes
+
+* cleanup mosaic init, remove panic ([12a00c4](https://github.com/loiccoyle/phomo-rs/commit/12a00c4149a75c4e11444a8fa47f035433e3c19b))
+* load the imgs in parallel ([cfb5b6c](https://github.com/loiccoyle/phomo-rs/commit/cfb5b6cb29d738cd5fb85e2b054e71dd611e9783))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.7.2 to 0.7.3
+
 ## [0.10.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.9.1...phomo-wasm-v0.10.0) (2025-02-01)
 
 

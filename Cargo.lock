@@ -1076,7 +1076,7 @@ dependencies = [
 
 [[package]]
 name = "phomo"
-version = "0.7.2"
+version = "0.7.3"
 dependencies = [
  "criterion",
  "image",
@@ -1091,7 +1091,7 @@ dependencies = [
 
 [[package]]
 name = "phomo-cli"
-version = "0.6.2"
+version = "0.6.3"
 dependencies = [
  "assert_cmd",
  "assert_fs",
@@ -1106,7 +1106,7 @@ dependencies = [
 
 [[package]]
 name = "phomo-wasm"
-version = "0.10.0"
+version = "0.10.1"
 dependencies = [
  "base64",
  "console_error_panic_hook",

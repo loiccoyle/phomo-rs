@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.7.2...phomo-v0.7.3) (2025-02-01)
+
+
+### Bug Fixes
+
+* cleanup logging ([2ec638b](https://github.com/loiccoyle/phomo-rs/commit/2ec638bce4e35780d857004ac6778120727563fd))
+
 ## [0.7.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.7.1...phomo-v0.7.2) (2025-02-01)
 
 
