@@ -2,7 +2,7 @@ use std::path::Path;
 
 extern crate image;
 use image::{GenericImage, GenericImageView, Rgb, RgbImage};
-use log::{debug, info};
+use log::info;
 
 use crate::error::{MasterError, PhomoError};
 use crate::utils;
@@ -36,19 +36,21 @@ impl Master {
         // the number of cells in each dimension of the grid
         let (grid_width, grid_height) = grid_size;
         let (cell_width, cell_height) = (img_width / grid_width, img_height / grid_height);
-        info!("Grid Cell size: {}x{}", cell_width, cell_height);
+        info!("Grid cell size: {}x{}", cell_width, cell_height);
         // How much is left over around the grid
         let (width_extra, height_extra) = (img_width % grid_width, img_height % grid_height);
 
         let img = if width_extra > 0 || height_extra > 0 {
-            info!("Cropping image to fit grid");
-            let img_cropped =
-                utils::crop_imm_centered(&img, img_width - width_extra, img_height - height_extra);
+            let (new_width, new_height) = (img_width - width_extra, img_height - height_extra);
+            info!(
+                "Cropping image to fit grid: {}x{} -> {}x{}",
+                img_width, img_height, new_width, new_height
+            );
+            let img_cropped = utils::crop_imm_centered(&img, new_width, new_height);
             img_cropped.to_image()
         } else {
             img
         };
-        debug!("Image dimensions: {}x{}", img.width(), img.height());
 
         let cells = Self::construct_regions(&img, grid_size)?;
         Ok(Master {
