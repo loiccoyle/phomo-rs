@@ -5,12 +5,9 @@ use phomo::{
     Mosaic as MosaicRs,
 };
 use phomo::{DistanceMatrix, SolverConfig};
-use rayon::prelude::*;
 use std::io::Cursor;
 use wasm_bindgen::prelude::*;
 extern crate wasm_logger;
-
-pub use wasm_bindgen_rayon::init_thread_pool;
 
 #[wasm_bindgen(start)]
 pub fn init_panic_hook() {
@@ -116,7 +113,7 @@ impl Mosaic {
 
         // Load tile images
         let tile_imgs = tile_data
-            .par_iter()
+            .iter()
             .map(|data| {
                 let img = image::load_from_memory(data)
                     .map_err(|err| JsValue::from(err.to_string()))
