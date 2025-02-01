@@ -8,6 +8,20 @@
   * dependencies
     * phomo bumped from 0.7.0 to 0.7.1
 
+## [0.10.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.9.1...phomo-wasm-v0.10.0) (2025-02-01)
+
+
+### Features
+
+* **phomo-wasm:** use `wasm-bindgen-rayon` to enable parallelization, also enable `simd` ([14ebbfd](https://github.com/loiccoyle/phomo-rs/commit/14ebbfd181c8a40536614576208252848e52b34a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * phomo bumped from 0.7.1 to 0.7.2
+
 ## [0.9.0](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.8.1...phomo-wasm-v0.9.0) (2025-01-26)
 
 

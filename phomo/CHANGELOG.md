@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.7.1...phomo-v0.7.2) (2025-02-01)
+
+
+### Bug Fixes
+
+* unused import when build wasm ([2b9e5a2](https://github.com/loiccoyle/phomo-rs/commit/2b9e5a26963cc4f6a29ffe3339dd28090665c460))
+
 ## [0.7.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-v0.7.0...phomo-v0.7.1) (2025-01-26)
 
 
