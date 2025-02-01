@@ -1097,7 +1097,7 @@ dependencies = [
 
 [[package]]
 name = "phomo-wasm"
-version = "0.10.1"
+version = "0.10.2"
 dependencies = [
  "base64",
  "console_error_panic_hook",
