@@ -38,23 +38,23 @@ export const useMosaicCreation = (
   // We create a function so we can reattach these to a new worker when needed.
   const setupWorkerListeners = (w: Worker) => {
     w.onmessage = (event) => {
-      console.log("Message received from worker:", event);
-      setBuildingMosaic(false);
+      console.debug("Message received from worker:", event);
 
-      // If the worker reports an error (e.g. during initialization), we can recreate it.
-      if (event.data.error) {
-        alert(`Error while building mosaic: ${event.data.error}`);
-        // Optionally, recreate the worker here if needed.
+      if (event.data.type == "error") {
+        setBuildingMosaic(false);
+        alert(`Error while building mosaic: ${event.data.message}`);
+        // If the worker reports an error (e.g. during initialization), we can recreate it.
         const newWorker = createWorker();
         setupWorkerListeners(newWorker);
         setWorker(newWorker);
-        return;
+      } else if (event.data.type == "log") {
+        console.log("Web Worker:", event.data.message);
+      } else if (event.data.type == "mosaic") {
+        setBuildingMosaic(false);
+        setMosaicImage(event.data.mosaicImage);
+        setMosaicBlueprint(event.data.mosaicBlueprint);
+        setMosaicTiles(event.data.mosaicTiles);
       }
-
-      // Process a valid result
-      setMosaicImage(event.data.mosaicImage);
-      setMosaicBlueprint(event.data.mosaicBlueprint);
-      setMosaicTiles(event.data.mosaicTiles);
     };
 
     w.onerror = (event) => {

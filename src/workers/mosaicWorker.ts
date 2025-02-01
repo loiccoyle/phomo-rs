@@ -1,22 +1,6 @@
 import { Mosaic } from "phomo-wasm";
 import { fetchImageAsBytes } from "../utils/imageUtils";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
-import init, { initThreadPool } from "phomo-wasm";
-
-try {
-  await init();
-  await initThreadPool(navigator.hardwareConcurrency || 1);
-} catch (initError) {
-  let errorMessage = "WASM initialization failed.";
-  if (initError instanceof Error) {
-    errorMessage = initError.message;
-  } else if (typeof initError === "string") {
-    errorMessage = initError;
-  } else {
-    errorMessage = String(initError);
-  }
-  self.postMessage({ error: `WASM initialization error: ${errorMessage}` });
-}
 
 const fetchImagesAsBytes = async (urls: string[]): Promise<Uint8Array[]> => {
   return Promise.all(urls.map((url) => fetchImageAsBytes(url)));
@@ -50,6 +34,7 @@ self.onmessage = async (event) => {
       tileSizingMethod,
       mosaicImageSize ? Uint32Array.from(mosaicImageSize) : undefined,
     );
+    self.postMessage({ type: "log", message: "Mosaic initialized" });
 
     switch (colorMatchingMethod) {
       case ColorMatchingMethod.MasterToTile:
@@ -64,22 +49,25 @@ self.onmessage = async (event) => {
     }
 
     const blueprint = mosaic.buildBlueprintWithSolver(metric, solver);
+    self.postMessage({ type: "log", message: "Built blueprint" });
 
     const mosaicBase64 = mosaic.renderBlueprint(blueprint);
+    self.postMessage({ type: "log", message: "Rendered blueprint" });
 
     self.postMessage({
       mosaicTiles: mosaic.getTiles(),
       mosaicBlueprint: blueprint,
       mosaicImage: mosaicBase64,
+      type: "mosaic",
     });
   } catch (error) {
     let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
-      errorMessage = error.message; // If it's a standard Error object
+      errorMessage = error.message;
     } else if (typeof error === "string") {
-      errorMessage = error; // If the error is a string
+      errorMessage = error;
     }
 
-    self.postMessage({ error: errorMessage });
+    self.postMessage({ message: errorMessage, type: "error" });
   }
 };

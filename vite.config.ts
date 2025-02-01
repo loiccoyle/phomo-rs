@@ -11,10 +11,4 @@ export default defineConfig({
     target: "esnext", // Force modern ES features
     outDir: "docs",
   },
-  server: {
-    headers: {
-      "Cross-Origin-Opener-Policy": "same-origin",
-      "Cross-Origin-Embedder-Policy": "require-corp",
-    },
-  },
 });
