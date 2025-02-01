@@ -3,9 +3,20 @@ import { fetchImageAsBytes } from "../utils/imageUtils";
 import { ColorMatchingMethod } from "../types/colorMatchingMethods";
 import init, { initThreadPool } from "phomo-wasm";
 
-const wasmUrl = new URL("phomo-wasm/phomo_wasm_bg.wasm", import.meta.url);
-await init(wasmUrl.href);
-await initThreadPool(navigator.hardwareConcurrency || 1);
+try {
+  await init();
+  await initThreadPool(navigator.hardwareConcurrency || 1);
+} catch (initError) {
+  let errorMessage = "WASM initialization failed.";
+  if (initError instanceof Error) {
+    errorMessage = initError.message;
+  } else if (typeof initError === "string") {
+    errorMessage = initError;
+  } else {
+    errorMessage = String(initError);
+  }
+  self.postMessage({ error: `WASM initialization error: ${errorMessage}` });
+}
 
 const fetchImagesAsBytes = async (urls: string[]): Promise<Uint8Array[]> => {
   return Promise.all(urls.map((url) => fetchImageAsBytes(url)));

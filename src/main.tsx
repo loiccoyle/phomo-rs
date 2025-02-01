@@ -5,8 +5,7 @@ import init, { initThreadPool } from "phomo-wasm";
 import "./index.css";
 
 async function initializeApp() {
-  const wasmUrl = new URL("phomo-wasm/phomo_wasm_bg.wasm", import.meta.url);
-  await init(wasmUrl.href);
+  await init();
   await initThreadPool(navigator.hardwareConcurrency || 1);
 }
 
