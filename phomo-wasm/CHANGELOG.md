@@ -8,6 +8,13 @@
   * dependencies
     * phomo bumped from 0.7.0 to 0.7.1
 
+## [0.10.2](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.10.1...phomo-wasm-v0.10.2) (2025-02-01)
+
+
+### Bug Fixes
+
+* remove `wasm-bindgen-rayon` ([f888c74](https://github.com/loiccoyle/phomo-rs/commit/f888c745c3d3da3bef48570a9f656dc86eb6281d))
+
 ## [0.10.1](https://github.com/loiccoyle/phomo-rs/compare/phomo-wasm-v0.10.0...phomo-wasm-v0.10.1) (2025-02-01)
 
 
