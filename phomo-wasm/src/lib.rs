@@ -79,7 +79,7 @@ impl Mosaic {
     /// - `grid_height`: The number of grid rows.
     /// - `max_tile_occurrences`: The maximum number of times a tile can be used in the mosaic.
     /// - `tile_resize`: The type of tile resizing to apply.
-    /// - ''master_resize`: The desired size of the master image after resizing.
+    /// - 'master_resize`: The desired size of the master image, useful for upsacling.
     #[wasm_bindgen(constructor)]
     pub fn new(
         master_img_data: &[u8],
@@ -104,6 +104,10 @@ impl Mosaic {
             );
         }
 
+        let master = MasterRs::from_image(master_img, (grid_width, grid_height))
+            .map_err(|err| JsValue::from(err.to_string()))?;
+        let (cell_width, cell_height) = master.cell_size;
+
         // Load tile images
         let tile_imgs = (0..tile_imgs_data.length())
             .map(|i| {
@@ -112,9 +116,6 @@ impl Mosaic {
                     .map_err(|err| JsValue::from(err.to_string()))
                     .unwrap()
                     .to_rgb8();
-
-                let cell_width = master_img.width() / grid_width;
-                let cell_height = master_img.height() / grid_height;
                 match tile_resize {
                     Some(ResizeType::Resize) => image::imageops::resize(
                         &img,
@@ -122,23 +123,19 @@ impl Mosaic {
                         cell_height,
                         image::imageops::FilterType::Nearest,
                     ),
-                    Some(ResizeType::Crop) => {
-                        if cell_width > img.width() || cell_height > img.height() {
-                            panic!("Could not crop tile to cell size as the cell size is larger than the tile size.");
-                        }
-                            utils::crop_cover(&img, cell_width, cell_height, image::imageops::FilterType::Nearest)
-                        }
+                    Some(ResizeType::Crop) => utils::crop_cover(
+                        &img,
+                        cell_width,
+                        cell_height,
+                        image::imageops::FilterType::Nearest,
+                    ),
                     None => img,
                 }
             })
             .collect::<Vec<_>>();
 
-        let mosaic = MosaicRs::from_images(
-            master_img.clone(),
-            tile_imgs.clone(),
-            (grid_width, grid_height),
-        )
-        .map_err(|err| JsValue::from(err.to_string()))?;
+        let mosaic = MosaicRs::new(master, tile_imgs, (grid_width, grid_height))
+            .map_err(|err| JsValue::from(err.to_string()))?;
 
         Ok(Mosaic {
             inner: mosaic,
