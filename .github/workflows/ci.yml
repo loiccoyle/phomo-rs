@@ -75,7 +75,7 @@ jobs:
         run: |
           cargo install wasm-pack
           cd phomo-wasm
-          wasm-pack build
+          wasm-pack build --target web
           npm publish pkg/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
