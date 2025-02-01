@@ -11,22 +11,20 @@ description = "Wasm bindings for the phomo rust crate - a photo mosaic library"
 [dependencies]
 phomo = { path = "../phomo", version = "0.7.1", default-features = false, features = [
   "blueprint",
+  "parallel",
 ] }
 image = { workspace = true }
 
-wasm-bindgen = "0.2.95"
-base64 = "0.22.1"
-
-# the "js" feature is required to run wasm-pack
-# https://docs.rs/getrandom/latest/getrandom/#webassembly-support
-getrandom = { version = "0.2", features = ["js"] }
-# to avoid: The specifier “env” was a bare specifier, but it is not a valid package specifier.
-# https://github.com/rustwasm/wasm-bindgen/discussions/3500#discussioncomment-6334669
-instant = { version = "0.1.13", features = ["wasm-bindgen"] }
-console_error_panic_hook = "0.1.7"
-js-sys = "0.3.72"
+wasm-bindgen = "0.2.100"
+wasm-bindgen-rayon = "1.3.0"
 wasm-logger = "0.2.0"
 serde-wasm-bindgen = "0.6.5"
+console_error_panic_hook = "0.1.7"
+base64 = "0.22.1"
+js-sys = "0.3.77"
 
 [lib]
 crate-type = ["cdylib"]
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-O4', '--enable-bulk-memory', '--enable-threads', '--enable-simd']
