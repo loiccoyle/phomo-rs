@@ -1,7 +1,12 @@
+use std::simd::num::{SimdInt, SimdUint};
+use std::simd::Simd;
+
 extern crate image;
 use image::RgbImage;
 
 pub(crate) type MetricFn = fn(&RgbImage, &RgbImage) -> i64;
+
+const SIMD_LANES: usize = 64;
 
 /// L1 norm, the sum of the absolute differences of the pixels.
 ///
@@ -17,11 +22,28 @@ pub(crate) type MetricFn = fn(&RgbImage, &RgbImage) -> i64;
 /// assert_eq!(norm, 255 * 3 * 2 * 2);
 /// ```
 pub fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
-    img1.pixels().zip(img2.pixels()).fold(0, |sum, (p1, p2)| {
-        sum + (p1[0].abs_diff(p2[0]) as i64)
-            + (p1[1].abs_diff(p2[1]) as i64)
-            + (p1[2].abs_diff(p2[2]) as i64)
-    })
+    let data1 = img1.as_raw();
+    let data2 = img2.as_raw();
+
+    let len = data1.len();
+    let mut sum: i64 = 0;
+    let mut i = 0;
+
+    // compute in simd buffers
+    while i + SIMD_LANES <= len {
+        let a: Simd<i16, SIMD_LANES> = Simd::from_slice(&data1[i..i + SIMD_LANES]).cast();
+        let b: Simd<i16, SIMD_LANES> = Simd::from_slice(&data2[i..i + SIMD_LANES]).cast();
+        sum += (a - b).abs().reduce_sum() as i64;
+        i += SIMD_LANES;
+    }
+
+    // handle the remaining left over data which doesn't fit in a SIMD_LANES sized buffer
+    while i < len {
+        sum += data1[i].abs_diff(data2[i]) as i64;
+        i += 1;
+    }
+
+    sum
 }
 
 /// L2 norm, the euclidean distance of the pixels.
@@ -41,14 +63,28 @@ pub fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
 /// assert_eq!(norm, (255_i64.pow(2) * 3 * 2 * 2).isqrt());
 /// ```
 pub fn norm_l2(img1: &RgbImage, img2: &RgbImage) -> i64 {
-    img1.pixels()
-        .zip(img2.pixels())
-        .fold(0, |sum, (p1, p2)| {
-            sum + (p1[0].abs_diff(p2[0]) as i64).pow(2)
-                + (p1[1].abs_diff(p2[1]) as i64).pow(2)
-                + (p1[2].abs_diff(p2[2]) as i64).pow(2)
-        })
-        .isqrt()
+    let data1 = img1.as_raw();
+    let data2 = img2.as_raw();
+
+    let len = data1.len();
+    let mut sum: i64 = 0;
+    let mut i = 0;
+
+    while i + SIMD_LANES <= len {
+        let a: Simd<i16, SIMD_LANES> = Simd::from_slice(&data1[i..i + SIMD_LANES]).cast();
+        let b: Simd<i16, SIMD_LANES> = Simd::from_slice(&data2[i..i + SIMD_LANES]).cast();
+        let diff = a - b;
+        sum += (diff * diff).reduce_sum() as i64;
+        i += SIMD_LANES;
+    }
+
+    while i < len {
+        let diff = data1[i].abs_diff(data2[i]) as i64;
+        sum += diff * diff;
+        i += 1;
+    }
+
+    sum.isqrt()
 }
 
 #[inline]
