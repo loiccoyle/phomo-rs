@@ -58,7 +58,7 @@ impl DistanceMatrix {
     ///
     /// # Arguments
     /// - `solver`: The solver to use to solve the assignment problem. See [`phomo::solvers`](crate::solvers)
-    ///     for structs which implement this trait.
+    ///   for structs which implement this trait.
     ///
     /// # Errors
     /// - [`PhomoError::SolverError`]: An error occurred while solving the assignment problem.
