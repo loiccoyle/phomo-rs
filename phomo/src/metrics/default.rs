@@ -4,12 +4,6 @@ pub(crate) fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
     let data1 = img1.as_raw();
     let data2 = img2.as_raw();
 
-    assert_eq!(
-        data1.len(),
-        data2.len(),
-        "Images must have the same number of pixels"
-    );
-
     data1
         .iter()
         .zip(data2.iter())
