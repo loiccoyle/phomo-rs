@@ -61,7 +61,7 @@ impl Mosaic {
     /// - `tiles`: The tile image buffers.
     /// - `grid_size`: The grid size of the mosaic, the number of cells horizontally and vertically.
     /// - `max_tile_occurrences`: The maximum number of times a tile can be repeated in the mosaic.
-    ///     Should be greater than 0.
+    ///   Should be greater than 0.
     ///
     /// # Errors
     /// - [`PhomoError::MasterError`]: An error occurred while constructing the [`Master`].
@@ -166,8 +166,8 @@ impl Mosaic {
     ///
     /// # Arguments
     /// - `assignments`: The tile index assigned to each master cell.
-    ///    The length of the assignments should be equal to the number of master cells.
-    ///    The tile index should be less than the number of tiles.
+    ///   The length of the assignments should be equal to the number of master cells.
+    ///   The tile index should be less than the number of tiles.
     ///
     /// # Errors
     /// - [`PhomoError::MosaicError`]: An error occurred while rendering the mosaic.

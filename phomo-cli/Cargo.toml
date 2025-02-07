@@ -16,6 +16,7 @@ path = "src/main.rs"
 phomo = { path = "../phomo", version = "0.7.3", features = [
   "parallel",
   "progress_bar",
+  "simd",
 ] }
 
 clap = { version = "4.5.26", features = ["derive"] }

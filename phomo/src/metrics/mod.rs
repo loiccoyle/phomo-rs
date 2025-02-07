@@ -1,6 +1,13 @@
 extern crate image;
 use image::RgbImage;
 
+#[cfg(feature = "simd")]
+#[path = "simd.rs"]
+mod maybe_simd;
+#[cfg(not(feature = "simd"))]
+#[path = "default.rs"]
+mod maybe_simd;
+
 pub(crate) type MetricFn = fn(&RgbImage, &RgbImage) -> i64;
 
 /// L1 norm, the sum of the absolute differences of the pixels.
@@ -17,11 +24,7 @@ pub(crate) type MetricFn = fn(&RgbImage, &RgbImage) -> i64;
 /// assert_eq!(norm, 255 * 3 * 2 * 2);
 /// ```
 pub fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
-    img1.pixels().zip(img2.pixels()).fold(0, |sum, (p1, p2)| {
-        sum + (p1[0].abs_diff(p2[0]) as i64)
-            + (p1[1].abs_diff(p2[1]) as i64)
-            + (p1[2].abs_diff(p2[2]) as i64)
-    })
+    maybe_simd::norm_l1(img1, img2)
 }
 
 /// L2 norm, the euclidean distance of the pixels.
@@ -41,14 +44,7 @@ pub fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
 /// assert_eq!(norm, (255_i64.pow(2) * 3 * 2 * 2).isqrt());
 /// ```
 pub fn norm_l2(img1: &RgbImage, img2: &RgbImage) -> i64 {
-    img1.pixels()
-        .zip(img2.pixels())
-        .fold(0, |sum, (p1, p2)| {
-            sum + (p1[0].abs_diff(p2[0]) as i64).pow(2)
-                + (p1[1].abs_diff(p2[1]) as i64).pow(2)
-                + (p1[2].abs_diff(p2[2]) as i64).pow(2)
-        })
-        .isqrt()
+    maybe_simd::norm_l2(img1, img2)
 }
 
 #[inline]
