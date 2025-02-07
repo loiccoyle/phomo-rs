@@ -19,6 +19,7 @@ pub(crate) fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
 
     // compute in simd buffers
     while i + SIMD_LANES <= len {
+        // i16 is ok because at max we get 255 * 64 = 16320 < i16::MAX = 32767
         let a: Simd<i16, SIMD_LANES> = Simd::from_slice(&data1[i..i + SIMD_LANES]).cast();
         let b: Simd<i16, SIMD_LANES> = Simd::from_slice(&data2[i..i + SIMD_LANES]).cast();
         sum += (a - b).abs().reduce_sum() as i64;
@@ -43,8 +44,9 @@ pub(crate) fn norm_l2(img1: &RgbImage, img2: &RgbImage) -> i64 {
     let mut i = 0;
 
     while i + SIMD_LANES <= len {
-        let a: Simd<i16, SIMD_LANES> = Simd::from_slice(&data1[i..i + SIMD_LANES]).cast();
-        let b: Simd<i16, SIMD_LANES> = Simd::from_slice(&data2[i..i + SIMD_LANES]).cast();
+        // max possible is (255 * 64)**2 = 266342400 < i32::MAX = 2147483647
+        let a: Simd<i32, SIMD_LANES> = Simd::from_slice(&data1[i..i + SIMD_LANES]).cast();
+        let b: Simd<i32, SIMD_LANES> = Simd::from_slice(&data2[i..i + SIMD_LANES]).cast();
         let diff = a - b;
         sum += (diff * diff).reduce_sum() as i64;
         i += SIMD_LANES;
