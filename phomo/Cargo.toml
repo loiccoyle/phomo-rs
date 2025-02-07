@@ -25,6 +25,7 @@ default = ["parallel"]
 blueprint = ["serde", "serde_json"]
 parallel = ["rayon", "indicatif?/rayon"]
 progress_bar = ["indicatif"]
+simd = []
 
 [dev-dependencies]
 criterion = "0.5.1"

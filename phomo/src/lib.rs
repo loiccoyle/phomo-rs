@@ -1,4 +1,4 @@
-#![feature(portable_simd)]
+#![cfg_attr(feature = "simd", feature(portable_simd))]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc =include_str!("../README.md")]
 mod color_match;
