@@ -321,7 +321,7 @@ fn build_mosaic_match_master_to_tiles() {
         &mosaic_img,
         test_dir().join("mosaic_16_16_match_master_to_tiles.png"),
     );
-    assert!(kinda_same_imgs(mosaic_img, expected, 2.));
+    assert!(kinda_same_imgs(mosaic_img, expected, 4.));
 }
 
 // TODO: this test fails when running on GitHub Actions

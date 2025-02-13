@@ -11,6 +11,7 @@ description = "Wasm bindings for the phomo rust crate - a photo mosaic library"
 [dependencies]
 phomo = { path = "../phomo", version = "0.7.3", default-features = false, features = [
   "blueprint",
+  "simd",
 ] }
 image = { workspace = true }
 

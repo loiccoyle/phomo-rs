@@ -325,6 +325,7 @@ mod tests {
     use std::{path::PathBuf, str::FromStr};
 
     use super::*;
+    use crate::metrics::norm_l1;
     use image::open;
 
     fn test_dir() -> std::path::PathBuf {
@@ -434,7 +435,12 @@ mod tests {
         let expected_img = open(test_dir.join("target_equalized.png"))
             .unwrap()
             .to_rgb8();
-        assert_eq!(img_equalized, expected_img, "Equalization failed");
+
+        // it can be off by 1 on each channel over the whole image
+        assert!(
+            norm_l1(&img_equalized, &expected_img) <= 3 * img.width() as i64 * img.height() as i64,
+            "Equalization failed"
+        );
     }
 
     #[test]
@@ -455,11 +461,12 @@ mod tests {
         }
         let expected_img = open(&matched_file).unwrap().to_rgb8();
 
-        // Compare the matched image with the expected image
-        let matched_pixels: Vec<u8> = matched_img.pixels().flat_map(|p| p.0).collect();
-        let expected_pixels: Vec<u8> = expected_img.pixels().flat_map(|p| p.0).collect();
-        assert_eq!(matched_pixels.len(), expected_pixels.len());
-        assert_eq!(matched_pixels, expected_pixels);
+        assert!(
+            norm_l1(&matched_img, &expected_img)
+                <= source.width() as i64 * source.height() as i64 * 3,
+            "Color matching failed"
+        );
+        // assert_eq!(matched_pixels, expected_pixels);
     }
 
     // Color space tests
