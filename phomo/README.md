@@ -2,6 +2,13 @@
 
 A Photo mosaic generation library.
 
+## Feature flags
+
+- `blueprint`: Construct mosaics serializable blueprints.
+- `parallel`: Parallelize computation with `rayon`
+- `progress_bar`: Display progress bar with `indicatif`
+- `simd`: Use SIMD instructions for faster computation, uses [`portable_simd`](https://github.com/rust-lang/portable-simd) which requires the nightly rust toolchain.
+
 ## Usage
 
 To build a photo mosaic, you'll need a master image as well as a bunch of so called tile images. The tile images will be arranged to best reconstruct the master image.
