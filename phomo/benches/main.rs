@@ -122,9 +122,20 @@ fn bench_render(c: &mut Criterion) {
     });
 }
 
+fn bench_tile_load(c: &mut Criterion) {
+    let tile_dir = &tile_dir();
+
+    c.bench_function("load_tiles", |b| {
+        b.iter(|| {
+            read_images_from_dir_resized(tile_dir, 32, 32, image::imageops::FilterType::Nearest)
+                .unwrap();
+        })
+    });
+}
+
 criterion_group! {
     name = benches;
     config = Criterion::default().sample_size(100).measurement_time(Duration::from_secs(10));
-    targets = bench_distance_matrix, bench_solvers, bench_build_mosaic, bench_metrics, bench_render
+    targets = bench_distance_matrix, bench_solvers, bench_build_mosaic, bench_metrics, bench_render, bench_tile_load
 }
 criterion_main!(benches);
