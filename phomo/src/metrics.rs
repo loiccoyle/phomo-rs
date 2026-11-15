@@ -17,11 +17,15 @@ pub(crate) type MetricFn = fn(&RgbImage, &RgbImage) -> i64;
 /// assert_eq!(norm, 255 * 3 * 2 * 2);
 /// ```
 pub fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
-    img1.pixels().zip(img2.pixels()).fold(0, |sum, (p1, p2)| {
-        sum + (p1[0].abs_diff(p2[0]) as i64)
-            + (p1[1].abs_diff(p2[1]) as i64)
-            + (p1[2].abs_diff(p2[2]) as i64)
-    })
+    // |a - b| on widened bytes compiles to SAD instructions; u32 chunk sums can't overflow.
+    raw_chunks(img1, img2, 1 << 16)
+        .map(|(a, b)| {
+            a.iter()
+                .zip(b)
+                .map(|(&x, &y)| (x as i32 - y as i32).unsigned_abs())
+                .sum::<u32>() as i64
+        })
+        .sum()
 }
 
 /// L2 norm, the euclidean distance of the pixels.
@@ -41,14 +45,27 @@ pub fn norm_l1(img1: &RgbImage, img2: &RgbImage) -> i64 {
 /// assert_eq!(norm, (255_i64.pow(2) * 3 * 2 * 2).isqrt());
 /// ```
 pub fn norm_l2(img1: &RgbImage, img2: &RgbImage) -> i64 {
-    img1.pixels()
-        .zip(img2.pixels())
-        .fold(0, |sum, (p1, p2)| {
-            sum + (p1[0].abs_diff(p2[0]) as i64).pow(2)
-                + (p1[1].abs_diff(p2[1]) as i64).pow(2)
-                + (p1[2].abs_diff(p2[2]) as i64).pow(2)
+    // Squares are at most 255^2, so 2^15 of them fit in a u32.
+    raw_chunks(img1, img2, 1 << 15)
+        .map(|(a, b)| {
+            a.iter()
+                .zip(b)
+                .map(|(&x, &y)| (x as i32 - y as i32).pow(2) as u32)
+                .sum::<u32>() as i64
         })
+        .sum::<i64>()
         .isqrt()
+}
+
+/// The two images' pixel bytes, in matching chunks of `size`.
+fn raw_chunks<'a>(
+    img1: &'a RgbImage,
+    img2: &'a RgbImage,
+    size: usize,
+) -> impl Iterator<Item = (&'a [u8], &'a [u8])> {
+    let len = |img: &RgbImage| img.width() as usize * img.height() as usize * 3;
+    let (a, b) = (&img1.as_raw()[..len(img1)], &img2.as_raw()[..len(img2)]);
+    a.chunks(size).zip(b.chunks(size))
 }
 
 #[inline]
@@ -127,4 +144,31 @@ pub fn avg_color(img1: &RgbImage, img2: &RgbImage) -> i64 {
 
     (avg1.0.abs_diff(avg2.0) + avg1.1.abs_diff(avg2.1) + avg1.2.abs_diff(avg2.2)) as i64
         / (3 * img1.width() as i64 * img1.height() as i64)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_norms_match_per_pixel_sums() {
+        let noise = |w, h, seed: u32| {
+            RgbImage::from_fn(w, h, |x, y| {
+                let n = (x.wrapping_mul(1664525) ^ y.wrapping_mul(1013904223) ^ seed)
+                    .wrapping_mul(2891336453);
+                image::Rgb([(n >> 24) as u8, (n >> 16) as u8, (n >> 8) as u8])
+            })
+        };
+        for (w, h) in [(1, 1), (7, 3), (160, 120), (300, 200)] {
+            let (a, b) = (noise(w, h, 1), noise(w, h, 2));
+            let l1 = a.pixels().zip(b.pixels()).fold(0i64, |s, (p, q)| {
+                s + (0..3).map(|c| p[c].abs_diff(q[c]) as i64).sum::<i64>()
+            });
+            let l2 = a.pixels().zip(b.pixels()).fold(0i64, |s, (p, q)| {
+                s + (0..3).map(|c| (p[c].abs_diff(q[c]) as i64).pow(2)).sum::<i64>()
+            });
+            assert_eq!(norm_l1(&a, &b), l1);
+            assert_eq!(norm_l2(&a, &b), l2.isqrt());
+        }
+    }
 }
