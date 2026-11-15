@@ -75,6 +75,17 @@ fn bench_metrics(c: &mut Criterion) {
     group.finish();
 }
 
+fn bench_read_tiles(c: &mut Criterion) {
+    c.bench_function("read_images_from_dir_resized", |b| {
+        b.iter(|| {
+            black_box(
+                read_images_from_dir_resized(tile_dir(), 32, 32, image::imageops::FilterType::Nearest)
+                    .unwrap(),
+            )
+        });
+    });
+}
+
 fn bench_distance_matrix(c: &mut Criterion) {
     let mosaic = create_mosaic();
     c.bench_function("distance_matrix", |b| {
@@ -125,6 +136,6 @@ fn bench_render(c: &mut Criterion) {
 criterion_group! {
     name = benches;
     config = Criterion::default().sample_size(100).measurement_time(Duration::from_secs(10));
-    targets = bench_distance_matrix, bench_solvers, bench_build_mosaic, bench_metrics, bench_render
+    targets = bench_read_tiles, bench_distance_matrix, bench_solvers, bench_build_mosaic, bench_metrics, bench_render
 }
 criterion_main!(benches);

@@ -5,6 +5,9 @@ use image::{GenericImageView, Pixel, RgbImage, SubImage};
 use log::warn;
 
 use crate::error::PhomoError;
+use crate::macros;
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
 
 /// Helper function to crop am image to a width and height centered on the image.
 ///
@@ -72,21 +75,18 @@ where
     crop_imm_centered(&resized_img, width, height).to_image()
 }
 
-/// Read all images in a directory and returns them in a vector.
-///
-/// # Arguments
-/// - `tile_dir`: The path to the directory containing the tile images.
-///
-/// # Errors
-/// - An error occurred while reading the directory.
-/// - Failed to open the image.
-pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, PhomoError> {
-    Ok(tile_dir
-        .as_ref()
-        .read_dir()?
+/// Open every image in `tile_dir` and apply `f` to it, in parallel with the `parallel`
+/// feature. Entries are collected first so the result keeps the directory order.
+fn read_images_from_dir_with<P, F>(tile_dir: P, f: F) -> Result<Vec<RgbImage>, PhomoError>
+where
+    P: AsRef<Path>,
+    F: Fn(RgbImage) -> RgbImage + Sync + Send,
+{
+    let entries = tile_dir.as_ref().read_dir()?.collect::<Vec<_>>();
+    Ok(macros::iter_or_par_iter!(entries)
         .filter_map(|entry| match entry {
             Ok(p) => match image::open(p.path()) {
-                Ok(img) => Some(img.to_rgb8()),
+                Ok(img) => Some(f(img.to_rgb8())),
                 Err(e) => {
                     warn!("Failed to open image at path {:?}: {:?}", p.path(), e);
                     None
@@ -98,6 +98,18 @@ pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>
             }
         })
         .collect::<Vec<_>>())
+}
+
+/// Read all images in a directory and returns them in a vector.
+///
+/// # Arguments
+/// - `tile_dir`: The path to the directory containing the tile images.
+///
+/// # Errors
+/// - An error occurred while reading the directory.
+/// - Failed to open the image.
+pub fn read_images_from_dir<P: AsRef<Path>>(tile_dir: P) -> Result<Vec<RgbImage>, PhomoError> {
+    read_images_from_dir_with(tile_dir, |img| img)
 }
 
 /// Read all images in a directory, cropped to the `width` and `height` and return them in a
@@ -112,10 +124,9 @@ pub fn read_images_from_dir_cropped<P: AsRef<Path>>(
     width: u32,
     height: u32,
 ) -> Result<Vec<RgbImage>, PhomoError> {
-    Ok(read_images_from_dir(tile_dir)?
-        .iter()
-        .map(|img| crop_cover(img, width, height, image::imageops::FilterType::Nearest))
-        .collect::<Vec<_>>())
+    read_images_from_dir_with(tile_dir, |img| {
+        crop_cover(&img, width, height, image::imageops::FilterType::Nearest)
+    })
 }
 
 /// Read all images in a directory, resized to the `width` and `height` and returns them in a vector.
@@ -131,15 +142,27 @@ pub fn read_images_from_dir_resized<P: AsRef<Path>>(
     height: u32,
     filter: image::imageops::FilterType,
 ) -> Result<Vec<RgbImage>, PhomoError> {
-    Ok(read_images_from_dir(tile_dir)?
-        .iter()
-        .map(|img| image::imageops::resize(img, width, height, filter))
-        .collect::<Vec<_>>())
+    read_images_from_dir_with(tile_dir, |img| {
+        image::imageops::resize(&img, width, height, filter)
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_read_images_from_dir_keeps_dir_order() {
+        let dir = std::path::PathBuf::from("tests/data/mosaic/faces");
+        let expected: Vec<RgbImage> = dir
+            .read_dir()
+            .unwrap()
+            .filter_map(|e| image::open(e.unwrap().path()).ok())
+            .map(|img| img.to_rgb8())
+            .collect();
+        assert!(expected.len() > 1);
+        assert_eq!(read_images_from_dir(&dir).unwrap(), expected);
+    }
     use std::path::PathBuf;
 
     fn test_dir() -> PathBuf {
