@@ -3,7 +3,7 @@ use std::path::Path;
 use std::time;
 
 extern crate image;
-use image::{GenericImage, RgbImage};
+use image::RgbImage;
 use log::info;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
@@ -181,17 +181,26 @@ impl Mosaic {
             .into());
         }
 
-        let (grid_width, _) = self.grid_size;
+        let tiles = assignments
+            .iter()
+            .map(|&tile_idx| &self.tiles[tile_idx % self.tiles.len()])
+            .collect::<Vec<_>>();
+
+        // Copy whole tile rows rather than pixel by pixel.
+        let grid_width = self.grid_size.0 as usize;
         let (cell_width, cell_height) = self.master.cell_size;
+        let (row_len, cell_height) = (cell_width as usize * 3, cell_height as usize);
         let mut mosaic_img = RgbImage::new(self.master.img.width(), self.master.img.height());
-        for (cell_idx, tile_idx) in assignments.into_iter().enumerate() {
-            let x = (cell_idx as u32 % grid_width) * cell_width;
-            let y = (cell_idx as u32 / grid_width) * cell_height;
-            let tile = self
-                .tiles
-                .get(tile_idx % self.tiles.len())
-                .ok_or(MosaicError::InvalidTileIndex(tile_idx))?;
-            mosaic_img.copy_from(tile, x, y)?;
+        let width = mosaic_img.width() as usize * 3;
+        if width == 0 || row_len == 0 || cell_height == 0 {
+            return Ok(mosaic_img);
+        }
+        for (y, row) in mosaic_img.chunks_exact_mut(width).enumerate() {
+            let (cell_y, tile_y) = (y / cell_height, y % cell_height);
+            for (cell_x, dst) in row.chunks_exact_mut(row_len).enumerate() {
+                let tile = tiles[cell_y * grid_width + cell_x].as_raw();
+                dst.copy_from_slice(&tile[tile_y * row_len..(tile_y + 1) * row_len]);
+            }
         }
         Ok(mosaic_img)
     }
